@@ -887,7 +887,13 @@ content A=a
 fs dir /t/root/a
 call project_path_gateway_init /t/root
 call project_path_gateway_verify /out/none/report.txt
-status 0
+status 2
+out project-path-gateway: 검증 통과 1건
+err project-path-gateway: project_path_gateway_verify: 리포트 파일을 쓸 수 없습니다: /out/none/report.txt
+op returned project_path_gateway_init 0
+op write /out/none/.ppg-report.4242.report.txt project-path-gateway:\s검증\s통과\s1건\n
+op remove /out/none/.ppg-report.4242.report.txt
+op returned project_path_gateway_verify 2
 
 case verify-report-write-fails-pass-readonly-directory
 fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
@@ -896,7 +902,13 @@ fs dir /t/root/a
 fs readonly /out
 call project_path_gateway_init /t/root
 call project_path_gateway_verify /out/report.txt
-status 0
+status 2
+out project-path-gateway: 검증 통과 1건
+err project-path-gateway: project_path_gateway_verify: 리포트 파일을 쓸 수 없습니다: /out/report.txt
+op returned project_path_gateway_init 0
+op write /out/.ppg-report.4242.report.txt project-path-gateway:\s검증\s통과\s1건\n
+op remove /out/.ppg-report.4242.report.txt
+op returned project_path_gateway_verify 2
 
 case verify-report-write-fails-pass-target-is-directory
 fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
@@ -905,7 +917,11 @@ fs dir /t/root/a
 fs dir /out/report.txt
 call project_path_gateway_init /t/root
 call project_path_gateway_verify /out/report.txt
-status 0
+status 2
+out project-path-gateway: 검증 통과 1건
+err project-path-gateway: project_path_gateway_verify: 리포트 파일을 쓸 수 없습니다: /out/report.txt
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 2
 
 case verify-report-write-fails-pass-target-is-link-to-directory
 fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
@@ -915,7 +931,11 @@ fs dir /out/sub
 fs link /out/report.txt sub
 call project_path_gateway_init /t/root
 call project_path_gateway_verify /out/report.txt
-status 0
+status 2
+out project-path-gateway: 검증 통과 1건
+err project-path-gateway: project_path_gateway_verify: 리포트 파일을 쓸 수 없습니다: /out/report.txt
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 2
 
 case verify-report-write-fails-pass-empty-name
 fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
@@ -923,14 +943,25 @@ content A=a
 fs dir /t/root/a
 call project_path_gateway_init /t/root
 call project_path_gateway_verify /out/
-status 0
+status 2
+out project-path-gateway: 검증 통과 1건
+err project-path-gateway: project_path_gateway_verify: 리포트 파일을 쓸 수 없습니다: /out/
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 2
 
 case verify-report-write-fails-fail-parent-missing
 fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
 content A=a
 call project_path_gateway_init /t/root
 call project_path_gateway_verify /out/none/report.txt
-status 0
+status 2
+err project-path-gateway: 누락: A=a
+err project-path-gateway: 검증 실패 1건
+err project-path-gateway: project_path_gateway_verify: 리포트 파일을 쓸 수 없습니다: /out/none/report.txt
+op returned project_path_gateway_init 0
+op write /out/none/.ppg-report.4242.report.txt project-path-gateway:\s누락:\sA=a\nproject-path-gateway:\s검증\s실패\s1건\n
+op remove /out/none/.ppg-report.4242.report.txt
+op returned project_path_gateway_verify 2
 
 case verify-report-write-fails-fail-readonly-directory
 fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
@@ -938,7 +969,14 @@ content A=a
 fs readonly /out
 call project_path_gateway_init /t/root
 call project_path_gateway_verify /out/report.txt
-status 0
+status 2
+err project-path-gateway: 누락: A=a
+err project-path-gateway: 검증 실패 1건
+err project-path-gateway: project_path_gateway_verify: 리포트 파일을 쓸 수 없습니다: /out/report.txt
+op returned project_path_gateway_init 0
+op write /out/.ppg-report.4242.report.txt project-path-gateway:\s누락:\sA=a\nproject-path-gateway:\s검증\s실패\s1건\n
+op remove /out/.ppg-report.4242.report.txt
+op returned project_path_gateway_verify 2
 
 case verify-report-write-fails-fail-target-is-directory
 fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
@@ -946,7 +984,12 @@ content A=a
 fs dir /out/report.txt
 call project_path_gateway_init /t/root
 call project_path_gateway_verify /out/report.txt
-status 0
+status 2
+err project-path-gateway: 누락: A=a
+err project-path-gateway: 검증 실패 1건
+err project-path-gateway: project_path_gateway_verify: 리포트 파일을 쓸 수 없습니다: /out/report.txt
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 2
 
 case verify-report-write-fails-fail-target-is-link-to-directory
 fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
@@ -955,14 +998,24 @@ fs dir /out/sub
 fs link /out/report.txt sub
 call project_path_gateway_init /t/root
 call project_path_gateway_verify /out/report.txt
-status 0
+status 2
+err project-path-gateway: 누락: A=a
+err project-path-gateway: 검증 실패 1건
+err project-path-gateway: project_path_gateway_verify: 리포트 파일을 쓸 수 없습니다: /out/report.txt
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 2
 
 case verify-report-write-fails-fail-empty-name
 fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
 content A=a
 call project_path_gateway_init /t/root
 call project_path_gateway_verify /out/
-status 0
+status 2
+err project-path-gateway: 누락: A=a
+err project-path-gateway: 검증 실패 1건
+err project-path-gateway: project_path_gateway_verify: 리포트 파일을 쓸 수 없습니다: /out/
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 2
 
 # 격리: 리포트 쓰기 성공·실패 모두 호출 셸 옵션·IFS·trap·작업 디렉터리를 바꾸지 않는다 (FR-030)
 case verify-report-write-fails-isolation-set-eu
@@ -975,7 +1028,16 @@ call project_path_gateway_init /t/root
 call project_path_gateway_verify /out/report.txt
 call project_path_gateway_verify /out/locked/report.txt
 call true
-status 0
+status 2
+out project-path-gateway: 검증 통과 1건
+out project-path-gateway: 검증 통과 1건
+err project-path-gateway: project_path_gateway_verify: 리포트 파일을 쓸 수 없습니다: /out/locked/report.txt
+op returned project_path_gateway_init 0
+op write /out/.ppg-report.4242.report.txt project-path-gateway:\s검증\s통과\s1건\n
+op move /out/.ppg-report.4242.report.txt /out/report.txt
+op returned project_path_gateway_verify 0
+op write /out/locked/.ppg-report.4242.report.txt project-path-gateway:\s검증\s통과\s1건\n
+op remove /out/locked/.ppg-report.4242.report.txt
 
 case verify-report-write-fails-isolation-ifs-noglob-trap-cwd
 caller-ifs /
@@ -987,4 +1049,16 @@ content A=a
 call project_path_gateway_init /t/root
 call project_path_gateway_verify report.txt
 call project_path_gateway_verify /out/locked/report.txt
-status 0
+status 2
+err project-path-gateway: 누락: A=a
+err project-path-gateway: 검증 실패 1건
+err project-path-gateway: 누락: A=a
+err project-path-gateway: 검증 실패 1건
+err project-path-gateway: project_path_gateway_verify: 리포트 파일을 쓸 수 없습니다: /out/locked/report.txt
+op returned project_path_gateway_init 0
+op write ./.ppg-report.4242.report.txt project-path-gateway:\s누락:\sA=a\nproject-path-gateway:\s검증\s실패\s1건\n
+op move ./.ppg-report.4242.report.txt report.txt
+op returned project_path_gateway_verify 1
+op write /out/locked/.ppg-report.4242.report.txt project-path-gateway:\s누락:\sA=a\nproject-path-gateway:\s검증\s실패\s1건\n
+op remove /out/locked/.ppg-report.4242.report.txt
+op returned project_path_gateway_verify 2

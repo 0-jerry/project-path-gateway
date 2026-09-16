@@ -745,7 +745,10 @@ project_path_gateway__if_verify_report() (
 		body="project-path-gateway: 검증 통과 ${captured#ok }"
 		body="${body%"$nl"}건$nl"
 		printf '%s' "$body"
-		project_path_gateway__app_write_report "$2" "$body"
+		if ! project_path_gateway__app_write_report "$2" "$body"; then
+			project_path_gateway__if_error project_path_gateway_verify "리포트 파일을 쓸 수 없습니다: $2"
+			return 2
+		fi
 		return 0
 		;;
 	1) ;;
@@ -759,7 +762,10 @@ project_path_gateway__if_verify_report() (
 	summary=${last##*"$nl"}
 	body="${last%"$summary"}project-path-gateway: 검증 실패 ${summary#fail }건$nl"
 	printf '%s' "$body" >&2
-	project_path_gateway__app_write_report "$2" "$body"
+	if ! project_path_gateway__app_write_report "$2" "$body"; then
+		project_path_gateway__if_error project_path_gateway_verify "리포트 파일을 쓸 수 없습니다: $2"
+		return 2
+	fi
 	return 1
 )
 
