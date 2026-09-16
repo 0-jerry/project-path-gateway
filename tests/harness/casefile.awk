@@ -86,6 +86,12 @@ function normalized_abs(p) {
 }
 
 BEGIN {
+	# 작업 기록 종류별 인자 토큰 개수(contracts/doubles.md). 끝이 +이면 그 수 이상.
+	split("is-dir:1 is-file:1 is-readable:1 exists:1 is-link:1 physical-dir:1 readlink:1 read-lines:1 read-file:1 self-path:0 command-path:1 pid:0 list-prefix:2 cd:1 pwd:0 " \
+		"mkdir:1 mkdir-p:1 rmdir:1 remove:1 write:2 copy:2 link:2 move:2 chmod:2 trap:2 port:1+ returned:2 changed:1 source:1", a, " ")
+	for (k in a) { split(a[k], opkv, ":"); op_argc[opkv[1]] = opkv[2] }
+	split("is-dir is-file is-readable exists is-link physical-dir readlink read-lines read-file self-path command-path pid list-prefix cd pwd", a, " ")
+	for (k in a) read_kind[a[k]] = 1
 	SQ = sprintf("%c", 39)
 	TAB = "\t"
 	CR = sprintf("%c", 13)
@@ -194,7 +200,7 @@ FNR == 1 {
 }
 
 # 필드별 토큰 개수·값 검사. 문제가 있으면 오류를 기록하고 0.
-function check_tokens(name, n,   v1, ok) {
+function check_tokens(name, n,   v1, ok, want) {
 	v1 = decode(tok[1])
 	if (name == "target") {
 		if (!(tok[1] in adapters)) { err(FNR, "허용하지 않는 값입니다: target " tok[1]); return 0 }
@@ -229,6 +235,11 @@ function check_tokens(name, n,   v1, ok) {
 	if (name == "op" && (tok[1] == "violation" || tok[1] == "unmatched-stub")) {
 		err(FNR, "기대값에 쓸 수 없는 작업입니다: " tok[1]); return 0
 	}
+	if (name == "op") {
+		if (!(tok[1] in op_argc)) { err(FNR, "허용하지 않는 값입니다: op " tok[1]); return 0 }
+		want = op_argc[tok[1]]
+		if ((want ~ /\+$/ && n - 1 < want + 0) || (want !~ /\+$/ && n - 1 != want + 0)) { err(FNR, "토큰 개수가 잘못되었습니다: op " tok[1]); return 0 }
+	}
 	if (name == "fs") {
 		ok = 0
 		if (tok[1] ~ /^(dir|file|other|deny|readonly)$/ && n == 2) ok = 1
@@ -260,6 +271,14 @@ function check_combined(c,   i, layer, adapter, doubles, opsmode, has_target, fn
 	allowed = (layer == "domain") ? "none" : (layer == "app") ? "ports" : "system"
 	if (doubles != "" && doubles != allowed) return where "허용하지 않는 값입니다: doubles " doubles
 	if (layer == "domain" && opsmode != "") return where "이 위치에 올 수 없는 필드입니다: ops"
+	if (opsmode == "") opsmode = (layer == "api") ? "changes" : "all"
+	if (opsmode == "changes") {
+		for (i = 1; i <= case_nf[c]; i++) {
+			if (cf_name[c, i] != "op") continue
+			split(cf_value[c, i], tt, " ")
+			if (tt[1] in read_kind) return cur_file ":" cf_line[c, i] ": ops changes에서 비교하지 않는 작업입니다: " tt[1]
+		}
+	}
 	doubles = allowed
 	if (!case_has_status[c]) return cur_file ":" case_line[c] ": 필수 필드가 없습니다: status"
 	# 입력 필드와 어댑터 조합
