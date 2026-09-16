@@ -77,7 +77,7 @@ fi
 # 5. 계층 규칙
 check_layers() {
 	# $1: 파일, $2: 내부 함수 접두어(lib: project_path_gateway__, bin: ppg__), $3: lib 또는 bin
-	awk -v file="$1" -v pre="$2" -v kind="$3" '
+	LC_ALL=C awk -v file="$1" -v pre="$2" -v kind="$3" '
 	function layer_of(name,   rest) {
 		rest = substr(name, length(pre) + 1)
 		if (rest ~ /^domain_/) return "domain"
@@ -208,7 +208,7 @@ done
 
 # 6. 환경 접근 위치
 check_env_access() {
-	awk -v file="$1" '
+	LC_ALL=C awk -v file="$1" '
 	function problem(msg) {
 		print file ":" FNR ": " msg > "/dev/stderr"
 		count++

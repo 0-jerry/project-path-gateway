@@ -80,7 +80,7 @@ ppgt_adapter_run() {
 	/^[ \t]*\. / { sub(/\. /, "ppgt_readme_source "); print; next }
 	{ print }')
 	ppgt_readme_argv=
-	# shellcheck disable=SC2329 # 사례 call 입력(ppgt_case_calls)이 호출한다
+	# shellcheck disable=SC2317,SC2329 # 사례 call 입력(ppgt_case_calls)이 호출한다(ShellCheck 버전에 따라 SC2317 또는 SC2329)
 	ppgt_call() {
 		for ppgt_call_arg in "$@"; do
 			ppgt_readme_argv="$ppgt_readme_argv $(ppgt_shq "$ppgt_call_arg")"
