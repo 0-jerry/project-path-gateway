@@ -376,3 +376,137 @@ head -1 "$WORK/out/int.txt"; ls -A "$WORK/out" | grep '^\.ppg-report\.' || echo 
 기대 결과: 미지정과 리포트 지정 경과 시간 차이가 1초 이하(SC-005, 초 단위 측정, 초과하면 기록). 중단한 실행은 `status=143`이고(검증이 1초 안에 끝났으면 0), `int.txt` 첫 줄이 `old` 또는
 `project-path-gateway: 검증 통과 200건`이고, 반쯤 쓴 내용은 없습니다. 쓰기와 옮기기 사이에 중단된 경우에만 `.ppg-report.<PID>.int.txt`
 임시 파일이 남을 수 있으며 그 이름을 기록합니다.
+
+## 11. 경로 항목 등록·갱신 실제 쓰기
+
+기능 004(`project_path_gateway_add`, `project_path_gateway_update`)의 실제 파일 쓰기를 확인합니다. dry-run 사례는 호출 사이에 파일 상태가
+이어지지 않으므로, 등록·갱신 뒤 연속 조회·검증은 이 절에서 확인합니다. root가 아닌 사용자로 실행하고, 11.1부터 순서대로 실행합니다.
+
+```sh
+root="$WORK/root"
+tool="$root/.tool/project-path-gateway"
+conf="$tool/project-path-gateway.conf"
+mkdir -p "$tool" "$root/docs"
+printf '%s\n' '# marker' 'format=1' >"$tool/.project-path-gateway"
+printf '# 경로 항목\n' >"$conf"
+g() { "$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" || exit 2; shift 2; "$@"' _ "$REPO" "$root" "$@"; }
+tmpcount() { ls -A "$tool" | grep -c '^\.ppg-tmp\.'; }
+```
+
+### 11.1 새 시스템 포트 실제 동작
+
+```sh
+printf 'A=a\nB=b' >"$WORK/raw" && chmod 640 "$WORK/raw"
+"$SH" -c '
+. "$1/lib/project-path-gateway.sh"
+w=$2
+t=$(project_path_gateway__sys_read_file "$w/raw") && printf "%s" "${t%x}" | od -c | tail -2 | head -1
+project_path_gateway__sys_is_writable "$w/raw" && echo writable
+project_path_gateway__sys_copy_preserve "$w/raw" "$w/copy" && echo copied
+' _ "$REPO" "$WORK"
+ls -l "$WORK/copy" | cut -c1-10
+chmod 444 "$WORK/raw" && "$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway__sys_is_writable "$2/raw" || echo not-writable' _ "$REPO" "$WORK"
+```
+
+기대 결과: `od` 줄이 `b`로 끝나고 끝에 `\n`이 없음, `writable`, `copied`, `-rw-r-----`, `not-writable`.
+
+### 11.2 등록 뒤 연속 조회·검증 (US1, SC-001, SC-004)
+
+```sh
+g project_path_gateway_add DOCS_DIR docs; echo "add=$?"
+g project_path_gateway_add NEW_DIR 'not yet'; echo "add2=$?"
+g project_path_gateway_get DOCS_DIR
+g project_path_gateway_verify; echo "verify=$?"
+cat "$conf"
+```
+
+기대 결과: `add=0`, `add2=0`(출력 없음), `<WORK>/root/docs`, stderr `project-path-gateway: 누락: NEW_DIR=not yet`과
+`project-path-gateway: 검증 실패 1건`, `verify=1`(규칙 위반 보고 없음). 파일은 `# 경로 항목`, `DOCS_DIR=docs`, `NEW_DIR=not yet` 세 줄입니다.
+
+### 11.3 중복 등록 거부 (US2, SC-002)
+
+```sh
+before=$(cksum <"$conf")
+g project_path_gateway_add DOCS_DIR manual; echo "status=$?"
+g project_path_gateway_add DOCS_DIR docs; echo "status=$?"
+[ "$before" = "$(cksum <"$conf")" ] && echo 무변경
+```
+
+기대 결과: 두 번 모두 stderr `project-path-gateway: project_path_gateway_add: 이미 등록된 키입니다: DOCS_DIR`와 `status=2`, `무변경`.
+
+### 11.4 가운데 키 갱신과 파일 끝 개행 유지 (US3, SC-003)
+
+```sh
+printf '# 경로 항목\n\nA_DIR=a\nB_DIR=b\n\nC_DIR=c\n' >"$conf"
+printf '# 경로 항목\n\nA_DIR=a\nB_DIR=new/b\n\nC_DIR=c\n' >"$WORK/expected"
+g project_path_gateway_update B_DIR new/b; echo "status=$?"
+cmp "$conf" "$WORK/expected" && echo 대상줄만변경
+g project_path_gateway_get B_DIR
+printf 'A_DIR=a\nB_DIR=b' >"$conf"
+g project_path_gateway_update B_DIR x; echo "status=$?"
+od -c "$conf" | tail -2 | head -1
+g project_path_gateway_update X_DIR x; echo "status=$?"
+```
+
+기대 결과: `status=0`, `대상줄만변경`, `<WORK>/root/new/b`, `status=0`, `od` 줄이 `x`로 끝나고 `\n` 없음,
+stderr `등록되지 않은 키입니다: X_DIR`와 `status=2`.
+
+### 11.5 모드 유지, 읽기 전용 파일, 링크, 도구 디렉터리 쓰기 불가 (US4, FR-030~FR-034)
+
+```sh
+printf 'A_DIR=a\n' >"$conf" && chmod 640 "$conf"
+touch -t 200001010000 "$conf"
+g project_path_gateway_add B_DIR b; echo "status=$?"
+ls -l "$conf" | cut -c1-10; find "$conf" -newermt 2000-01-02 | grep -q . && echo 수정시각갱신
+chmod 444 "$conf"; before=$(cksum <"$conf")
+g project_path_gateway_add C_DIR c; echo "readonly=$?"
+g project_path_gateway_update A_DIR a; echo "same-path=$?"
+[ "$before" = "$(cksum <"$conf")" ] && echo 무변경
+chmod 644 "$conf"
+mv "$conf" "$root/real.conf" && ln -s ../../real.conf "$conf"
+g project_path_gateway_add C_DIR c; echo "link=$?"
+[ -L "$conf" ] && echo 링크유지
+rm "$conf" && mv "$root/real.conf" "$conf"
+chmod 555 "$tool"
+g project_path_gateway_add C_DIR c; echo "dir-readonly=$?"
+chmod 755 "$tool"
+[ "$before" = "$(cksum <"$conf")" ] && echo 무변경
+echo "임시파일 $(tmpcount)개"
+```
+
+기대 결과: `status=0`, `-rw-r-----`, `수정시각갱신`. stderr `데이터 파일에 쓰기 권한이 없습니다: <conf>`와 `readonly=2`,
+`same-path=0`, `무변경`. stderr `데이터 파일이 심볼릭 링크라 바꿀 수 없습니다: <conf>`와 `link=2`, `링크유지`.
+stderr `데이터 파일을 쓸 수 없습니다: <conf>`와 `dir-readonly=2`, `무변경`, `임시파일 0개`.
+
+### 11.6 서로 다른 셸 프로세스의 동시 등록 (경계 사례)
+
+```sh
+printf 'A_DIR=a\n' >"$conf"
+i=0; while [ "$i" -lt 10 ]; do
+	g project_path_gateway_add "P_$i" p & p1=$!
+	g project_path_gateway_add "Q_$i" q & p2=$!
+	wait "$p1" "$p2"
+	i=$((i + 1))
+done
+g project_path_gateway_get A_DIR >/dev/null && echo 규칙유지
+echo "항목 $(grep -c '=' "$conf")줄, 임시파일 $(tmpcount)개"
+```
+
+기대 결과: `규칙유지`(데이터 파일 규칙 위반 없음), 항목은 1~21줄(동시 실행에서 한쪽 변경이 빠질 수 있음), `임시파일 0개`.
+
+### 11.7 신호 중단과 항목 200개 시간 (FR-030, SC-006)
+
+```sh
+i=1; while [ "$i" -le 200 ]; do printf 'KEY_%s=dir/%s\n' "$i" "$i"; i=$((i + 1)); done >"$conf"
+t0=$(date +%s); g project_path_gateway_get KEY_200 >/dev/null; t1=$(date +%s)
+g project_path_gateway_update KEY_200 moved/200; t2=$(date +%s)
+echo "조회 $((t1 - t0))초, 갱신 $((t2 - t1))초"
+cp "$conf" "$WORK/before.conf"
+"$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" || exit 2; project_path_gateway_add LAST_DIR last' _ "$REPO" "$root" & p=$!
+sleep 1; kill -TERM "$p" 2>/dev/null; wait "$p"; echo "status=$?"
+if cmp -s "$conf" "$WORK/before.conf"; then echo 이전내용; elif tail -1 "$conf" | grep -qx 'LAST_DIR=last'; then echo 새내용; fi
+echo "임시파일 $(tmpcount)개"
+```
+
+기대 결과: 조회와 갱신 경과 시간 차이가 1초 이하(SC-006, 초 단위 측정). 중단한 실행은 `status=143`(1초 안에 끝났으면 0)이고,
+데이터 파일은 `이전내용` 또는 `새내용`입니다. 중단 대상은 함수로 감싸지 않고 `"$SH" -c`를 직접 백그라운드로 띄워야 `kill`이 등록 프로세스에 닿습니다. 임시 파일은 0개 또는 1개(복사와 교체 사이에 중단된 경우만)이며 남으면 이름을 기록합니다.
