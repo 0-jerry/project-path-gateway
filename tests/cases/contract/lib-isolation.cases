@@ -1,0 +1,250 @@
+# 공개 API 계약: 호출 셸 격리 (기능 001 library_isolation_contract_test, contracts/library-api.md 1절·8절, FR-050~FR-054)
+# 호출 셸의 작업 디렉터리·옵션·trap·IFS·접두어 밖 변수 불변은 lib-session 어댑터가 끝에 비교해 op changed가 없음으로 확인한다.
+# test_library_source_has_no_exit_word는 scripts/lint.sh 금지 단어 검사로 대체한다(tests/traceability.md).
+target lib-session project_path_gateway
+layer api
+fs file /t/루트\sroot/.tool/project-path-gateway/.project-path-gateway
+fs file /t/루트\sroot/.tool/project-path-gateway/project-path-gateway.conf
+content A=a b/*
+content MISSING=nope
+fs dir /t/루트\sroot/a\sb/*
+
+case isolation-set-eu-caller-is-not-terminated
+caller-set -eu
+call project_path_gateway_init /t/루트\sroot
+call project_path_gateway_get A
+call eval project_path_gateway_get\sNOPE\s2>/dev/null\s||\sprintf\s'get=%s\\n'\s"$?"
+call eval project_path_gateway_verify\s>/dev/null\s2>&1\s||\sprintf\s'verify=%s\\n'\s"$?"
+call eval project_path_gateway_init\s/nonexistent/ppg\s2>/dev/null\s||\sprintf\s'init=%s\\n'\s"$?"
+call eval project_path_gateway_get\sA\s2>/dev/null\s||\sprintf\s'get=%s\\n'\s"$?"
+call eval printf\s'alive\\n'
+status 0
+out /t/루트 root/a b/*
+out get=2
+out verify=1
+out init=2
+out get=2
+out alive
+op returned project_path_gateway_init 0
+op returned project_path_gateway_get 0
+op returned eval 0
+op returned eval 0
+op returned eval 0
+op returned eval 0
+op returned eval 0
+
+case isolation-working-directory-options-and-traps-unchanged
+caller-set -uf
+caller-trap USR1 echo\st
+cwd /t/루트\sroot/a\sb
+call project_path_gateway_init /t/루트\sroot
+call project_path_gateway_get A
+call project_path_gateway_get NOPE
+call project_path_gateway_get
+call project_path_gateway_verify
+call project_path_gateway_verify extra
+call project_path_gateway_init relative
+call project_path_gateway_get A
+call project_path_gateway_init /t/루트\sroot
+status 0
+out /t/루트 root/a b/*
+err project-path-gateway: project_path_gateway_get: 등록되지 않은 키입니다: NOPE
+err project-path-gateway: project_path_gateway_get: 인자는 KEY 1개여야 합니다
+err project-path-gateway: 누락: MISSING=nope
+err project-path-gateway: 검증 실패 1건
+err project-path-gateway: project_path_gateway_verify: 인자를 받지 않습니다
+err project-path-gateway: project_path_gateway_init: 절대경로가 아닙니다: relative
+err project-path-gateway: project_path_gateway_get: 초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요
+op returned project_path_gateway_init 0
+op returned project_path_gateway_get 0
+op returned project_path_gateway_get 2
+op returned project_path_gateway_get 2
+op returned project_path_gateway_verify 1
+op returned project_path_gateway_verify 2
+op returned project_path_gateway_init 2
+op returned project_path_gateway_get 2
+op returned project_path_gateway_init 0
+
+case isolation-caller-variables-unchanged
+caller-ifs :
+caller-var root v-root
+caller-var key v-key
+caller-var path v-path
+caller-var line v-line
+caller-var entry v-entry
+caller-var dir v-dir
+caller-var status v-status
+caller-var file v-file
+caller-var code v-code
+caller-var first v-first
+caller-var seen v-seen
+caller-var lineno v-lineno
+caller-var bad v-bad
+caller-var records v-records
+caller-var record v-record
+caller-var tab v-tab
+caller-var rest v-rest
+caller-var result v-result
+caller-var detail v-detail
+caller-var start v-start
+caller-var current v-current
+caller-var count v-count
+caller-var parent v-parent
+caller-var name v-name
+caller-var target v-target
+caller-var physical v-physical
+caller-var full v-full
+caller-var passed v-passed
+caller-var failed v-failed
+caller-var message v-message
+caller-var violation v-violation
+caller-var cr v-cr
+caller-var has_cr v-has_cr
+caller-var other v-other
+call project_path_gateway_init /t/루트\sroot
+call project_path_gateway_get A
+call project_path_gateway_get NOPE
+call project_path_gateway_get
+call project_path_gateway_verify
+call project_path_gateway_verify extra
+call project_path_gateway_init relative
+call project_path_gateway_get A
+call project_path_gateway_init /t/루트\sroot
+status 0
+out /t/루트 root/a b/*
+err project-path-gateway: project_path_gateway_get: 등록되지 않은 키입니다: NOPE
+err project-path-gateway: project_path_gateway_get: 인자는 KEY 1개여야 합니다
+err project-path-gateway: 누락: MISSING=nope
+err project-path-gateway: 검증 실패 1건
+err project-path-gateway: project_path_gateway_verify: 인자를 받지 않습니다
+err project-path-gateway: project_path_gateway_init: 절대경로가 아닙니다: relative
+err project-path-gateway: project_path_gateway_get: 초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요
+op returned project_path_gateway_init 0
+op returned project_path_gateway_get 0
+op returned project_path_gateway_get 2
+op returned project_path_gateway_get 2
+op returned project_path_gateway_verify 1
+op returned project_path_gateway_verify 2
+op returned project_path_gateway_init 2
+op returned project_path_gateway_get 2
+op returned project_path_gateway_init 0
+
+case isolation-default-caller-results
+call project_path_gateway_init /t/루트\sroot
+call project_path_gateway_get A
+call project_path_gateway_get NOPE
+call project_path_gateway_get
+call project_path_gateway_verify
+call project_path_gateway_verify extra
+call project_path_gateway_init relative
+call project_path_gateway_get A
+call project_path_gateway_init /t/루트\sroot
+call project_path_gateway_verify
+status 1
+out /t/루트 root/a b/*
+err project-path-gateway: project_path_gateway_get: 등록되지 않은 키입니다: NOPE
+err project-path-gateway: project_path_gateway_get: 인자는 KEY 1개여야 합니다
+err project-path-gateway: 누락: MISSING=nope
+err project-path-gateway: 검증 실패 1건
+err project-path-gateway: project_path_gateway_verify: 인자를 받지 않습니다
+err project-path-gateway: project_path_gateway_init: 절대경로가 아닙니다: relative
+err project-path-gateway: project_path_gateway_get: 초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요
+err project-path-gateway: 누락: MISSING=nope
+err project-path-gateway: 검증 실패 1건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_get 0
+op returned project_path_gateway_get 2
+op returned project_path_gateway_get 2
+op returned project_path_gateway_verify 1
+op returned project_path_gateway_verify 2
+op returned project_path_gateway_init 2
+op returned project_path_gateway_get 2
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 1
+
+case isolation-ifs-noglob-and-cdpath-do-not-change-results
+fs dir /t/cdpath/relative
+caller-ifs /
+caller-set -f
+env CDPATH /t/cdpath
+call project_path_gateway_init /t/루트\sroot
+call project_path_gateway_get A
+call project_path_gateway_get NOPE
+call project_path_gateway_get
+call project_path_gateway_verify
+call project_path_gateway_verify extra
+call project_path_gateway_init relative
+call project_path_gateway_get A
+call project_path_gateway_init /t/루트\sroot
+call project_path_gateway_verify
+status 1
+out /t/루트 root/a b/*
+err project-path-gateway: project_path_gateway_get: 등록되지 않은 키입니다: NOPE
+err project-path-gateway: project_path_gateway_get: 인자는 KEY 1개여야 합니다
+err project-path-gateway: 누락: MISSING=nope
+err project-path-gateway: 검증 실패 1건
+err project-path-gateway: project_path_gateway_verify: 인자를 받지 않습니다
+err project-path-gateway: project_path_gateway_init: 절대경로가 아닙니다: relative
+err project-path-gateway: project_path_gateway_get: 초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요
+err project-path-gateway: 누락: MISSING=nope
+err project-path-gateway: 검증 실패 1건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_get 0
+op returned project_path_gateway_get 2
+op returned project_path_gateway_get 2
+op returned project_path_gateway_verify 1
+op returned project_path_gateway_verify 2
+op returned project_path_gateway_init 2
+op returned project_path_gateway_get 2
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 1
+
+case isolation-nounset-does-not-change-results
+caller-set -u
+call project_path_gateway_init /t/루트\sroot
+call project_path_gateway_get A
+call project_path_gateway_get NOPE
+call project_path_gateway_get
+call project_path_gateway_verify
+call project_path_gateway_verify extra
+call project_path_gateway_init relative
+call project_path_gateway_get A
+call project_path_gateway_init /t/루트\sroot
+call project_path_gateway_verify
+status 1
+out /t/루트 root/a b/*
+err project-path-gateway: project_path_gateway_get: 등록되지 않은 키입니다: NOPE
+err project-path-gateway: project_path_gateway_get: 인자는 KEY 1개여야 합니다
+err project-path-gateway: 누락: MISSING=nope
+err project-path-gateway: 검증 실패 1건
+err project-path-gateway: project_path_gateway_verify: 인자를 받지 않습니다
+err project-path-gateway: project_path_gateway_init: 절대경로가 아닙니다: relative
+err project-path-gateway: project_path_gateway_get: 초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요
+err project-path-gateway: 누락: MISSING=nope
+err project-path-gateway: 검증 실패 1건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_get 0
+op returned project_path_gateway_get 2
+op returned project_path_gateway_get 2
+op returned project_path_gateway_verify 1
+op returned project_path_gateway_verify 2
+op returned project_path_gateway_init 2
+op returned project_path_gateway_get 2
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 1
+
+# 다시 source하면 시스템 포트가 실제 구현으로 돌아가므로 같은 호출에서 대체물을 다시 적용한다.
+case isolation-source-again-keeps-root
+call project_path_gateway_init /t/루트\sroot
+call eval .\s"$PPGT_ROOT/lib/project-path-gateway.sh";\sppgt_vfs_apply
+call project_path_gateway_get A
+call eval printf\s'%s\\n'\s"$PROJECT_PATH_GATEWAY_ROOT"
+call eval case\s"$(export\s-p)"\sin\s*PROJECT_PATH_GATEWAY_*)\sprintf\s'exported\\n'\s;;\sesac
+status 0
+out /t/루트 root/a b/*
+out /t/루트 root
+op returned project_path_gateway_init 0
+op returned eval 0
+op returned project_path_gateway_get 0
+op returned eval 0
+op returned eval 0
