@@ -1,0 +1,88 @@
+# 인프라 통합: 검증 리포트 파일 쓰기 (기능 003 FR-020~FR-024, research R-03)
+# 같은 디렉터리 임시 파일(.ppg-report.<PID>.<이름>)에 쓰고 mv로 바꾼다. 실패하면 임시 파일을 지우고 반환 1.
+target lib-func project_path_gateway__port_write_report
+layer infra
+fs dir /w
+
+case write-report-new-file
+arg /w/report.txt
+arg a\nb\n
+status 0
+
+case write-report-overwrites-existing
+fs file /w/report.txt
+content old
+arg /w/report.txt
+arg new\n
+status 0
+
+case write-report-replaces-file-link-not-target
+fs file /w/target.txt
+content keep
+fs link /w/report.txt target.txt
+arg /w/report.txt
+arg new\n
+status 0
+
+case write-report-replaces-broken-link
+fs link /w/report.txt nowhere.txt
+arg /w/report.txt
+arg new\n
+status 0
+
+case write-report-relative-without-directory
+cwd /w
+arg report.txt
+arg new\n
+status 0
+
+case write-report-root-directory
+arg /report.txt
+arg new\n
+status 0
+
+case write-report-content-with-space-korean-and-blank-line
+arg /w/리포트\s파일.txt
+arg project-path-gateway:\s누락:\sA\sB=경로\s한글/x\n\nend\n
+status 0
+
+case write-report-pid-in-temp-name
+pid 777
+arg /w/report.txt
+arg new\n
+status 0
+
+case write-report-target-is-directory
+fs dir /w/report.txt
+arg /w/report.txt
+arg new\n
+status 0
+
+case write-report-target-is-link-to-directory
+fs dir /w/sub
+fs link /w/report.txt sub
+arg /w/report.txt
+arg new\n
+status 0
+
+case write-report-empty-name
+arg /w/
+arg new\n
+status 0
+
+case write-report-parent-missing
+arg /w/none/report.txt
+arg new\n
+status 0
+
+case write-report-readonly-directory
+fs readonly /w
+arg /w/report.txt
+arg new\n
+status 0
+
+case write-report-move-fails
+fault move /w/report.txt
+arg /w/report.txt
+arg new\n
+status 0
