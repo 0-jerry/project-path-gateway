@@ -13,10 +13,8 @@ jobs:
         run: brew install shellcheck dash
       - name: 정적 검사
         run: sh scripts/lint.sh
-      - name: 사례 테스트 (/bin/sh, dash)
-        run: sh tests/run.sh --shell /bin/sh --shell "$(command -v dash)"
       - name: 테스트 (/bin/sh, dash)
-        run: sh tests/run-legacy.sh --shell /bin/sh --shell "$(command -v dash)"
+        run: sh tests/run.sh --shell /bin/sh --shell "$(command -v dash)"
 
   ubuntu:
     runs-on: ubuntu-latest
@@ -26,7 +24,5 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y shellcheck dash
       - name: 정적 검사
         run: sh scripts/lint.sh
-      - name: 사례 테스트 (dash)
-        run: sh tests/run.sh --shell "$(command -v dash)"
       - name: 테스트 (dash)
-        run: sh tests/run-legacy.sh --shell "$(command -v dash)"
+        run: sh tests/run.sh --shell "$(command -v dash)"
