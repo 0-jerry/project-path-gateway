@@ -1,0 +1,28 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 도구 설치
+        run: brew install shellcheck dash
+      - name: 정적 검사
+        run: sh scripts/lint.sh
+      - name: 테스트 (/bin/sh, dash)
+        run: sh tests/run.sh --shell /bin/sh --shell "$(command -v dash)"
+
+  ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 도구 설치
+        run: sudo apt-get update && sudo apt-get install -y shellcheck dash
+      - name: 정적 검사
+        run: sh scripts/lint.sh
+      - name: 테스트 (dash)
+        run: sh tests/run.sh --shell "$(command -v dash)"
