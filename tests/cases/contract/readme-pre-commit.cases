@@ -1,0 +1,24 @@
+# 공개 API 계약: README pre-commit 훅 사용 예 (기능 001 readme_examples_test_pre_commit_example, precommit_hook_test, SC-007)
+# Git은 훅 실행 전 작업 디렉터리를 작업 트리 루트로 옮기므로 cwd를 프로젝트 루트로 둔다. 실제 커밋 중단은 tests/manual-checks.md에서 확인한다.
+target readme-example pre-commit
+layer api
+self .git/hooks/pre-commit
+fs file /t/my\sproject/.tool/project-path-gateway/.project-path-gateway
+fs file /t/my\sproject/.tool/project-path-gateway/project-path-gateway.sh
+fs file /t/my\sproject/.tool/project-path-gateway/project-path-gateway.conf
+content APP_CONFIG=config/app.json
+fs file /t/my\sproject/.git/hooks/pre-commit
+
+case readme-pre-commit-passes-when-path-exists
+fs file /t/my\sproject/config/app.json
+cwd /t/my\sproject
+status 0
+out project-path-gateway: 검증 통과 1건
+op source ./.tool/project-path-gateway/project-path-gateway.sh
+
+case readme-pre-commit-fails-when-path-missing
+cwd /t/my\sproject
+status 1
+err project-path-gateway: 누락: APP_CONFIG=config/app.json
+err project-path-gateway: 검증 실패 1건
+op source ./.tool/project-path-gateway/project-path-gateway.sh
