@@ -4,58 +4,156 @@
 # 사용법: sh uninstall.sh [--prefix DIR]
 #
 # 설치 목록(install-manifest)에 적힌 파일만 지운다. 프로젝트 안 .tool/project-path-gateway/는 건드리지 않는다.
+#
+# 구조: 도메인 → 애플리케이션 → 인프라 → 인터페이스 네 구획으로 나눈다.
+# 파일 시스템 접근은 인프라 구획의 시스템 포트(ppg__sys_*)에서만 한다.
 
-usage() {
+# === 계층: 도메인 ===
+
+# 설치 목록 항목 위반 원인을 출력한다: absolute(절대경로), parent(.. 세그먼트). 위반이 없으면 빈 출력.
+ppg__domain_entry_violation() {
+	case $1 in
+	/*)
+		printf 'absolute\n'
+		return 0
+		;;
+	esac
+	case /$1/ in
+	*/../*) printf 'parent\n' ;;
+	esac
+	return 0
+}
+
+# === 계층: 애플리케이션 ===
+
+# 제거 흐름. 반환: 0 성공, 1 설치 기록 없음·안전하지 않은 목록·목록 읽기 실패.
+# 지우기 전에 목록 전체를 검사한다. 위반 항목이 하나라도 있으면 아무것도 지우지 않는다.
+ppg__app_uninstall() {
+	ppg_app_prefix=$1
+	ppg_app_share=$ppg_app_prefix/share/project-path-gateway
+	ppg_app_manifest=$ppg_app_share/install-manifest
+	if ! ppg__port_manifest_exists "$ppg_app_manifest"; then
+		ppg__port_report_no_manifest "$ppg_app_prefix"
+		return 1
+	fi
+	ppg_app_entries=$(ppg__port_read_manifest "$ppg_app_manifest") || return 1
+	ppg_app_nl='
+'
+	ppg_app_rest=$ppg_app_entries
+	while [ -n "$ppg_app_rest" ]; do
+		ppg_app_entry=${ppg_app_rest%%"$ppg_app_nl"*}
+		case $ppg_app_rest in
+		*"$ppg_app_nl"*) ppg_app_rest=${ppg_app_rest#*"$ppg_app_nl"} ;;
+		*) ppg_app_rest= ;;
+		esac
+		ppg_app_violation=$(ppg__domain_entry_violation "$ppg_app_entry")
+		if [ -n "$ppg_app_violation" ]; then
+			ppg__port_report_unsafe "$ppg_app_violation" "$ppg_app_entry"
+			return 1
+		fi
+	done
+	ppg_app_rest=$ppg_app_entries
+	while [ -n "$ppg_app_rest" ]; do
+		ppg_app_entry=${ppg_app_rest%%"$ppg_app_nl"*}
+		case $ppg_app_rest in
+		*"$ppg_app_nl"*) ppg_app_rest=${ppg_app_rest#*"$ppg_app_nl"} ;;
+		*) ppg_app_rest= ;;
+		esac
+		[ -n "$ppg_app_entry" ] || continue
+		ppg__port_remove "$ppg_app_prefix/$ppg_app_entry"
+	done
+	ppg__port_remove_dir "$ppg_app_share"
+	ppg__port_report_done "$ppg_app_prefix"
+	return 0
+}
+
+# === 계층: 인프라 ===
+
+ppg__port_manifest_exists() {
+	ppg__sys_is_file "$1"
+}
+
+# 설치 목록의 줄을 한 줄씩 출력한다. 마지막 줄에 개행이 없어도 출력한다.
+ppg__port_read_manifest() {
+	ppg__sys_read_lines "$1"
+}
+
+ppg__port_remove() {
+	ppg__sys_remove "$1"
+}
+
+ppg__port_remove_dir() {
+	ppg__sys_rmdir "$1"
+	return 0
+}
+
+# 시스템 포트: 일반 파일이면 반환 0 (링크를 따라간다).
+ppg__sys_is_file() {
+	[ -f "$1" ]
+}
+
+# 시스템 포트: 파일의 각 줄을 개행을 붙여 출력한다. 마지막 줄에 개행이 없어도 출력한다.
+ppg__sys_read_lines() {
+	while IFS= read -r ppg_sys_line || [ -n "$ppg_sys_line" ]; do
+		printf '%s\n' "$ppg_sys_line"
+	done <"$1"
+}
+
+# 시스템 포트: 파일을 지운다. 없어도 성공이다.
+ppg__sys_remove() {
+	rm -f -- "$1" 2>/dev/null
+}
+
+# 시스템 포트: 빈 디렉터리를 지운다.
+ppg__sys_rmdir() {
+	rmdir -- "$1" 2>/dev/null
+}
+
+# === 계층: 인터페이스 ===
+
+ppg__if_usage() {
 	printf '사용법: sh uninstall.sh [--prefix DIR]\n' >&2
 }
 
-prefix=${PREFIX-}
-while [ "$#" -gt 0 ]; do
+ppg__port_report_no_manifest() {
+	printf 'project-path-gateway: 설치 기록이 없습니다: %s\n' "$1" >&2
+}
+
+# 안전하지 않은 설치 목록 보고 포트 구현. $1: absolute 또는 parent, $2: 항목.
+ppg__port_report_unsafe() {
 	case $1 in
-	--prefix)
-		if [ "$#" -lt 2 ] || [ -z "$2" ]; then
-			usage
+	absolute) printf 'project-path-gateway: 설치 목록에 절대경로가 있어 제거하지 않습니다: %s\n' "$2" >&2 ;;
+	*) printf 'project-path-gateway: 설치 목록에 .. 세그먼트가 있어 제거하지 않습니다: %s\n' "$2" >&2 ;;
+	esac
+}
+
+ppg__port_report_done() {
+	printf 'project-path-gateway: 제거 완료: %s\n' "$1"
+}
+
+main() {
+	ppg_if_prefix=${PREFIX-}
+	while [ "$#" -gt 0 ]; do
+		case $1 in
+		--prefix)
+			if [ "$#" -lt 2 ] || [ -z "$2" ]; then
+				ppg__if_usage
+				exit 2
+			fi
+			ppg_if_prefix=$2
+			shift 2
+			;;
+		*)
+			ppg__if_usage
 			exit 2
-		fi
-		prefix=$2
-		shift 2
-		;;
-	*)
-		usage
-		exit 2
-		;;
-	esac
-done
-[ -n "$prefix" ] || prefix=$HOME/.local
-
-share_dir=$prefix/share/project-path-gateway
-manifest=$share_dir/install-manifest
-if [ ! -f "$manifest" ]; then
-	printf 'project-path-gateway: 설치 기록이 없습니다: %s\n' "$prefix" >&2
+			;;
+		esac
+	done
+	[ -n "$ppg_if_prefix" ] || ppg_if_prefix=$HOME/.local
+	if ppg__app_uninstall "$ppg_if_prefix"; then
+		exit 0
+	fi
 	exit 1
-fi
+}
 
-# 지우기 전에 목록 전체를 검사한다. 절대경로나 .. 세그먼트가 하나라도 있으면 아무것도 지우지 않는다.
-while IFS= read -r entry || [ -n "$entry" ]; do
-	case $entry in
-	/*)
-		printf 'project-path-gateway: 설치 목록에 절대경로가 있어 제거하지 않습니다: %s\n' "$entry" >&2
-		exit 1
-		;;
-	esac
-	case /$entry/ in
-	*/../*)
-		printf 'project-path-gateway: 설치 목록에 .. 세그먼트가 있어 제거하지 않습니다: %s\n' "$entry" >&2
-		exit 1
-		;;
-	esac
-done <"$manifest"
-
-entries=$(cat "$manifest") || exit 1
-printf '%s\n' "$entries" | while IFS= read -r entry; do
-	[ -n "$entry" ] || continue
-	rm -f -- "$prefix/$entry"
-done
-rmdir -- "$share_dir" 2>/dev/null
-
-printf 'project-path-gateway: 제거 완료: %s\n' "$prefix"
+[ "${PPG_SOURCE_ONLY-}" = 1 ] || main "$@"
