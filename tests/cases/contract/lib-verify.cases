@@ -7,9 +7,9 @@ fs file /t/root/.tool/project-path-gateway/.project-path-gateway
 case verify-argument-is-rejected
 fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
 call project_path_gateway_init /t/root
-call project_path_gateway_verify extra
+call project_path_gateway_verify extra more
 status 2
-err project-path-gateway: project_path_gateway_verify: 인자를 받지 않습니다
+err project-path-gateway: project_path_gateway_verify: 인자는 0개 또는 REPORT_FILE 1개여야 합니다
 op returned project_path_gateway_init 0
 op returned project_path_gateway_verify 2
 

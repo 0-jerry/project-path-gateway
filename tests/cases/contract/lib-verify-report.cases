@@ -1,0 +1,36 @@
+# 공개 API 계약: project_path_gateway_verify [REPORT_FILE] (기능 003 contracts/library-api-verify.md, FR-001~FR-024)
+# 리포트를 지정한 검증은 리포트 쓰기 작업(op write, op move)만 변경 기록으로 남긴다.
+target lib-session project_path_gateway
+layer api
+fs file /t/root/.tool/project-path-gateway/.project-path-gateway
+fs dir /out
+
+# 인자 규칙과 기존 반환 2 조건 (FR-005, FR-022)
+case verify-report-args-empty-string
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+call project_path_gateway_init /t/root
+call project_path_gateway_verify \e
+status 0
+
+case verify-report-args-not-initialized
+fs file /out/report.txt
+content old
+call project_path_gateway_verify /out/report.txt
+status 0
+
+case verify-report-args-missing-data-file
+fs dir /t/root/.tool/project-path-gateway
+fs file /out/report.txt
+content old
+call eval PROJECT_PATH_GATEWAY_ROOT=/t/root
+call project_path_gateway_verify /out/report.txt
+status 0
+
+case verify-report-args-data-file-violation
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+content bad
+fs dir /t/root/a
+call eval PROJECT_PATH_GATEWAY_ROOT=/t/root
+call project_path_gateway_verify /out/report.txt
+status 0

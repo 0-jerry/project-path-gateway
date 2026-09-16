@@ -42,7 +42,7 @@ call project_path_gateway_get A
 call project_path_gateway_get NOPE
 call project_path_gateway_get
 call project_path_gateway_verify
-call project_path_gateway_verify extra
+call project_path_gateway_verify extra more
 call project_path_gateway_init relative
 call project_path_gateway_get A
 call project_path_gateway_init /t/루트\sroot
@@ -52,7 +52,7 @@ err project-path-gateway: project_path_gateway_get: 등록되지 않은 키입�
 err project-path-gateway: project_path_gateway_get: 인자는 KEY 1개여야 합니다
 err project-path-gateway: 누락: MISSING=nope
 err project-path-gateway: 검증 실패 1건
-err project-path-gateway: project_path_gateway_verify: 인자를 받지 않습니다
+err project-path-gateway: project_path_gateway_verify: 인자는 0개 또는 REPORT_FILE 1개여야 합니다
 err project-path-gateway: project_path_gateway_init: 절대경로가 아닙니다: relative
 err project-path-gateway: project_path_gateway_get: 초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요
 op returned project_path_gateway_init 0
@@ -106,7 +106,7 @@ call project_path_gateway_get A
 call project_path_gateway_get NOPE
 call project_path_gateway_get
 call project_path_gateway_verify
-call project_path_gateway_verify extra
+call project_path_gateway_verify extra more
 call project_path_gateway_init relative
 call project_path_gateway_get A
 call project_path_gateway_init /t/루트\sroot
@@ -116,7 +116,7 @@ err project-path-gateway: project_path_gateway_get: 등록되지 않은 키입�
 err project-path-gateway: project_path_gateway_get: 인자는 KEY 1개여야 합니다
 err project-path-gateway: 누락: MISSING=nope
 err project-path-gateway: 검증 실패 1건
-err project-path-gateway: project_path_gateway_verify: 인자를 받지 않습니다
+err project-path-gateway: project_path_gateway_verify: 인자는 0개 또는 REPORT_FILE 1개여야 합니다
 err project-path-gateway: project_path_gateway_init: 절대경로가 아닙니다: relative
 err project-path-gateway: project_path_gateway_get: 초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요
 op returned project_path_gateway_init 0
@@ -135,7 +135,7 @@ call project_path_gateway_get A
 call project_path_gateway_get NOPE
 call project_path_gateway_get
 call project_path_gateway_verify
-call project_path_gateway_verify extra
+call project_path_gateway_verify extra more
 call project_path_gateway_init relative
 call project_path_gateway_get A
 call project_path_gateway_init /t/루트\sroot
@@ -146,7 +146,7 @@ err project-path-gateway: project_path_gateway_get: 등록되지 않은 키입�
 err project-path-gateway: project_path_gateway_get: 인자는 KEY 1개여야 합니다
 err project-path-gateway: 누락: MISSING=nope
 err project-path-gateway: 검증 실패 1건
-err project-path-gateway: project_path_gateway_verify: 인자를 받지 않습니다
+err project-path-gateway: project_path_gateway_verify: 인자는 0개 또는 REPORT_FILE 1개여야 합니다
 err project-path-gateway: project_path_gateway_init: 절대경로가 아닙니다: relative
 err project-path-gateway: project_path_gateway_get: 초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요
 err project-path-gateway: 누락: MISSING=nope
@@ -172,7 +172,7 @@ call project_path_gateway_get A
 call project_path_gateway_get NOPE
 call project_path_gateway_get
 call project_path_gateway_verify
-call project_path_gateway_verify extra
+call project_path_gateway_verify extra more
 call project_path_gateway_init relative
 call project_path_gateway_get A
 call project_path_gateway_init /t/루트\sroot
@@ -183,7 +183,7 @@ err project-path-gateway: project_path_gateway_get: 등록되지 않은 키입�
 err project-path-gateway: project_path_gateway_get: 인자는 KEY 1개여야 합니다
 err project-path-gateway: 누락: MISSING=nope
 err project-path-gateway: 검증 실패 1건
-err project-path-gateway: project_path_gateway_verify: 인자를 받지 않습니다
+err project-path-gateway: project_path_gateway_verify: 인자는 0개 또는 REPORT_FILE 1개여야 합니다
 err project-path-gateway: project_path_gateway_init: 절대경로가 아닙니다: relative
 err project-path-gateway: project_path_gateway_get: 초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요
 err project-path-gateway: 누락: MISSING=nope
@@ -206,7 +206,7 @@ call project_path_gateway_get A
 call project_path_gateway_get NOPE
 call project_path_gateway_get
 call project_path_gateway_verify
-call project_path_gateway_verify extra
+call project_path_gateway_verify extra more
 call project_path_gateway_init relative
 call project_path_gateway_get A
 call project_path_gateway_init /t/루트\sroot
@@ -217,7 +217,7 @@ err project-path-gateway: project_path_gateway_get: 등록되지 않은 키입�
 err project-path-gateway: project_path_gateway_get: 인자는 KEY 1개여야 합니다
 err project-path-gateway: 누락: MISSING=nope
 err project-path-gateway: 검증 실패 1건
-err project-path-gateway: project_path_gateway_verify: 인자를 받지 않습니다
+err project-path-gateway: project_path_gateway_verify: 인자는 0개 또는 REPORT_FILE 1개여야 합니다
 err project-path-gateway: project_path_gateway_init: 절대경로가 아닙니다: relative
 err project-path-gateway: project_path_gateway_get: 초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요
 err project-path-gateway: 누락: MISSING=nope
