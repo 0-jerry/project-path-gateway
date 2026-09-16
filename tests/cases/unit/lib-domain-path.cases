@@ -1,0 +1,96 @@
+# 도메인 단위: 경로 규칙 (기능 001 domain_path_test, FR-015)
+target lib-func project_path_gateway__domain_path_violation
+layer domain
+
+case path-violation-empty
+arg \e
+status 0
+out empty_path
+
+case path-violation-absolute-etc
+arg /etc
+status 0
+out absolute_path
+
+case path-violation-absolute-root
+arg /
+status 0
+out absolute_path
+
+case path-violation-parent-only
+arg ..
+status 0
+out parent_segment
+
+case path-violation-parent-leading
+arg ../a
+status 0
+out parent_segment
+
+case path-violation-parent-trailing
+arg a/..
+status 0
+out parent_segment
+
+case path-violation-parent-middle
+arg a/../b
+status 0
+out parent_segment
+
+case path-violation-cr-trailing
+arg a\r
+status 0
+out carriage_return
+
+case path-violation-cr-middle
+arg a\rb
+status 0
+out carriage_return
+
+case path-allowed-space
+arg a\sb
+status 0
+
+case path-allowed-korean
+arg 한글/경로
+status 0
+
+case path-allowed-equal
+arg a=b
+status 0
+
+case path-allowed-dot-leading
+arg ./a
+status 0
+
+case path-allowed-empty-segment
+arg a//b
+status 0
+
+case path-allowed-trailing-slash
+arg dir/
+status 0
+
+case path-allowed-hyphen
+arg -a
+status 0
+
+case path-allowed-three-dots
+arg ...
+status 0
+
+case path-allowed-dotdot-prefix
+arg ..a
+status 0
+
+case path-allowed-dotdot-suffix
+arg a..
+status 0
+
+case path-allowed-single-dot
+arg .
+status 0
+
+case path-allowed-dot-middle
+arg a/./b
+status 0
