@@ -354,6 +354,23 @@ project_path_gateway__app_verify() (
 	}
 )
 
+# 등록(add)·갱신(update) 흐름 (기능 004 research R-01). 인자 규칙 위반이면 위반 코드를 출력한다.
+# 반환: 0 성공, 9 인자 규칙 위반, 3·4 데이터 파일 오류, 10 이미 등록된 키, 7 미등록 키,
+# 11 데이터 파일이 링크, 12 쓰기 권한 없음, 13 교체 실패.
+project_path_gateway__app_edit() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	violation=$(project_path_gateway__domain_entry_violation "$3" "$4")
+	if [ -n "$violation" ]; then
+		printf '%s\n' "$violation"
+		return 9
+	fi
+	records=$(project_path_gateway__app_load_entries "$2") || return $?
+	return 13
+)
+
 # 검증 리포트 본문을 리포트 파일에 저장한다. 본문 형식은 알지 않는다. 반환: 0 성공, 1 쓰기 실패 (기능 003).
 project_path_gateway__app_write_report() (
 	set +e +u +f
