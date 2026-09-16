@@ -1,0 +1,77 @@
+# 공개 API 계약: project_path_gateway_update KEY PATH (갱신, 기능 004 US3·US4, contracts/library-api-add-update.md)
+# 가상 파일 시스템은 call 사이에 바뀐 상태를 이어 주지 않는다. 결과는 같은 call의 op write 원문으로 확인하고,
+# 뒤이은 조회·검증은 바뀐 원문을 fs로 주고 caller-var PROJECT_PATH_GATEWAY_ROOT로 루트를 준 별도 사례로 확인한다.
+target lib-session project_path_gateway
+layer api
+fs file /t/root/.tool/project-path-gateway/.project-path-gateway
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content DOCS_DIR=docs
+
+# 인자·초기화·인자 규칙 (계약 2절 1~8행, FR-002·FR-003·FR-010·FR-015): 데이터 파일을 읽거나 쓰지 않는다
+case edit-invalid-update-argument-count
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_update
+call project_path_gateway_update DOCS_DIR
+call project_path_gateway_update DOCS_DIR docs extra
+status 2
+err project-path-gateway: project_path_gateway_update: 인자는 KEY와 PATH 2개여야 합니다
+err project-path-gateway: project_path_gateway_update: 인자는 KEY와 PATH 2개여야 합니다
+err project-path-gateway: project_path_gateway_update: 인자는 KEY와 PATH 2개여야 합니다
+op returned project_path_gateway_update 2
+op returned project_path_gateway_update 2
+op returned project_path_gateway_update 2
+
+case edit-invalid-update-not-initialized
+call project_path_gateway_update NEW_DIR new
+status 2
+err project-path-gateway: project_path_gateway_update: 초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요
+op returned project_path_gateway_update 2
+
+case edit-invalid-update-key-lowercase
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_update docs new
+status 2
+err project-path-gateway: project_path_gateway_update: 키 형식이 잘못되었습니다(대문자로 시작, 대문자·숫자·_만 허용): docs
+op returned project_path_gateway_update 2
+
+case edit-invalid-update-path-empty
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_update NEW_DIR \e
+status 2
+err project-path-gateway: project_path_gateway_update: 경로가 비어 있습니다
+op returned project_path_gateway_update 2
+
+case edit-invalid-update-path-absolute
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_update NEW_DIR /abs
+status 2
+err project-path-gateway: project_path_gateway_update: 경로는 /로 시작할 수 없습니다: /abs
+op returned project_path_gateway_update 2
+
+case edit-invalid-update-path-parent-segment
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_update NEW_DIR ../out
+status 2
+err project-path-gateway: project_path_gateway_update: 경로에 .. 세그먼트를 쓸 수 없습니다: ../out
+op returned project_path_gateway_update 2
+
+case edit-invalid-update-path-carriage-return
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_update NEW_DIR a\rb
+status 2
+err project-path-gateway: project_path_gateway_update: 경로에 CR 문자를 쓸 수 없습니다
+op returned project_path_gateway_update 2
+
+case edit-invalid-update-path-line-feed
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_update NEW_DIR a\nb
+status 2
+err project-path-gateway: project_path_gateway_update: 경로에 LF 문자를 쓸 수 없습니다
+op returned project_path_gateway_update 2
+
+case edit-invalid-update-key-and-path-both-wrong
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_update docs /abs
+status 2
+err project-path-gateway: project_path_gateway_update: 키 형식이 잘못되었습니다(대문자로 시작, 대문자·숫자·_만 허용): docs
+op returned project_path_gateway_update 2
