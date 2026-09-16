@@ -45,3 +45,284 @@ status 2
 err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:2: KEY=경로 형식이 아닙니다
 op returned eval 0
 op returned project_path_gateway_verify 2
+
+# US1: 실패 리포트 (FR-003, FR-010~FR-014, SC-001, SC-002)
+# 짝 확인(SC-002): 각 사례는 같은 세션에서 리포트 미지정 검증 뒤 리포트 지정 검증을 호출해, 두 호출의 출력·반환이 같은지 한 사례로 본다.
+case verify-report-fail-missing-two-of-three
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+content B=b
+content C=c/d
+fs dir /t/root/a
+call project_path_gateway_init /t/root
+call project_path_gateway_verify
+call project_path_gateway_verify /out/report.txt
+status 0
+
+case verify-report-fail-broken-link-and-outside-link
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content BROKEN=broken
+content OUT=out
+fs link /t/root/broken nowhere
+fs dir /elsewhere
+fs link /t/root/out /elsewhere
+call project_path_gateway_init /t/root
+call project_path_gateway_verify
+call project_path_gateway_verify /out/report.txt
+status 0
+
+case verify-report-fail-overwrites-previous-report
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+fs file /out/report.txt
+content 이전 리포트
+call project_path_gateway_init /t/root
+call project_path_gateway_verify /out/report.txt
+status 0
+
+case verify-report-fail-report-path-with-space-and-korean
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+fs dir /out/결과\s폴더
+call project_path_gateway_init /t/root
+call project_path_gateway_verify /out/결과\s폴더/리포트\s1.txt
+status 0
+
+case verify-report-fail-relative-report-path
+cwd /out
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+call project_path_gateway_init /t/root
+call project_path_gateway_verify report.txt
+status 0
+
+case verify-report-fail-report-file-is-link-to-file
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+fs file /out/keep.txt
+content 링크 대상
+fs link /out/report.txt keep.txt
+call project_path_gateway_init /t/root
+call project_path_gateway_verify /out/report.txt
+status 0
+
+case verify-report-fail-key-and-path-with-space-equal-korean
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content SP_KEY=a b=c/한글 경로
+call project_path_gateway_init /t/root
+call project_path_gateway_verify
+call project_path_gateway_verify /out/report.txt
+status 0
+
+case verify-report-fail-report-at-registered-path
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content REPORT=report.txt
+call project_path_gateway_init /t/root
+call project_path_gateway_verify /t/root/report.txt
+status 0
+
+case verify-report-fail-two-hundred-missing
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content KEY_0=missing/file_0
+content KEY_1=missing/file_1
+content KEY_2=missing/file_2
+content KEY_3=missing/file_3
+content KEY_4=missing/file_4
+content KEY_5=missing/file_5
+content KEY_6=missing/file_6
+content KEY_7=missing/file_7
+content KEY_8=missing/file_8
+content KEY_9=missing/file_9
+content KEY_10=missing/file_10
+content KEY_11=missing/file_11
+content KEY_12=missing/file_12
+content KEY_13=missing/file_13
+content KEY_14=missing/file_14
+content KEY_15=missing/file_15
+content KEY_16=missing/file_16
+content KEY_17=missing/file_17
+content KEY_18=missing/file_18
+content KEY_19=missing/file_19
+content KEY_20=missing/file_20
+content KEY_21=missing/file_21
+content KEY_22=missing/file_22
+content KEY_23=missing/file_23
+content KEY_24=missing/file_24
+content KEY_25=missing/file_25
+content KEY_26=missing/file_26
+content KEY_27=missing/file_27
+content KEY_28=missing/file_28
+content KEY_29=missing/file_29
+content KEY_30=missing/file_30
+content KEY_31=missing/file_31
+content KEY_32=missing/file_32
+content KEY_33=missing/file_33
+content KEY_34=missing/file_34
+content KEY_35=missing/file_35
+content KEY_36=missing/file_36
+content KEY_37=missing/file_37
+content KEY_38=missing/file_38
+content KEY_39=missing/file_39
+content KEY_40=missing/file_40
+content KEY_41=missing/file_41
+content KEY_42=missing/file_42
+content KEY_43=missing/file_43
+content KEY_44=missing/file_44
+content KEY_45=missing/file_45
+content KEY_46=missing/file_46
+content KEY_47=missing/file_47
+content KEY_48=missing/file_48
+content KEY_49=missing/file_49
+content KEY_50=missing/file_50
+content KEY_51=missing/file_51
+content KEY_52=missing/file_52
+content KEY_53=missing/file_53
+content KEY_54=missing/file_54
+content KEY_55=missing/file_55
+content KEY_56=missing/file_56
+content KEY_57=missing/file_57
+content KEY_58=missing/file_58
+content KEY_59=missing/file_59
+content KEY_60=missing/file_60
+content KEY_61=missing/file_61
+content KEY_62=missing/file_62
+content KEY_63=missing/file_63
+content KEY_64=missing/file_64
+content KEY_65=missing/file_65
+content KEY_66=missing/file_66
+content KEY_67=missing/file_67
+content KEY_68=missing/file_68
+content KEY_69=missing/file_69
+content KEY_70=missing/file_70
+content KEY_71=missing/file_71
+content KEY_72=missing/file_72
+content KEY_73=missing/file_73
+content KEY_74=missing/file_74
+content KEY_75=missing/file_75
+content KEY_76=missing/file_76
+content KEY_77=missing/file_77
+content KEY_78=missing/file_78
+content KEY_79=missing/file_79
+content KEY_80=missing/file_80
+content KEY_81=missing/file_81
+content KEY_82=missing/file_82
+content KEY_83=missing/file_83
+content KEY_84=missing/file_84
+content KEY_85=missing/file_85
+content KEY_86=missing/file_86
+content KEY_87=missing/file_87
+content KEY_88=missing/file_88
+content KEY_89=missing/file_89
+content KEY_90=missing/file_90
+content KEY_91=missing/file_91
+content KEY_92=missing/file_92
+content KEY_93=missing/file_93
+content KEY_94=missing/file_94
+content KEY_95=missing/file_95
+content KEY_96=missing/file_96
+content KEY_97=missing/file_97
+content KEY_98=missing/file_98
+content KEY_99=missing/file_99
+content KEY_100=missing/file_100
+content KEY_101=missing/file_101
+content KEY_102=missing/file_102
+content KEY_103=missing/file_103
+content KEY_104=missing/file_104
+content KEY_105=missing/file_105
+content KEY_106=missing/file_106
+content KEY_107=missing/file_107
+content KEY_108=missing/file_108
+content KEY_109=missing/file_109
+content KEY_110=missing/file_110
+content KEY_111=missing/file_111
+content KEY_112=missing/file_112
+content KEY_113=missing/file_113
+content KEY_114=missing/file_114
+content KEY_115=missing/file_115
+content KEY_116=missing/file_116
+content KEY_117=missing/file_117
+content KEY_118=missing/file_118
+content KEY_119=missing/file_119
+content KEY_120=missing/file_120
+content KEY_121=missing/file_121
+content KEY_122=missing/file_122
+content KEY_123=missing/file_123
+content KEY_124=missing/file_124
+content KEY_125=missing/file_125
+content KEY_126=missing/file_126
+content KEY_127=missing/file_127
+content KEY_128=missing/file_128
+content KEY_129=missing/file_129
+content KEY_130=missing/file_130
+content KEY_131=missing/file_131
+content KEY_132=missing/file_132
+content KEY_133=missing/file_133
+content KEY_134=missing/file_134
+content KEY_135=missing/file_135
+content KEY_136=missing/file_136
+content KEY_137=missing/file_137
+content KEY_138=missing/file_138
+content KEY_139=missing/file_139
+content KEY_140=missing/file_140
+content KEY_141=missing/file_141
+content KEY_142=missing/file_142
+content KEY_143=missing/file_143
+content KEY_144=missing/file_144
+content KEY_145=missing/file_145
+content KEY_146=missing/file_146
+content KEY_147=missing/file_147
+content KEY_148=missing/file_148
+content KEY_149=missing/file_149
+content KEY_150=missing/file_150
+content KEY_151=missing/file_151
+content KEY_152=missing/file_152
+content KEY_153=missing/file_153
+content KEY_154=missing/file_154
+content KEY_155=missing/file_155
+content KEY_156=missing/file_156
+content KEY_157=missing/file_157
+content KEY_158=missing/file_158
+content KEY_159=missing/file_159
+content KEY_160=missing/file_160
+content KEY_161=missing/file_161
+content KEY_162=missing/file_162
+content KEY_163=missing/file_163
+content KEY_164=missing/file_164
+content KEY_165=missing/file_165
+content KEY_166=missing/file_166
+content KEY_167=missing/file_167
+content KEY_168=missing/file_168
+content KEY_169=missing/file_169
+content KEY_170=missing/file_170
+content KEY_171=missing/file_171
+content KEY_172=missing/file_172
+content KEY_173=missing/file_173
+content KEY_174=missing/file_174
+content KEY_175=missing/file_175
+content KEY_176=missing/file_176
+content KEY_177=missing/file_177
+content KEY_178=missing/file_178
+content KEY_179=missing/file_179
+content KEY_180=missing/file_180
+content KEY_181=missing/file_181
+content KEY_182=missing/file_182
+content KEY_183=missing/file_183
+content KEY_184=missing/file_184
+content KEY_185=missing/file_185
+content KEY_186=missing/file_186
+content KEY_187=missing/file_187
+content KEY_188=missing/file_188
+content KEY_189=missing/file_189
+content KEY_190=missing/file_190
+content KEY_191=missing/file_191
+content KEY_192=missing/file_192
+content KEY_193=missing/file_193
+content KEY_194=missing/file_194
+content KEY_195=missing/file_195
+content KEY_196=missing/file_196
+content KEY_197=missing/file_197
+content KEY_198=missing/file_198
+content KEY_199=missing/file_199
+call project_path_gateway_init /t/root
+call project_path_gateway_verify /out/report.txt
+status 0
