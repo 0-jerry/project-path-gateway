@@ -1,0 +1,177 @@
+# 공개 API 계약: 잘못된 인자·루트·데이터 파일을 초기화 시점에 거부 (기능 001 library_errors_contract_test, data_file_load_test, contracts/library-api.md 3절·6절)
+# CRLF 줄 끝은 content 값의 \r로 적는다.
+target lib-session project_path_gateway
+layer api
+fs file /t/root/.tool/project-path-gateway/.project-path-gateway
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+
+case errors-invalid-arguments
+fs file /t/regular
+call project_path_gateway_init /t/root /t/root
+call project_path_gateway_init relative/path
+call project_path_gateway_init /t/nope
+call project_path_gateway_init /t/regular
+call eval printf\s'%s\\n'\s"${PROJECT_PATH_GATEWAY_ROOT+set}"
+status 0
+out
+err project-path-gateway: project_path_gateway_init: 인자는 0개 또는 1개여야 합니다
+err project-path-gateway: project_path_gateway_init: 절대경로가 아닙니다: relative/path
+err project-path-gateway: project_path_gateway_init: 디렉터리가 아닙니다: /t/nope
+err project-path-gateway: project_path_gateway_init: 디렉터리가 아닙니다: /t/regular
+op returned project_path_gateway_init 2
+op returned project_path_gateway_init 2
+op returned project_path_gateway_init 2
+op returned project_path_gateway_init 2
+op returned eval 0
+
+case errors-marker-without-data-file
+fs dir /t/root/.tool/project-path-gateway/project-path-gateway.conf
+call project_path_gateway_init /t/root
+status 2
+err project-path-gateway: project_path_gateway_init: 데이터 파일을 읽을 수 없습니다: /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op returned project_path_gateway_init 2
+
+case errors-absolute-path-on-line-four
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content # 1
+content A=a
+content
+content BAD=/etc/hosts
+call project_path_gateway_init /t/root
+status 2
+err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:4: 경로는 /로 시작할 수 없습니다: BAD
+op returned project_path_gateway_init 2
+
+case errors-no-separator
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content # 첫 줄은 주석
+content no separator
+call project_path_gateway_init /t/root
+status 2
+err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:2: KEY=경로 형식이 아닙니다
+op returned project_path_gateway_init 2
+
+case errors-lowercase-key
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content # 첫 줄은 주석
+content app=x
+call project_path_gateway_init /t/root
+status 2
+err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:2: 키 형식이 잘못되었습니다(대문자로 시작, 대문자·숫자·_만 허용): app
+op returned project_path_gateway_init 2
+
+case errors-empty-path
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content # 첫 줄은 주석
+content E=
+call project_path_gateway_init /t/root
+status 2
+err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:2: 경로가 비어 있습니다: E
+op returned project_path_gateway_init 2
+
+case errors-parent-segment
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content # 첫 줄은 주석
+content P=..
+content Q=a/..
+content R=a/../b
+call project_path_gateway_init /t/root
+status 2
+err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:2: 경로에 .. 세그먼트를 쓸 수 없습니다: P
+err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:3: 경로에 .. 세그먼트를 쓸 수 없습니다: Q
+err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:4: 경로에 .. 세그먼트를 쓸 수 없습니다: R
+op returned project_path_gateway_init 2
+
+case errors-cr-in-line
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content # 첫 줄은 주석
+content C=x\r
+call project_path_gateway_init /t/root
+status 2
+err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:2: CR 문자가 포함되어 있습니다(CRLF 줄 끝인지 확인하세요)
+op returned project_path_gateway_init 2
+
+case errors-blank-and-indented-comment-lines
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content # 첫 줄은 주석
+content    
+content  #comment
+call project_path_gateway_init /t/root
+status 2
+err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:2: KEY=경로 형식이 아닙니다
+err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:3: KEY=경로 형식이 아닙니다
+op returned project_path_gateway_init 2
+
+case errors-duplicate-key-reports-first-line
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=1
+content B=2
+content A=3
+call project_path_gateway_init /t/root
+status 2
+err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:3: 중복된 키입니다(1번째 줄에서 정의됨): A
+op returned project_path_gateway_init 2
+
+case errors-all-violations-in-file-order
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content lower=a
+content OK=fine
+content X=/abs
+content Y=
+call project_path_gateway_init /t/root
+status 2
+err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:1: 키 형식이 잘못되었습니다(대문자로 시작, 대문자·숫자·_만 허용): lower
+err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:3: 경로는 /로 시작할 수 없습니다: X
+err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:4: 경로가 비어 있습니다: Y
+op returned project_path_gateway_init 2
+
+case errors-failed-reinit-leaves-uninitialized
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+call project_path_gateway_init /t/root
+call project_path_gateway_init relative
+call project_path_gateway_get A
+status 2
+err project-path-gateway: project_path_gateway_init: 절대경로가 아닙니다: relative
+err project-path-gateway: project_path_gateway_get: 초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요
+op returned project_path_gateway_init 0
+op returned project_path_gateway_init 2
+op returned project_path_gateway_get 2
+
+case errors-no-marker-up-to-filesystem-root
+fs dir /t/plain/sub
+call project_path_gateway_init /t/plain/sub
+status 2
+err project-path-gateway: project_path_gateway_init: 루트 표식 파일(.tool/project-path-gateway/.project-path-gateway)을 찾지 못했습니다: /t/plain/sub부터 /까지
+op returned project_path_gateway_init 2
+
+case errors-crlf-file-mentions-crlf-on-every-reported-line
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content # 주석\r
+content \r
+content A=a\r
+content b=c\r
+call project_path_gateway_init /t/root
+status 2
+err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:2: KEY=경로 형식이 아닙니다 (CRLF 줄 끝인지 확인하세요)
+err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:3: CR 문자가 포함되어 있습니다(CRLF 줄 끝인지 확인하세요)
+err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:4: 키 형식이 잘못되었습니다(대문자로 시작, 대문자·숫자·_만 허용): b (CRLF 줄 끝인지 확인하세요)
+op returned project_path_gateway_init 2
+
+case errors-zero-entries-init-succeeds
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content # 항목 없음
+call project_path_gateway_init /t/root
+status 0
+op returned project_path_gateway_init 0
+
+case errors-last-line-without-newline
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+content-raw B=b
+call project_path_gateway_init /t/root
+call project_path_gateway_get B
+status 0
+out /t/root/b
+op returned project_path_gateway_init 0
+op returned project_path_gateway_get 0
