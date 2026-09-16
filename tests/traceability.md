@@ -201,3 +201,32 @@
 | `library_verify_contract_test:test_all_entries_pass` | `tests/cases/contract/lib-verify.cases:verify-all-entries-pass`, `tests/cases/integration/lib-app-verify.cases:verify-all-pass` | - |
 | `library_verify_contract_test:test_zero_entries_pass` | `tests/cases/contract/lib-verify.cases:verify-zero-entries-pass`, `tests/cases/integration/lib-app-verify.cases:verify-no-entries` | - |
 | `library_verify_contract_test:test_missing_entries_are_all_reported_in_order` | `tests/cases/contract/lib-verify.cases:verify-missing-entries-reported-in-order`, `tests/cases/integration/lib-app-verify.cases:verify-missing-and-outside-in-file-order` | - |
+
+## 3. 기능 003 수용 시나리오·경계 사례
+
+기능 003(검증 리포트 파일, `specs/003-verify-report-file/spec.md`)의 수용 시나리오와 경계 사례 표 행이다. 요구사항 열은 기능 003의 FR ID다.
+실패 항목 200개(SC-001)는 `tests/cases/contract/lib-verify-report.cases:verify-report-fail-two-hundred-missing`가 확인한다.
+
+| 출처 | 요약 | 요구사항 | 사례 | 수동 확인 |
+|---|---|---|---|---|
+| US1-1 | 항목 3개 중 2개 누락 시 리포트에 누락 2줄과 실패 요약, stderr 동일, 반환 1 | FR-003, FR-010, FR-011, FR-012 | `tests/cases/contract/lib-verify-report.cases:verify-report-fail-missing-two-of-three`, `tests/cases/contract/readme-ci-report.cases:readme-ci-report-lists-all-missing-and-fails` | 10 |
+| US1-2 | 끊어진 링크는 누락, 루트 밖 링크는 루트 밖으로 구분 | FR-010 | `tests/cases/contract/lib-verify-report.cases:verify-report-fail-broken-link-and-outside-link` | - |
+| US1-3 | 이전 리포트를 이번 결과로 덮어씀 | FR-014, FR-020 | `tests/cases/contract/lib-verify-report.cases:verify-report-fail-overwrites-previous-report`, `tests/cases/integration/lib-infra-write-report.cases:write-report-overwrites-existing` | 10 |
+| US1-4 | 공백·한글 리포트 경로에 리포트 생성 | FR-001 | `tests/cases/contract/lib-verify-report.cases:verify-report-fail-report-path-with-space-and-korean`, `tests/cases/integration/lib-infra-write-report.cases:write-report-content-with-space-korean-and-blank-line` | 10 |
+| US2-1 | 모두 통과 시 리포트에 통과 건수, stdout 동일, 반환 0 | FR-003, FR-011 | `tests/cases/contract/lib-verify-report.cases:verify-report-pass-three-entries`, `tests/cases/contract/lib-verify-report.cases:verify-report-pass-overwrites-previous-failure-report`, `tests/cases/contract/readme-ci-report.cases:readme-ci-report-passes` | 10 |
+| US2-2 | 항목 0개 통과 리포트 | FR-011 | `tests/cases/contract/lib-verify-report.cases:verify-report-pass-zero-entries` | - |
+| US3-1 | 상위 디렉터리 없음: 검증 출력 유지, 쓰기 오류 줄, 반환 2 | FR-021, FR-023 | `tests/cases/contract/lib-verify-report.cases:verify-report-write-fails-pass-parent-missing`, `tests/cases/contract/lib-verify-report.cases:verify-report-write-fails-fail-parent-missing`, `tests/cases/integration/lib-infra-write-report.cases:write-report-parent-missing` | 10 |
+| US3-2 | 리포트 경로가 디렉터리: 디렉터리 불변, 쓰기 오류, 반환 2 | FR-021, FR-024 | `tests/cases/contract/lib-verify-report.cases:verify-report-write-fails-pass-target-is-directory`, `tests/cases/contract/lib-verify-report.cases:verify-report-write-fails-fail-target-is-directory`, `tests/cases/integration/lib-infra-write-report.cases:write-report-target-is-directory` | 10 |
+| US3-3 | 쓰기 실패 시 불완전한 리포트·임시 파일 없음 | FR-020, FR-021 | `tests/cases/contract/lib-verify-report.cases:verify-report-write-fails-fail-readonly-directory`, `tests/cases/integration/lib-infra-write-report.cases:write-report-readonly-directory`, `tests/cases/integration/lib-infra-write-report.cases:write-report-move-fails` | 10 |
+| EDGE-1 | 리포트 미지정은 기능 001과 같고 파일 시스템 변경 없음 | FR-002 | `tests/cases/contract/lib-verify.cases:verify-twice-does-not-change-filesystem`, `tests/cases/contract/lib-verify.cases:verify-missing-entries-reported-in-order` | 10 |
+| EDGE-2 | 인자 2개 이상·빈 문자열은 인자 오류, 반환 2 | FR-005 | `tests/cases/contract/lib-verify.cases:verify-argument-is-rejected`, `tests/cases/contract/lib-verify-report.cases:verify-report-args-empty-string` | - |
+| EDGE-3 | 미초기화·데이터 파일 오류는 리포트를 만들거나 바꾸지 않음 | FR-022 | `tests/cases/contract/lib-verify-report.cases:verify-report-args-not-initialized`, `tests/cases/contract/lib-verify-report.cases:verify-report-args-missing-data-file`, `tests/cases/contract/lib-verify-report.cases:verify-report-args-data-file-violation` | - |
+| EDGE-4 | 상대 리포트 경로는 호출 시점 작업 디렉터리 기준 | FR-001, FR-023 | `tests/cases/contract/lib-verify-report.cases:verify-report-fail-relative-report-path`, `tests/cases/integration/lib-infra-write-report.cases:write-report-relative-without-directory` | - |
+| EDGE-5 | 리포트 위치가 등록 경로와 같으면 쓰기 전 상태로 판정 | FR-004 | `tests/cases/contract/lib-verify-report.cases:verify-report-fail-report-at-registered-path` | - |
+| EDGE-6 | 파일 링크·끊어진 링크 리포트 위치는 링크 자리를 교체 | FR-024 | `tests/cases/contract/lib-verify-report.cases:verify-report-fail-report-file-is-link-to-file`, `tests/cases/integration/lib-infra-write-report.cases:write-report-replaces-file-link-not-target`, `tests/cases/integration/lib-infra-write-report.cases:write-report-replaces-broken-link` | 10 |
+| EDGE-7 | 디렉터리 링크 리포트 위치는 쓰기 실패, 반환 2 | FR-021, FR-024 | `tests/cases/contract/lib-verify-report.cases:verify-report-write-fails-pass-target-is-link-to-directory`, `tests/cases/contract/lib-verify-report.cases:verify-report-write-fails-fail-target-is-link-to-directory`, `tests/cases/integration/lib-infra-write-report.cases:write-report-target-is-link-to-directory` | 10 |
+| EDGE-8 | 신호 중단 시 리포트 위치는 이전 파일 또는 없음, 임시 파일 하나가 남을 수 있음 | FR-020 | `tests/cases/integration/lib-infra-write-report.cases:write-report-move-fails` | 10 |
+| EDGE-9 | 키·경로의 공백·=·한글을 리포트에 그대로 적음 | FR-010, FR-013 | `tests/cases/contract/lib-verify-report.cases:verify-report-fail-key-and-path-with-space-equal-korean` | - |
+| EDGE-10 | 서로 다른 셸 프로세스 동시 실행은 한 실행의 완전한 리포트 | FR-020 | `tests/cases/integration/lib-infra-write-report.cases:write-report-pid-in-temp-name` | 10 |
+| EDGE-11 | 한 셸 백그라운드 동시 실행은 보장하지 않고 문서화 | FR-020, FR-031 | `tests/cases/integration/lib-infra-write-report.cases:write-report-pid-in-temp-name` | 10 |
+| EDGE-12 | 리포트 지정 여부와 상관없이 호출 셸 상태 불변 | FR-030 | `tests/cases/contract/lib-verify-report.cases:verify-report-write-fails-isolation-set-eu`, `tests/cases/contract/lib-verify-report.cases:verify-report-write-fails-isolation-ifs-noglob-trap-cwd`, `tests/cases/contract/lib-isolation.cases:isolation-working-directory-options-and-traps-unchanged` | - |
