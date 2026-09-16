@@ -25,7 +25,10 @@ ppgt_render_bytes() {
 	END {
 		if (all == "") { print "      |   (없음)"; exit }
 		n = split(all, parts, "\n")
-		for (i = 1; i < n; i++) printf "      |   %s %s\n", field, esc(parts[i])
+		for (i = 1; i < n; i++) {
+			if (parts[i] == "") printf "      |   %s\n", field
+			else printf "      |   %s %s\n", field, esc(parts[i])
+		}
 		if (parts[n] != "") printf "      |   %s-raw %s\n", field, esc(parts[n])
 	}' "$2"
 }
