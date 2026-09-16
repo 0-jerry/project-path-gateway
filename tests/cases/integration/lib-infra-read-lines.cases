@@ -1,0 +1,56 @@
+# 인프라 통합: 데이터 파일 줄 읽기 (기능 001 data_file_load_test, research R-03)
+target lib-func project_path_gateway__port_read_lines
+layer infra
+
+case read-lines-last-line-without-newline
+fs file /p/conf
+content A=a
+content-raw B=b
+arg /p/conf
+status 0
+out A=a
+out B=b
+op read-lines /p/conf
+
+case read-lines-empty-file
+fs file /p/conf
+arg /p/conf
+status 0
+op read-lines /p/conf
+
+case read-lines-keeps-tab-equal-korean-and-cr
+fs file /p/conf
+content A=x\ty=z/한글
+content B=b\r
+content
+content-raw   C=c 
+arg /p/conf
+status 0
+out A=x\ty=z/한글
+out B=b\r
+out
+out   C=c 
+op read-lines /p/conf
+
+case read-lines-unreadable-file
+fs file /p/conf
+content A=a
+fs deny /p/conf
+arg /p/conf
+status 1
+op read-lines /p/conf
+
+case read-lines-missing-file
+fs dir /p
+arg /p/conf
+status 1
+op read-lines /p/conf
+
+case read-lines-through-link
+fs file /p/real
+content A=a
+fs link /p/conf real
+arg /p/conf
+status 0
+out A=a
+op read-lines /p/conf
