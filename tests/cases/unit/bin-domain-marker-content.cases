@@ -1,0 +1,8 @@
+# 도메인 단위: 루트 표식 파일 내용 (기능 001 cli_domain_plan_test_marker_content_bytes, contracts/files.md 2절)
+target bin-func ppg__domain_marker_content
+layer domain
+
+case marker-content-bytes
+status 0
+out # project-path-gateway 루트 표식 파일입니다. 이 파일을 담은 .tool/ 디렉터리의 상위 디렉터리가 프로젝트 루트입니다.
+out format=1

@@ -1,0 +1,15 @@
+# 도메인 단위: 전역 프로그램 경로 결합 (기능 001 cli_domain_plan_test_names_and_paths)
+target bin-func ppg__domain_join
+layer domain
+
+case bin-join-space
+arg /a\sb
+arg .tool
+status 0
+out /a b/.tool
+
+case bin-join-root
+arg /
+arg .tool
+status 0
+out /.tool

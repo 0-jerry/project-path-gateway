@@ -1,0 +1,7 @@
+# 도메인 단위: 도구 디렉터리 상대경로 (기능 001 cli_domain_plan_test_names_and_paths)
+target bin-func ppg__domain_tool_relpath
+layer domain
+
+case tool-relpath
+status 0
+out .tool/project-path-gateway

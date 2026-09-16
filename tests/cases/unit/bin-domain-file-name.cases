@@ -1,0 +1,18 @@
+# 도메인 단위: 도구 파일 이름 (기능 001 cli_domain_plan_test_names_and_paths)
+target bin-func ppg__domain_file_name
+layer domain
+
+case file-name-marker
+arg marker
+status 0
+out .project-path-gateway
+
+case file-name-data
+arg data
+status 0
+out project-path-gateway.conf
+
+case file-name-library
+arg library
+status 0
+out project-path-gateway.sh

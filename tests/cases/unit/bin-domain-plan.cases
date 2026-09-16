@@ -1,0 +1,57 @@
+# 도메인 단위: 파일별 처리 결정 (기능 001 cli_domain_plan_test_plan_action_table, data-model 2.2)
+target bin-func ppg__domain_plan_action
+layer domain
+
+case plan-marker-absent
+arg marker
+arg absent
+status 0
+out create
+
+case plan-marker-file
+arg marker
+arg file
+status 0
+out keep
+
+case plan-marker-other
+arg marker
+arg other
+status 0
+out fail
+
+case plan-data-absent
+arg data
+arg absent
+status 0
+out create
+
+case plan-data-file
+arg data
+arg file
+status 0
+out keep
+
+case plan-data-other
+arg data
+arg other
+status 0
+out fail
+
+case plan-library-absent
+arg library
+arg absent
+status 0
+out create
+
+case plan-library-file
+arg library
+arg file
+status 0
+out replace
+
+case plan-library-other
+arg library
+arg other
+status 0
+out fail
