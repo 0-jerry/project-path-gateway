@@ -61,7 +61,7 @@ ppgt_rec() {
 	for ppgt_rec_arg in "$@"; do
 		ppgt_rec_line="$ppgt_rec_line $(ppgt_enc "$ppgt_rec_arg")"
 	done
-	{ printf '%s\n' "$ppgt_rec_line" >&9; } 2>/dev/null
+	{ printf '%s\n' "$ppgt_rec_line" >&9; } 2>/dev/null || :
 	return 0
 }
 
