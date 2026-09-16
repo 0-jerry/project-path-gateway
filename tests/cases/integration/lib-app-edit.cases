@@ -52,3 +52,90 @@ status 3
 op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
 op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
 op port project_path_gateway__port_report_violation /r/.tool/project-path-gateway/project-path-gateway.conf 2 no_separator \e \e 0
+
+# 등록 성공과 교체 결과 코드 (US1, FR-020, research R-01 7~9단계)
+case app-edit-add-success
+arg add
+arg /r
+arg NEW_DIR
+arg new
+stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub-out # 주석
+stub-out K=a
+stub project_path_gateway__port_read_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub-out-raw # 주석\nK=ax
+stub project_path_gateway__port_replace_data_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf #\s주석\nK=a\nNEW_DIR=new\n
+status 0
+op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_file /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_replace_data_file /r/.tool/project-path-gateway/project-path-gateway.conf #\s주석\nK=a\nNEW_DIR=new\n
+
+case app-edit-add-link
+arg add
+arg /r
+arg NEW_DIR
+arg new
+stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub-out # 주석
+stub-out K=a
+stub project_path_gateway__port_read_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub-out-raw # 주석\nK=ax
+stub project_path_gateway__port_replace_data_file 1 /r/.tool/project-path-gateway/project-path-gateway.conf #\s주석\nK=a\nNEW_DIR=new\n
+status 11
+op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_file /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_replace_data_file /r/.tool/project-path-gateway/project-path-gateway.conf #\s주석\nK=a\nNEW_DIR=new\n
+
+case app-edit-add-not-writable
+arg add
+arg /r
+arg NEW_DIR
+arg new
+stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub-out # 주석
+stub-out K=a
+stub project_path_gateway__port_read_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub-out-raw # 주석\nK=ax
+stub project_path_gateway__port_replace_data_file 2 /r/.tool/project-path-gateway/project-path-gateway.conf #\s주석\nK=a\nNEW_DIR=new\n
+status 12
+op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_file /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_replace_data_file /r/.tool/project-path-gateway/project-path-gateway.conf #\s주석\nK=a\nNEW_DIR=new\n
+
+case app-edit-add-replace-fails
+arg add
+arg /r
+arg NEW_DIR
+arg new
+stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub-out # 주석
+stub-out K=a
+stub project_path_gateway__port_read_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub-out-raw # 주석\nK=ax
+stub project_path_gateway__port_replace_data_file 3 /r/.tool/project-path-gateway/project-path-gateway.conf #\s주석\nK=a\nNEW_DIR=new\n
+status 13
+op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_file /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_replace_data_file /r/.tool/project-path-gateway/project-path-gateway.conf #\s주석\nK=a\nNEW_DIR=new\n
+
+case app-edit-add-read-file-fails
+arg add
+arg /r
+arg NEW_DIR
+arg new
+stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub-out K=a
+stub project_path_gateway__port_read_file 1 /r/.tool/project-path-gateway/project-path-gateway.conf
+status 4
+op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_file /r/.tool/project-path-gateway/project-path-gateway.conf
