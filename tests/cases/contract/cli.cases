@@ -1,0 +1,211 @@
+# 공개 API 계약: 전역 프로그램 명령줄 (기능 001 cli_contract_test, contracts/cli.md 1절·2절, FR-083, FR-084)
+# 설치된 전역 프로그램 위치를 self로, 설치된 라이브러리 원본을 가상 파일로 둔다. 사전 검사 실패는 변경 작업 0건이다.
+target bin-main project-path-gateway
+layer api
+self /t/prefix/bin/project-path-gateway
+fs file /t/prefix/bin/project-path-gateway
+fs file /t/prefix/share/project-path-gateway/project-path-gateway.sh
+content # library
+
+case cli-no-arguments
+status 2
+err 사용법:
+err   project-path-gateway init [TARGET_DIR]   프로젝트에 .tool/project-path-gateway/를 만들고 라이브러리를 설치·교체합니다
+err   project-path-gateway --help | -h          이 도움말을 출력합니다
+err   project-path-gateway --version            버전을 출력합니다
+err
+err TARGET_DIR을 생략하면 현재 작업 디렉터리를 프로젝트 루트로 초기화합니다.
+
+case cli-help-long
+arg --help
+status 0
+out 사용법:
+out   project-path-gateway init [TARGET_DIR]   프로젝트에 .tool/project-path-gateway/를 만들고 라이브러리를 설치·교체합니다
+out   project-path-gateway --help | -h          이 도움말을 출력합니다
+out   project-path-gateway --version            버전을 출력합니다
+out
+out TARGET_DIR을 생략하면 현재 작업 디렉터리를 프로젝트 루트로 초기화합니다.
+
+case cli-help-short
+arg -h
+status 0
+out 사용법:
+out   project-path-gateway init [TARGET_DIR]   프로젝트에 .tool/project-path-gateway/를 만들고 라이브러리를 설치·교체합니다
+out   project-path-gateway --help | -h          이 도움말을 출력합니다
+out   project-path-gateway --version            버전을 출력합니다
+out
+out TARGET_DIR을 생략하면 현재 작업 디렉터리를 프로젝트 루트로 초기화합니다.
+
+case cli-version
+arg --version
+status 0
+out project-path-gateway 0.1.0
+
+case cli-unknown-command-foo
+arg foo
+arg KEY
+status 2
+err project-path-gateway: 알 수 없는 명령입니다: foo
+err 사용법:
+err   project-path-gateway init [TARGET_DIR]   프로젝트에 .tool/project-path-gateway/를 만들고 라이브러리를 설치·교체합니다
+err   project-path-gateway --help | -h          이 도움말을 출력합니다
+err   project-path-gateway --version            버전을 출력합니다
+err
+err TARGET_DIR을 생략하면 현재 작업 디렉터리를 프로젝트 루트로 초기화합니다.
+
+case cli-unknown-command-bogus-option
+arg --bogus
+arg KEY
+status 2
+err project-path-gateway: 알 수 없는 명령입니다: --bogus
+err 사용법:
+err   project-path-gateway init [TARGET_DIR]   프로젝트에 .tool/project-path-gateway/를 만들고 라이브러리를 설치·교체합니다
+err   project-path-gateway --help | -h          이 도움말을 출력합니다
+err   project-path-gateway --version            버전을 출력합니다
+err
+err TARGET_DIR을 생략하면 현재 작업 디렉터리를 프로젝트 루트로 초기화합니다.
+
+case cli-get-is-not-a-command
+arg get
+arg KEY
+status 2
+err project-path-gateway: 알 수 없는 명령입니다: get
+err 사용법:
+err   project-path-gateway init [TARGET_DIR]   프로젝트에 .tool/project-path-gateway/를 만들고 라이브러리를 설치·교체합니다
+err   project-path-gateway --help | -h          이 도움말을 출력합니다
+err   project-path-gateway --version            버전을 출력합니다
+err
+err TARGET_DIR을 생략하면 현재 작업 디렉터리를 프로젝트 루트로 초기화합니다.
+
+case cli-verify-is-not-a-command
+arg verify
+arg KEY
+status 2
+err project-path-gateway: 알 수 없는 명령입니다: verify
+err 사용법:
+err   project-path-gateway init [TARGET_DIR]   프로젝트에 .tool/project-path-gateway/를 만들고 라이브러리를 설치·교체합니다
+err   project-path-gateway --help | -h          이 도움말을 출력합니다
+err   project-path-gateway --version            버전을 출력합니다
+err
+err TARGET_DIR을 생략하면 현재 작업 디렉터리를 프로젝트 루트로 초기화합니다.
+
+case cli-init-too-many-arguments
+fs dir /t/a
+fs dir /t/b
+arg init
+arg /t/a
+arg /t/b
+status 2
+err project-path-gateway: init: 인자는 0개 또는 1개여야 합니다
+
+case cli-init-target-missing
+arg init
+arg /t/nope
+status 2
+err project-path-gateway: init: 디렉터리가 아닙니다: /t/nope
+op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
+op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
+op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
+
+case cli-init-target-is-file
+fs file /t/file
+arg init
+arg /t/file
+status 2
+err project-path-gateway: init: 디렉터리가 아닙니다: /t/file
+op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
+op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
+op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
+
+case cli-init-tool-is-regular-file
+fs file /t/p/.tool
+content keep
+arg init
+arg /t/p
+status 2
+err project-path-gateway: init: .tool이 디렉터리가 아닙니다: /t/p/.tool
+op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
+op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
+op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
+
+case cli-init-tool-directory-is-regular-file
+fs file /t/p/.tool/project-path-gateway
+arg init
+arg /t/p
+status 2
+err project-path-gateway: init: 도구 디렉터리가 디렉터리가 아닙니다: /t/p/.tool/project-path-gateway
+op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
+op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
+op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
+
+case cli-init-marker-is-directory
+fs dir /t/p/.tool/project-path-gateway/.project-path-gateway
+arg init
+arg /t/p
+status 2
+err project-path-gateway: init: 일반 파일이 아닙니다: /t/p/.tool/project-path-gateway/.project-path-gateway
+op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
+op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
+op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
+
+case cli-init-data-file-is-directory
+fs dir /t/p/.tool/project-path-gateway/project-path-gateway.conf
+arg init
+arg /t/p
+status 2
+err project-path-gateway: init: 일반 파일이 아닙니다: /t/p/.tool/project-path-gateway/project-path-gateway.conf
+op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
+op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
+op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
+
+case cli-init-library-is-directory
+fs dir /t/p/.tool/project-path-gateway/project-path-gateway.sh
+arg init
+arg /t/p
+status 2
+err project-path-gateway: init: 일반 파일이 아닙니다: /t/p/.tool/project-path-gateway/project-path-gateway.sh
+op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
+op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
+op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
+
+case cli-init-output-format-first-run
+fs dir /t/p
+arg init
+arg /t/p
+status 0
+out project-path-gateway: 생성: .tool/project-path-gateway/.project-path-gateway
+out project-path-gateway: 생성: .tool/project-path-gateway/project-path-gateway.conf
+out project-path-gateway: 생성: .tool/project-path-gateway/project-path-gateway.sh
+out project-path-gateway: 초기화 완료: /t/p
+op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
+op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
+op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
+op mkdir /t/p/.tool
+op mkdir /t/p/.tool/project-path-gateway
+op write /t/p/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tool/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
+op link /t/p/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway /t/p/.tool/project-path-gateway/.project-path-gateway
+op remove /t/p/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway
+op write /t/p/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\sproject-path-gateway\s데이터\s파일\n#\s한\s줄에\sKEY=경로\s형식으로\s적습니다.\s경로는\s프로젝트\s루트(.tool/의\s상위\s디렉터리)\s기준\s상대경로입니다.\n#\s키:\s대문자로\s시작하고\s대문자·숫자·_만\s사용합니다.\s파일\s안에서\s중복될\s수\s없습니다.\n#\s경로:\s/로\s시작할\s수\s없고\s..\s세그먼트를\s쓸\s수\s없습니다.\s=\s앞뒤\s공백은\s제거되지\s않습니다.\n#\s빈\s줄과\s#으로\s시작하는\s줄은\s무시합니다.\n#\n#\s예:\n#\sSOURCES_ROOT=sources\n#\sBUILD_SCRIPT=scripts/build.sh\n
+op link /t/p/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/p/.tool/project-path-gateway/project-path-gateway.conf
+op remove /t/p/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh /t/p/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op link /t/p/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh /t/p/.tool/project-path-gateway/project-path-gateway.sh
+op remove /t/p/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+
+case cli-init-output-format-rerun
+fs file /t/p/.tool/project-path-gateway/.project-path-gateway
+fs file /t/p/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/p/.tool/project-path-gateway/project-path-gateway.sh
+content # old library
+arg init
+arg /t/p
+status 0
+out project-path-gateway: 유지: .tool/project-path-gateway/.project-path-gateway
+out project-path-gateway: 유지: .tool/project-path-gateway/project-path-gateway.conf
+out project-path-gateway: 교체: .tool/project-path-gateway/project-path-gateway.sh
+out project-path-gateway: 초기화 완료: /t/p
+op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
+op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
+op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
+op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh /t/p/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op move /t/p/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh /t/p/.tool/project-path-gateway/project-path-gateway.sh
