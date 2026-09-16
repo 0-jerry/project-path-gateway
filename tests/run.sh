@@ -84,7 +84,10 @@ fi
 if [ -n "$case_files" ]; then
 	IFS=$NL
 	# shellcheck disable=SC2086 # 사례 파일 경로 목록을 줄 단위로 나눈다
-	LC_ALL=C awk -v mode=validate -f tests/harness/casefile.awk $case_files >"$cap/list"
+	if ! LC_ALL=C awk -v mode=validate -f tests/harness/casefile.awk $case_files >"$cap/list"; then
+		printf 'tests/run.sh: 사례 파일 검증 중 하니스 오류가 났습니다\n' >&2
+		exit 2
+	fi
 	IFS=$old_ifs
 fi
 
