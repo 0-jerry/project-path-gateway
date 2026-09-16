@@ -1,15 +1,16 @@
 #!/bin/sh
 # 테스트 실행기 (specs/002-dry-run-unit-tests/contracts/runner.md)
 #
-# 사용법: sh tests/run.sh [--shell PATH]... [필터...]
+# 사용법: sh tests/run.sh [--shell PATH]... [--reverse | --shuffle SEED] [필터...]
 #
+# 기본 순서는 사례 파일 경로순·파일 안 순서다. --reverse는 역순, --shuffle SEED는 SEED로 섞은 순서로 실행한다.
 # 필터는 사례 식별자(<사례 파일 경로>:<이름>)의 부분 문자열이며, 여러 개면 하나라도 맞는 사례를 실행한다.
 # tests/cases 아래 *.cases 사례 파일을 검증하고, 대상 셸마다·사례마다 tests/harness/case.sh 사례 프로세스를 띄워
 # 판정 줄을 출력·집계한다. 파일 시스템 변경은 캡처 공간 하나뿐이며 종료 방식과 무관하게 지운다.
 # 반환: 0 실패·데이터 오류 없음, 1 실패 또는 데이터 오류, 2 사용법 오류·캡처 공간 생성 실패·대상 셸 실행 불가
 
 usage() {
-	printf '사용법: sh tests/run.sh [--shell PATH]... [필터...]\n'
+	printf '사용법: sh tests/run.sh [--shell PATH]... [--reverse | --shuffle SEED] [필터...]\n'
 }
 
 NL='
@@ -19,6 +20,8 @@ TAB=$(printf '\t')
 repo_root=$(cd -P -- "$(dirname -- "$0")/.." && pwd -P) || exit 2
 shells=
 filters=
+order=
+seed=
 
 while [ $# -gt 0 ]; do
 	case $1 in
@@ -28,6 +31,29 @@ while [ $# -gt 0 ]; do
 			exit 2
 		fi
 		shells="$shells$2$NL"
+		shift 2
+		;;
+	--reverse)
+		if [ -n "$order" ]; then
+			usage >&2
+			exit 2
+		fi
+		order=reverse
+		shift
+		;;
+	--shuffle)
+		if [ -n "$order" ] || [ $# -lt 2 ]; then
+			usage >&2
+			exit 2
+		fi
+		case $2 in
+		'' | *[!0-9]*)
+			usage >&2
+			exit 2
+			;;
+		esac
+		order=shuffle
+		seed=$2
 		shift 2
 		;;
 	-h | --help)
@@ -90,6 +116,20 @@ if [ -n "$case_files" ]; then
 	fi
 	IFS=$old_ifs
 fi
+
+# 실행 순서: 사례 줄(C)만 --reverse는 역순, --shuffle은 SEED 난수 키 정렬로 바꾼다.
+case $order in
+reverse)
+	LC_ALL=C awk '$1 == "C" { line[++n] = $0; next } { print } END { for (i = n; i >= 1; i--) print line[i] }' \
+		"$cap/list" >"$cap/order" || exit 2
+	mv "$cap/order" "$cap/list" || exit 2
+	;;
+shuffle)
+	LC_ALL=C awk -v seed="$seed" 'BEGIN { srand(seed) } { printf "%.12f\t%d\t%s\n", ($1 == "C" ? rand() : -1), NR, $0 }' \
+		"$cap/list" | LC_ALL=C sort -t "$TAB" -k1,1n -k2,2n | cut -f 3- >"$cap/order" || exit 2
+	mv "$cap/order" "$cap/list" || exit 2
+	;;
+esac
 
 passed=0
 failed=0
