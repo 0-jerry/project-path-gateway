@@ -1,0 +1,102 @@
+# 인프라 통합: 루트 표식 파일 상위 탐색 (기능 001 root_discovery_test, FR-002, research R-06)
+target lib-func project_path_gateway__port_find_root
+layer infra
+
+case find-root-start-is-root
+fs file /w/root/.tool/project-path-gateway/.project-path-gateway
+arg /w/root
+status 0
+out-raw /w/rootx
+op is-file /w/root/.tool/project-path-gateway/.project-path-gateway
+
+case find-root-from-subdirectory
+fs file /w/root/.tool/project-path-gateway/.project-path-gateway
+fs dir /w/root/a/b
+arg /w/root/a/b
+status 0
+out-raw /w/rootx
+op is-file /w/root/a/b/.tool/project-path-gateway/.project-path-gateway
+op is-file /w/root/a/.tool/project-path-gateway/.project-path-gateway
+op is-file /w/root/.tool/project-path-gateway/.project-path-gateway
+
+case find-root-nearest-nested-project
+fs file /w/root/.tool/project-path-gateway/.project-path-gateway
+fs file /w/root/sub/.tool/project-path-gateway/.project-path-gateway
+fs dir /w/root/sub/x
+arg /w/root/sub/x
+status 0
+out-raw /w/root/subx
+op is-file /w/root/sub/x/.tool/project-path-gateway/.project-path-gateway
+op is-file /w/root/sub/.tool/project-path-gateway/.project-path-gateway
+
+case find-root-inside-tool-directory
+fs file /w/root/.tool/project-path-gateway/.project-path-gateway
+arg /w/root/.tool/project-path-gateway
+status 0
+out-raw /w/rootx
+op is-file /w/root/.tool/project-path-gateway/.tool/project-path-gateway/.project-path-gateway
+op is-file /w/root/.tool/.tool/project-path-gateway/.project-path-gateway
+op is-file /w/root/.tool/project-path-gateway/.project-path-gateway
+
+case find-root-tool-directory-without-marker-continues
+fs file /w/root/.tool/project-path-gateway/.project-path-gateway
+fs dir /w/root/child/.tool/project-path-gateway
+arg /w/root/child
+status 0
+out-raw /w/rootx
+op is-file /w/root/child/.tool/project-path-gateway/.project-path-gateway
+op is-file /w/root/.tool/project-path-gateway/.project-path-gateway
+
+case find-root-marker-directory-not-accepted
+fs file /w/root/.tool/project-path-gateway/.project-path-gateway
+fs dir /w/root/child/.tool/project-path-gateway/.project-path-gateway
+arg /w/root/child
+status 0
+out-raw /w/rootx
+op is-file /w/root/child/.tool/project-path-gateway/.project-path-gateway
+op is-file /w/root/.tool/project-path-gateway/.project-path-gateway
+
+case find-root-unreadable-marker-accepted
+fs file /w/root/.tool/project-path-gateway/.project-path-gateway
+fs deny /w/root/.tool/project-path-gateway/.project-path-gateway
+arg /w/root
+status 0
+out-raw /w/rootx
+op is-file /w/root/.tool/project-path-gateway/.project-path-gateway
+
+case find-root-none-up-to-slash
+fs dir /w/plain
+arg /w/plain
+status 1
+op is-file /w/plain/.tool/project-path-gateway/.project-path-gateway
+op is-file /w/.tool/project-path-gateway/.project-path-gateway
+op is-file /.tool/project-path-gateway/.project-path-gateway
+
+case find-root-marker-at-slash
+fs file /.tool/project-path-gateway/.project-path-gateway
+fs dir /w/a
+arg /w/a
+status 0
+out-raw /x
+op is-file /w/a/.tool/project-path-gateway/.project-path-gateway
+op is-file /w/.tool/project-path-gateway/.project-path-gateway
+op is-file /.tool/project-path-gateway/.project-path-gateway
+
+case find-root-name-ending-with-newline
+fs file /w/nl\n/.tool/project-path-gateway/.project-path-gateway
+fs dir /w/nl\n/a
+arg /w/nl\n/a
+status 0
+out /w/nl
+out-raw x
+op is-file /w/nl\n/a/.tool/project-path-gateway/.project-path-gateway
+op is-file /w/nl\n/.tool/project-path-gateway/.project-path-gateway
+
+case find-root-space-and-korean
+fs file /w/내\s프로젝트\s폴더/.tool/project-path-gateway/.project-path-gateway
+fs dir /w/내\s프로젝트\s폴더/하위\s디렉터리
+arg /w/내\s프로젝트\s폴더/하위\s디렉터리
+status 0
+out-raw /w/내 프로젝트 폴더x
+op is-file /w/내\s프로젝트\s폴더/하위\s디렉터리/.tool/project-path-gateway/.project-path-gateway
+op is-file /w/내\s프로젝트\s폴더/.tool/project-path-gateway/.project-path-gateway
