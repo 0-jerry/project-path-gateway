@@ -105,3 +105,16 @@ assert_not_exists() {
 		fail_test "없어야 함: $1"
 	fi
 }
+
+# N번째 줄(-1은 마지막 줄)에 TEXT가 포함되는지 확인한다.
+assert_stderr_line_contains() {
+	if [ "$1" = -1 ]; then
+		actual=$(tail -n 1 "$TEST_TMP/stderr")
+	else
+		actual=$(sed -n "$1p" "$TEST_TMP/stderr")
+	fi
+	case $actual in
+	*"$2"*) ;;
+	*) fail_test "stderr $1번째 줄에 포함되어야 함: [$2], 실제: [$actual]" ;;
+	esac
+}

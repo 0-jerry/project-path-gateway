@@ -84,7 +84,6 @@ for shell in $shells; do
 			(
 				IFS=$old_ifs
 				cd "$tmp" || exit 2
-				# shellcheck disable=SC2016 # 확장은 대상 셸 안에서 일어나야 한다
 				TEST_TMP=$tmp REPO_ROOT=$repo_root TEST_SHELL=$shell \
 					"$shell" -c '. "$REPO_ROOT/tests/lib/assert.sh"; . "$REPO_ROOT/tests/lib/fixture.sh"; . "$REPO_ROOT/$1"; "$2"' \
 					_ "$file" "$func"
