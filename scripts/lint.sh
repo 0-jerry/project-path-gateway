@@ -12,6 +12,7 @@
 # 6. 환경 접근 위치 (002 contracts/system-ports.md 3절): 시스템 포트 본문 밖의 파일 리다이렉션(E-1),
 #    파일 검사 연산자(E-2), 파일·신호 명령(E-3), $$·$0(E-4), for 목록 글로브(E-5),
 #    파이프라인·명령 치환 안의 변경 시스템 포트 호출
+# 7. 추적 대조표(tests/traceability.md)의 사례 식별자·수동 확인 절 참조
 
 repo_root=$(cd -P -- "$(dirname -- "$0")/.." && pwd -P) || exit 2
 cd "$repo_root" || exit 2
@@ -261,6 +262,65 @@ for f in "$lib" "$bin" install.sh uninstall.sh; do
 	[ -f "$f" ] || continue
 	check_env_access "$f" || report "$f: 시스템 포트 밖 환경 접근이 있습니다"
 done
+
+# 7. 추적 대조표 참조 (002 research D-09 5절): 표의 사례 식별자가 사례 파일의 case 줄로 있고,
+#    사례 열이 비어 있지 않으며, 수동 확인 절 번호가 tests/manual-checks.md의 "## <번호>." 제목으로 있어야 한다.
+check_traceability() {
+	LC_ALL=C awk '
+	FNR == 1 { file_index++ }
+	file_index == 1 {
+		if ($0 ~ /^## [0-9]+\./) { n = $2; sub(/\..*/, "", n); section[n] = 1 }
+		next
+	}
+	!/^\|/ { case_col = 0; manual_col = 0; next }
+	/^\| *-/ { next }
+	{
+		cols = split($0, cell, "|")
+		if (case_col == 0) {
+			for (i = 2; i < cols; i++) {
+				h = cell[i]; gsub(/^ +| +$/, "", h)
+				if (h == "사례") case_col = i
+				if (h == "수동 확인") manual_col = i
+			}
+			next
+		}
+		row = cell[2]; gsub(/^ +| +$/, "", row)
+		ids = 0
+		rest = cell[case_col]
+		while (match(rest, /`[^`]*`/)) {
+			id = substr(rest, RSTART + 1, RLENGTH - 2)
+			rest = substr(rest, RSTART + RLENGTH)
+			ids++
+			k = index(id, ".cases:")
+			if (id !~ /^tests\/cases\// || k == 0) { printf "%s:%d: 사례 식별자 형식이 아닙니다: %s\n", FILENAME, FNR, id; count++; continue }
+			path = substr(id, 1, k + 5); name = substr(id, k + 7)
+			if (!(path in loaded)) {
+				loaded[path] = 1
+				while ((getline line < path) > 0) if (line ~ /^case /) have[path ":" substr(line, 6)] = 1
+				close(path)
+			}
+			if (!(id in have)) { printf "%s:%d: 사례가 없습니다: %s\n", FILENAME, FNR, id; count++ }
+		}
+		if (ids == 0) { printf "%s:%d: 사례 열이 비어 있습니다: %s\n", FILENAME, FNR, row; count++ }
+		refs = ""
+		if (manual_col > 0) { m = cell[manual_col]; gsub(/[^0-9]+/, " ", m); refs = refs " " m }
+		rest = $0
+		while (match(rest, /수동 확인 [0-9]+/)) {
+			refs = refs " " substr(rest, RSTART + length("수동 확인 "), RLENGTH - length("수동 확인 "))
+			rest = substr(rest, RSTART + RLENGTH)
+		}
+		nr = split(refs, ref, " ")
+		for (i = 1; i <= nr; i++) {
+			if (!(ref[i] in section)) { printf "%s:%d: 수동 확인 절이 없습니다: %s\n", FILENAME, FNR, ref[i]; count++ }
+		}
+	}
+	END { exit (count > 0) }
+	' tests/manual-checks.md tests/traceability.md
+}
+
+if [ -f tests/traceability.md ]; then
+	check_traceability >&2 || report "tests/traceability.md: 추적 대조표 참조 오류가 있습니다"
+fi
 
 if [ "$problems" -gt 0 ]; then
 	printf 'lint: 위반 %s건\n' "$problems" >&2
