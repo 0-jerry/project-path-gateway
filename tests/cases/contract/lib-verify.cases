@@ -1,0 +1,632 @@
+# 공개 API 계약: project_path_gateway_verify (기능 001 library_verify_contract_test, verify_filesystem_test, contracts/library-api.md 5절)
+# 검증은 변경 작업을 하지 않는다: ops changes 기대에 변경 기록이 없다.
+target lib-session project_path_gateway
+layer api
+fs file /t/root/.tool/project-path-gateway/.project-path-gateway
+
+case verify-argument-is-rejected
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+call project_path_gateway_init /t/root
+call project_path_gateway_verify extra
+status 2
+err project-path-gateway: project_path_gateway_verify: 인자를 받지 않습니다
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 2
+
+case verify-not-initialized
+call project_path_gateway_verify
+status 2
+err project-path-gateway: project_path_gateway_verify: 초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요
+op returned project_path_gateway_verify 2
+
+case verify-data-file-errors-skip-entry-checks
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content MISSING=nope
+content bad
+call eval PROJECT_PATH_GATEWAY_ROOT=/t/root
+call project_path_gateway_verify
+status 2
+err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:2: KEY=경로 형식이 아닙니다
+op returned eval 0
+op returned project_path_gateway_verify 2
+
+case verify-missing-data-file-skips-entry-checks
+fs dir /t/root/.tool/project-path-gateway
+call eval PROJECT_PATH_GATEWAY_ROOT=/t/root
+call project_path_gateway_verify
+status 2
+err project-path-gateway: project_path_gateway_verify: 데이터 파일을 읽을 수 없습니다: /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op returned eval 0
+op returned project_path_gateway_verify 2
+
+case verify-all-entries-pass
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+content B=b/c
+fs dir /t/root/a
+fs file /t/root/b/c
+call project_path_gateway_init /t/root
+call project_path_gateway_verify
+status 0
+out project-path-gateway: 검증 통과 2건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 0
+
+case verify-zero-entries-pass
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content # 항목 없음
+call project_path_gateway_init /t/root
+call project_path_gateway_verify
+status 0
+out project-path-gateway: 검증 통과 0건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 0
+
+case verify-missing-entries-reported-in-order
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content B=gone_b
+content KEEP=keep
+content A=gone a
+fs dir /t/root/keep
+call project_path_gateway_init /t/root
+call project_path_gateway_verify
+status 1
+err project-path-gateway: 누락: B=gone_b
+err project-path-gateway: 누락: A=gone a
+err project-path-gateway: 검증 실패 2건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 1
+
+case verify-link-to-outside-directory
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content OUT=link
+fs dir /t/outside
+fs link /t/root/link /t/outside
+call project_path_gateway_init /t/root
+call project_path_gateway_verify
+status 1
+err project-path-gateway: 루트 밖: OUT=link -> /t/outside
+err project-path-gateway: 검증 실패 1건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 1
+
+case verify-link-to-outside-file-with-relative-target
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content OUT=d/link
+fs file /t/outside/f
+fs link /t/root/d/link ../../outside/f
+call project_path_gateway_init /t/root
+call project_path_gateway_verify
+status 1
+err project-path-gateway: 루트 밖: OUT=d/link -> /t/outside/f
+err project-path-gateway: 검증 실패 1건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 1
+
+case verify-broken-link-is-missing
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content BROKEN=link
+fs link /t/root/link /t/root/nope
+call project_path_gateway_init /t/root
+call project_path_gateway_verify
+status 1
+err project-path-gateway: 누락: BROKEN=link
+err project-path-gateway: 검증 실패 1건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 1
+
+case verify-cyclic-link-is-missing
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content LOOP=a
+fs link /t/root/a b
+fs link /t/root/b a
+call project_path_gateway_init /t/root
+call project_path_gateway_verify
+status 1
+err project-path-gateway: 누락: LOOP=a
+err project-path-gateway: 검증 실패 1건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 1
+
+case verify-permission-denied-is-missing
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content LOCKED=locked/file
+fs file /t/root/locked/file
+fs deny /t/root/locked
+call project_path_gateway_init /t/root
+call project_path_gateway_verify
+status 1
+err project-path-gateway: 누락: LOCKED=locked/file
+err project-path-gateway: 검증 실패 1건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 1
+
+case verify-sibling-with-root-prefix-is-outside
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content SIB=sib
+fs dir /t/root2/x
+fs link /t/root/sib /t/root2/x
+call project_path_gateway_init /t/root
+call project_path_gateway_verify
+status 1
+err project-path-gateway: 루트 밖: SIB=sib -> /t/root2/x
+err project-path-gateway: 검증 실패 1건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 1
+
+case verify-file-link-chain-inside-root-passes
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content CHAIN=l1
+fs file /t/root/real/target
+fs link /t/root/l3 real/target
+fs link /t/root/l2 l3
+fs link /t/root/l1 /t/root/l2
+call project_path_gateway_init /t/root
+call project_path_gateway_verify
+status 0
+out project-path-gateway: 검증 통과 1건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 0
+
+case verify-directory-link-and-trailing-slash-pass
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content DIRLINK=dl
+content TRAIL=dir/
+content DOT=./dir/./f
+fs file /t/root/dir/f
+fs link /t/root/dl dir
+call project_path_gateway_init /t/root
+call project_path_gateway_verify
+status 0
+out project-path-gateway: 검증 통과 3건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 0
+
+case verify-missing-entry-is-not-checked-for-outside
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content BROKEN_OUT=link
+fs link /t/root/link /nonexistent/ppg/target
+call project_path_gateway_init /t/root
+call project_path_gateway_verify
+status 1
+err project-path-gateway: 누락: BROKEN_OUT=link
+err project-path-gateway: 검증 실패 1건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 1
+
+case verify-paths-with-space-and-korean
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content SPACE=a b/한글 파일
+fs file /t/root/a\sb/한글\s파일
+call project_path_gateway_init /t/root
+call project_path_gateway_verify
+status 0
+out project-path-gateway: 검증 통과 1건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 0
+
+case verify-twice-does-not-change-filesystem
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+content MISSING=nope
+fs dir /t/root/a
+call project_path_gateway_init /t/root
+call project_path_gateway_verify
+call project_path_gateway_verify
+status 1
+err project-path-gateway: 누락: MISSING=nope
+err project-path-gateway: 검증 실패 1건
+err project-path-gateway: 누락: MISSING=nope
+err project-path-gateway: 검증 실패 1건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 1
+op returned project_path_gateway_verify 1
+
+case verify-two-hundred-entries
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content KEY_0=dir/file_0
+content KEY_1=dir/file_1
+content KEY_2=dir/file_2
+content KEY_3=dir/file_3
+content KEY_4=dir/file_4
+content KEY_5=dir/file_5
+content KEY_6=dir/file_6
+content KEY_7=dir/file_7
+content KEY_8=dir/file_8
+content KEY_9=dir/file_9
+content KEY_10=dir/file_10
+content KEY_11=dir/file_11
+content KEY_12=dir/file_12
+content KEY_13=dir/file_13
+content KEY_14=dir/file_14
+content KEY_15=dir/file_15
+content KEY_16=dir/file_16
+content KEY_17=dir/file_17
+content KEY_18=dir/file_18
+content KEY_19=dir/file_19
+content KEY_20=dir/file_20
+content KEY_21=dir/file_21
+content KEY_22=dir/file_22
+content KEY_23=dir/file_23
+content KEY_24=dir/file_24
+content KEY_25=dir/file_25
+content KEY_26=dir/file_26
+content KEY_27=dir/file_27
+content KEY_28=dir/file_28
+content KEY_29=dir/file_29
+content KEY_30=dir/file_30
+content KEY_31=dir/file_31
+content KEY_32=dir/file_32
+content KEY_33=dir/file_33
+content KEY_34=dir/file_34
+content KEY_35=dir/file_35
+content KEY_36=dir/file_36
+content KEY_37=dir/file_37
+content KEY_38=dir/file_38
+content KEY_39=dir/file_39
+content KEY_40=dir/file_40
+content KEY_41=dir/file_41
+content KEY_42=dir/file_42
+content KEY_43=dir/file_43
+content KEY_44=dir/file_44
+content KEY_45=dir/file_45
+content KEY_46=dir/file_46
+content KEY_47=dir/file_47
+content KEY_48=dir/file_48
+content KEY_49=dir/file_49
+content KEY_50=dir/file_50
+content KEY_51=dir/file_51
+content KEY_52=dir/file_52
+content KEY_53=dir/file_53
+content KEY_54=dir/file_54
+content KEY_55=dir/file_55
+content KEY_56=dir/file_56
+content KEY_57=dir/file_57
+content KEY_58=dir/file_58
+content KEY_59=dir/file_59
+content KEY_60=dir/file_60
+content KEY_61=dir/file_61
+content KEY_62=dir/file_62
+content KEY_63=dir/file_63
+content KEY_64=dir/file_64
+content KEY_65=dir/file_65
+content KEY_66=dir/file_66
+content KEY_67=dir/file_67
+content KEY_68=dir/file_68
+content KEY_69=dir/file_69
+content KEY_70=dir/file_70
+content KEY_71=dir/file_71
+content KEY_72=dir/file_72
+content KEY_73=dir/file_73
+content KEY_74=dir/file_74
+content KEY_75=dir/file_75
+content KEY_76=dir/file_76
+content KEY_77=dir/file_77
+content KEY_78=dir/file_78
+content KEY_79=dir/file_79
+content KEY_80=dir/file_80
+content KEY_81=dir/file_81
+content KEY_82=dir/file_82
+content KEY_83=dir/file_83
+content KEY_84=dir/file_84
+content KEY_85=dir/file_85
+content KEY_86=dir/file_86
+content KEY_87=dir/file_87
+content KEY_88=dir/file_88
+content KEY_89=dir/file_89
+content KEY_90=dir/file_90
+content KEY_91=dir/file_91
+content KEY_92=dir/file_92
+content KEY_93=dir/file_93
+content KEY_94=dir/file_94
+content KEY_95=dir/file_95
+content KEY_96=dir/file_96
+content KEY_97=dir/file_97
+content KEY_98=dir/file_98
+content KEY_99=dir/file_99
+content KEY_100=dir/file_100
+content KEY_101=dir/file_101
+content KEY_102=dir/file_102
+content KEY_103=dir/file_103
+content KEY_104=dir/file_104
+content KEY_105=dir/file_105
+content KEY_106=dir/file_106
+content KEY_107=dir/file_107
+content KEY_108=dir/file_108
+content KEY_109=dir/file_109
+content KEY_110=dir/file_110
+content KEY_111=dir/file_111
+content KEY_112=dir/file_112
+content KEY_113=dir/file_113
+content KEY_114=dir/file_114
+content KEY_115=dir/file_115
+content KEY_116=dir/file_116
+content KEY_117=dir/file_117
+content KEY_118=dir/file_118
+content KEY_119=dir/file_119
+content KEY_120=dir/file_120
+content KEY_121=dir/file_121
+content KEY_122=dir/file_122
+content KEY_123=dir/file_123
+content KEY_124=dir/file_124
+content KEY_125=dir/file_125
+content KEY_126=dir/file_126
+content KEY_127=dir/file_127
+content KEY_128=dir/file_128
+content KEY_129=dir/file_129
+content KEY_130=dir/file_130
+content KEY_131=dir/file_131
+content KEY_132=dir/file_132
+content KEY_133=dir/file_133
+content KEY_134=dir/file_134
+content KEY_135=dir/file_135
+content KEY_136=dir/file_136
+content KEY_137=dir/file_137
+content KEY_138=dir/file_138
+content KEY_139=dir/file_139
+content KEY_140=dir/file_140
+content KEY_141=dir/file_141
+content KEY_142=dir/file_142
+content KEY_143=dir/file_143
+content KEY_144=dir/file_144
+content KEY_145=dir/file_145
+content KEY_146=dir/file_146
+content KEY_147=dir/file_147
+content KEY_148=dir/file_148
+content KEY_149=dir/file_149
+content KEY_150=dir/file_150
+content KEY_151=dir/file_151
+content KEY_152=dir/file_152
+content KEY_153=dir/file_153
+content KEY_154=dir/file_154
+content KEY_155=dir/file_155
+content KEY_156=dir/file_156
+content KEY_157=dir/file_157
+content KEY_158=dir/file_158
+content KEY_159=dir/file_159
+content KEY_160=dir/file_160
+content KEY_161=dir/file_161
+content KEY_162=dir/file_162
+content KEY_163=dir/file_163
+content KEY_164=dir/file_164
+content KEY_165=dir/file_165
+content KEY_166=dir/file_166
+content KEY_167=dir/file_167
+content KEY_168=dir/file_168
+content KEY_169=dir/file_169
+content KEY_170=dir/file_170
+content KEY_171=dir/file_171
+content KEY_172=dir/file_172
+content KEY_173=dir/file_173
+content KEY_174=dir/file_174
+content KEY_175=dir/file_175
+content KEY_176=dir/file_176
+content KEY_177=dir/file_177
+content KEY_178=dir/file_178
+content KEY_179=dir/file_179
+content KEY_180=dir/file_180
+content KEY_181=dir/file_181
+content KEY_182=dir/file_182
+content KEY_183=dir/file_183
+content KEY_184=dir/file_184
+content KEY_185=dir/file_185
+content KEY_186=dir/file_186
+content KEY_187=dir/file_187
+content KEY_188=dir/file_188
+content KEY_189=dir/file_189
+content KEY_190=dir/file_190
+content KEY_191=dir/file_191
+content KEY_192=dir/file_192
+content KEY_193=dir/file_193
+content KEY_194=dir/file_194
+content KEY_195=dir/file_195
+content KEY_196=dir/file_196
+content KEY_197=dir/file_197
+content KEY_198=dir/file_198
+content KEY_199=dir/file_199
+fs file /t/root/dir/file_0
+fs file /t/root/dir/file_1
+fs file /t/root/dir/file_2
+fs file /t/root/dir/file_3
+fs file /t/root/dir/file_4
+fs file /t/root/dir/file_5
+fs file /t/root/dir/file_6
+fs file /t/root/dir/file_7
+fs file /t/root/dir/file_8
+fs file /t/root/dir/file_9
+fs file /t/root/dir/file_10
+fs file /t/root/dir/file_11
+fs file /t/root/dir/file_12
+fs file /t/root/dir/file_13
+fs file /t/root/dir/file_14
+fs file /t/root/dir/file_15
+fs file /t/root/dir/file_16
+fs file /t/root/dir/file_17
+fs file /t/root/dir/file_18
+fs file /t/root/dir/file_19
+fs file /t/root/dir/file_20
+fs file /t/root/dir/file_21
+fs file /t/root/dir/file_22
+fs file /t/root/dir/file_23
+fs file /t/root/dir/file_24
+fs file /t/root/dir/file_25
+fs file /t/root/dir/file_26
+fs file /t/root/dir/file_27
+fs file /t/root/dir/file_28
+fs file /t/root/dir/file_29
+fs file /t/root/dir/file_30
+fs file /t/root/dir/file_31
+fs file /t/root/dir/file_32
+fs file /t/root/dir/file_33
+fs file /t/root/dir/file_34
+fs file /t/root/dir/file_35
+fs file /t/root/dir/file_36
+fs file /t/root/dir/file_37
+fs file /t/root/dir/file_38
+fs file /t/root/dir/file_39
+fs file /t/root/dir/file_40
+fs file /t/root/dir/file_41
+fs file /t/root/dir/file_42
+fs file /t/root/dir/file_43
+fs file /t/root/dir/file_44
+fs file /t/root/dir/file_45
+fs file /t/root/dir/file_46
+fs file /t/root/dir/file_47
+fs file /t/root/dir/file_48
+fs file /t/root/dir/file_49
+fs file /t/root/dir/file_50
+fs file /t/root/dir/file_51
+fs file /t/root/dir/file_52
+fs file /t/root/dir/file_53
+fs file /t/root/dir/file_54
+fs file /t/root/dir/file_55
+fs file /t/root/dir/file_56
+fs file /t/root/dir/file_57
+fs file /t/root/dir/file_58
+fs file /t/root/dir/file_59
+fs file /t/root/dir/file_60
+fs file /t/root/dir/file_61
+fs file /t/root/dir/file_62
+fs file /t/root/dir/file_63
+fs file /t/root/dir/file_64
+fs file /t/root/dir/file_65
+fs file /t/root/dir/file_66
+fs file /t/root/dir/file_67
+fs file /t/root/dir/file_68
+fs file /t/root/dir/file_69
+fs file /t/root/dir/file_70
+fs file /t/root/dir/file_71
+fs file /t/root/dir/file_72
+fs file /t/root/dir/file_73
+fs file /t/root/dir/file_74
+fs file /t/root/dir/file_75
+fs file /t/root/dir/file_76
+fs file /t/root/dir/file_77
+fs file /t/root/dir/file_78
+fs file /t/root/dir/file_79
+fs file /t/root/dir/file_80
+fs file /t/root/dir/file_81
+fs file /t/root/dir/file_82
+fs file /t/root/dir/file_83
+fs file /t/root/dir/file_84
+fs file /t/root/dir/file_85
+fs file /t/root/dir/file_86
+fs file /t/root/dir/file_87
+fs file /t/root/dir/file_88
+fs file /t/root/dir/file_89
+fs file /t/root/dir/file_90
+fs file /t/root/dir/file_91
+fs file /t/root/dir/file_92
+fs file /t/root/dir/file_93
+fs file /t/root/dir/file_94
+fs file /t/root/dir/file_95
+fs file /t/root/dir/file_96
+fs file /t/root/dir/file_97
+fs file /t/root/dir/file_98
+fs file /t/root/dir/file_99
+fs file /t/root/dir/file_100
+fs file /t/root/dir/file_101
+fs file /t/root/dir/file_102
+fs file /t/root/dir/file_103
+fs file /t/root/dir/file_104
+fs file /t/root/dir/file_105
+fs file /t/root/dir/file_106
+fs file /t/root/dir/file_107
+fs file /t/root/dir/file_108
+fs file /t/root/dir/file_109
+fs file /t/root/dir/file_110
+fs file /t/root/dir/file_111
+fs file /t/root/dir/file_112
+fs file /t/root/dir/file_113
+fs file /t/root/dir/file_114
+fs file /t/root/dir/file_115
+fs file /t/root/dir/file_116
+fs file /t/root/dir/file_117
+fs file /t/root/dir/file_118
+fs file /t/root/dir/file_119
+fs file /t/root/dir/file_120
+fs file /t/root/dir/file_121
+fs file /t/root/dir/file_122
+fs file /t/root/dir/file_123
+fs file /t/root/dir/file_124
+fs file /t/root/dir/file_125
+fs file /t/root/dir/file_126
+fs file /t/root/dir/file_127
+fs file /t/root/dir/file_128
+fs file /t/root/dir/file_129
+fs file /t/root/dir/file_130
+fs file /t/root/dir/file_131
+fs file /t/root/dir/file_132
+fs file /t/root/dir/file_133
+fs file /t/root/dir/file_134
+fs file /t/root/dir/file_135
+fs file /t/root/dir/file_136
+fs file /t/root/dir/file_137
+fs file /t/root/dir/file_138
+fs file /t/root/dir/file_139
+fs file /t/root/dir/file_140
+fs file /t/root/dir/file_141
+fs file /t/root/dir/file_142
+fs file /t/root/dir/file_143
+fs file /t/root/dir/file_144
+fs file /t/root/dir/file_145
+fs file /t/root/dir/file_146
+fs file /t/root/dir/file_147
+fs file /t/root/dir/file_148
+fs file /t/root/dir/file_149
+fs file /t/root/dir/file_150
+fs file /t/root/dir/file_151
+fs file /t/root/dir/file_152
+fs file /t/root/dir/file_153
+fs file /t/root/dir/file_154
+fs file /t/root/dir/file_155
+fs file /t/root/dir/file_156
+fs file /t/root/dir/file_157
+fs file /t/root/dir/file_158
+fs file /t/root/dir/file_159
+fs file /t/root/dir/file_160
+fs file /t/root/dir/file_161
+fs file /t/root/dir/file_162
+fs file /t/root/dir/file_163
+fs file /t/root/dir/file_164
+fs file /t/root/dir/file_165
+fs file /t/root/dir/file_166
+fs file /t/root/dir/file_167
+fs file /t/root/dir/file_168
+fs file /t/root/dir/file_169
+fs file /t/root/dir/file_170
+fs file /t/root/dir/file_171
+fs file /t/root/dir/file_172
+fs file /t/root/dir/file_173
+fs file /t/root/dir/file_174
+fs file /t/root/dir/file_175
+fs file /t/root/dir/file_176
+fs file /t/root/dir/file_177
+fs file /t/root/dir/file_178
+fs file /t/root/dir/file_179
+fs file /t/root/dir/file_180
+fs file /t/root/dir/file_181
+fs file /t/root/dir/file_182
+fs file /t/root/dir/file_183
+fs file /t/root/dir/file_184
+fs file /t/root/dir/file_185
+fs file /t/root/dir/file_186
+fs file /t/root/dir/file_187
+fs file /t/root/dir/file_188
+fs file /t/root/dir/file_189
+fs file /t/root/dir/file_190
+fs file /t/root/dir/file_191
+fs file /t/root/dir/file_192
+fs file /t/root/dir/file_193
+fs file /t/root/dir/file_194
+fs file /t/root/dir/file_195
+fs file /t/root/dir/file_196
+fs file /t/root/dir/file_197
+fs file /t/root/dir/file_198
+fs file /t/root/dir/file_199
+call project_path_gateway_init /t/root
+call project_path_gateway_verify
+status 0
+out project-path-gateway: 검증 통과 200건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 0
