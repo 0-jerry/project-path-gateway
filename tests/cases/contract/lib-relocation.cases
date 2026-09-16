@@ -1,0 +1,53 @@
+# 공개 API 계약: clone·이동한 프로젝트가 전역 프로그램 없이 새 위치 기준으로 동작
+# (기능 001 clone_relocation_test, install_uninstall_test_initialized_project_works_after_uninstall, FR-082)
+# 같은 프로젝트 파일 구성을 다른 루트 경로에 두고, 전역 프로그램 설치 경로(/t/prefix)는 두지 않는다.
+target lib-session project_path_gateway
+layer api
+
+case relocation-clone-to-other-path-without-global-program
+fs file /t/clone/복제\s위치/.tool/project-path-gateway/.project-path-gateway
+fs file /t/clone/복제\s위치/.tool/project-path-gateway/project-path-gateway.conf
+content APP_CONFIG=config/app.json
+fs file /t/clone/복제\s위치/config/app.json
+cwd /t/clone/복제\s위치
+call project_path_gateway_init
+call project_path_gateway_get APP_CONFIG
+call project_path_gateway_verify
+status 0
+out /t/clone/복제 위치/config/app.json
+out project-path-gateway: 검증 통과 1건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_get 0
+op returned project_path_gateway_verify 0
+
+case relocation-moved-project-needs-no-reinit
+fs file /t/moved/.tool/project-path-gateway/.project-path-gateway
+fs file /t/moved/.tool/project-path-gateway/project-path-gateway.conf
+content APP_CONFIG=config/app.json
+fs file /t/moved/config/app.json
+cwd /t/moved
+call project_path_gateway_init
+call project_path_gateway_get APP_CONFIG
+call project_path_gateway_verify
+status 0
+out /t/moved/config/app.json
+out project-path-gateway: 검증 통과 1건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_get 0
+op returned project_path_gateway_verify 0
+
+case relocation-initialized-project-works-after-uninstall
+fs file /t/project/.tool/project-path-gateway/.project-path-gateway
+fs file /t/project/.tool/project-path-gateway/project-path-gateway.conf
+content APP_CONFIG=config/app.json
+fs file /t/project/config/app.json
+fs dir /t/prefix
+call project_path_gateway_init /t/project
+call project_path_gateway_get APP_CONFIG
+call project_path_gateway_verify
+status 0
+out /t/project/config/app.json
+out project-path-gateway: 검증 통과 1건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_get 0
+op returned project_path_gateway_verify 0
