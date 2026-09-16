@@ -1,0 +1,240 @@
+# 공개 API 계약: 설치 스크립트 (기능 001 install_uninstall_test, contracts/install.md 1절, FR-088~FR-090)
+# 저장소 복사본을 /repo에 두고, 실행 환경의 PATH·PREFIX가 결과를 바꾸지 않도록 머리말에서 고정한다.
+target script-main install.sh
+layer api
+env PATH /usr/bin:/bin
+unset-env PREFIX
+self /repo/install.sh
+fs file /repo/install.sh
+fs file /repo/bin/project-path-gateway
+content # bin
+fs file /repo/lib/project-path-gateway.sh
+content # lib
+fs file /repo/VERSION
+content 0.1.0
+
+case install-default-prefix-uses-home
+env HOME /t/home
+fs dir /t/home
+status 0
+out project-path-gateway: 설치 완료: /t/home/.local (버전 0.1.0)
+out project-path-gateway: /t/home/.local/bin가 PATH에 없습니다. 셸 설정 파일에 다음 줄을 추가하세요:
+out   export PATH="/t/home/.local/bin:$PATH"
+op mkdir-p /t/home/.local/bin
+op mkdir-p /t/home/.local/share/project-path-gateway
+op copy /repo/bin/project-path-gateway /t/home/.local/bin/project-path-gateway.ppg-install.4242
+op chmod 755 /t/home/.local/bin/project-path-gateway.ppg-install.4242
+op move /t/home/.local/bin/project-path-gateway.ppg-install.4242 /t/home/.local/bin/project-path-gateway
+op copy /repo/lib/project-path-gateway.sh /t/home/.local/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242
+op chmod 644 /t/home/.local/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242
+op move /t/home/.local/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242 /t/home/.local/share/project-path-gateway/project-path-gateway.sh
+op copy /repo/VERSION /t/home/.local/share/project-path-gateway/VERSION.ppg-install.4242
+op chmod 644 /t/home/.local/share/project-path-gateway/VERSION.ppg-install.4242
+op move /t/home/.local/share/project-path-gateway/VERSION.ppg-install.4242 /t/home/.local/share/project-path-gateway/VERSION
+op write /t/home/.local/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/install-manifest\n
+op copy /t/home/.local/share/project-path-gateway/install-manifest.ppg-manifest.4242 /t/home/.local/share/project-path-gateway/install-manifest.ppg-install.4242
+op chmod 644 /t/home/.local/share/project-path-gateway/install-manifest.ppg-install.4242
+op move /t/home/.local/share/project-path-gateway/install-manifest.ppg-install.4242 /t/home/.local/share/project-path-gateway/install-manifest
+op remove /t/home/.local/share/project-path-gateway/install-manifest.ppg-manifest.4242
+
+case install-prefix-option-and-files
+arg --prefix
+arg /t/prefix
+status 0
+out project-path-gateway: 설치 완료: /t/prefix (버전 0.1.0)
+out project-path-gateway: /t/prefix/bin가 PATH에 없습니다. 셸 설정 파일에 다음 줄을 추가하세요:
+out   export PATH="/t/prefix/bin:$PATH"
+op mkdir-p /t/prefix/bin
+op mkdir-p /t/prefix/share/project-path-gateway
+op copy /repo/bin/project-path-gateway /t/prefix/bin/project-path-gateway.ppg-install.4242
+op chmod 755 /t/prefix/bin/project-path-gateway.ppg-install.4242
+op move /t/prefix/bin/project-path-gateway.ppg-install.4242 /t/prefix/bin/project-path-gateway
+op copy /repo/lib/project-path-gateway.sh /t/prefix/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242
+op chmod 644 /t/prefix/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242
+op move /t/prefix/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242 /t/prefix/share/project-path-gateway/project-path-gateway.sh
+op copy /repo/VERSION /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242
+op chmod 644 /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242
+op move /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242 /t/prefix/share/project-path-gateway/VERSION
+op write /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/install-manifest\n
+op copy /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242
+op chmod 644 /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242
+op move /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242 /t/prefix/share/project-path-gateway/install-manifest
+op remove /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242
+
+case install-prefix-option-overrides-environment
+env PREFIX /t/env
+arg --prefix
+arg /t/opt
+status 0
+out project-path-gateway: 설치 완료: /t/opt (버전 0.1.0)
+out project-path-gateway: /t/opt/bin가 PATH에 없습니다. 셸 설정 파일에 다음 줄을 추가하세요:
+out   export PATH="/t/opt/bin:$PATH"
+op mkdir-p /t/opt/bin
+op mkdir-p /t/opt/share/project-path-gateway
+op copy /repo/bin/project-path-gateway /t/opt/bin/project-path-gateway.ppg-install.4242
+op chmod 755 /t/opt/bin/project-path-gateway.ppg-install.4242
+op move /t/opt/bin/project-path-gateway.ppg-install.4242 /t/opt/bin/project-path-gateway
+op copy /repo/lib/project-path-gateway.sh /t/opt/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242
+op chmod 644 /t/opt/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242
+op move /t/opt/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242 /t/opt/share/project-path-gateway/project-path-gateway.sh
+op copy /repo/VERSION /t/opt/share/project-path-gateway/VERSION.ppg-install.4242
+op chmod 644 /t/opt/share/project-path-gateway/VERSION.ppg-install.4242
+op move /t/opt/share/project-path-gateway/VERSION.ppg-install.4242 /t/opt/share/project-path-gateway/VERSION
+op write /t/opt/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/install-manifest\n
+op copy /t/opt/share/project-path-gateway/install-manifest.ppg-manifest.4242 /t/opt/share/project-path-gateway/install-manifest.ppg-install.4242
+op chmod 644 /t/opt/share/project-path-gateway/install-manifest.ppg-install.4242
+op move /t/opt/share/project-path-gateway/install-manifest.ppg-install.4242 /t/opt/share/project-path-gateway/install-manifest
+op remove /t/opt/share/project-path-gateway/install-manifest.ppg-manifest.4242
+
+case install-prefix-environment-used-without-option
+env PREFIX /t/env
+status 0
+out project-path-gateway: 설치 완료: /t/env (버전 0.1.0)
+out project-path-gateway: /t/env/bin가 PATH에 없습니다. 셸 설정 파일에 다음 줄을 추가하세요:
+out   export PATH="/t/env/bin:$PATH"
+op mkdir-p /t/env/bin
+op mkdir-p /t/env/share/project-path-gateway
+op copy /repo/bin/project-path-gateway /t/env/bin/project-path-gateway.ppg-install.4242
+op chmod 755 /t/env/bin/project-path-gateway.ppg-install.4242
+op move /t/env/bin/project-path-gateway.ppg-install.4242 /t/env/bin/project-path-gateway
+op copy /repo/lib/project-path-gateway.sh /t/env/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242
+op chmod 644 /t/env/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242
+op move /t/env/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242 /t/env/share/project-path-gateway/project-path-gateway.sh
+op copy /repo/VERSION /t/env/share/project-path-gateway/VERSION.ppg-install.4242
+op chmod 644 /t/env/share/project-path-gateway/VERSION.ppg-install.4242
+op move /t/env/share/project-path-gateway/VERSION.ppg-install.4242 /t/env/share/project-path-gateway/VERSION
+op write /t/env/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/install-manifest\n
+op copy /t/env/share/project-path-gateway/install-manifest.ppg-manifest.4242 /t/env/share/project-path-gateway/install-manifest.ppg-install.4242
+op chmod 644 /t/env/share/project-path-gateway/install-manifest.ppg-install.4242
+op move /t/env/share/project-path-gateway/install-manifest.ppg-install.4242 /t/env/share/project-path-gateway/install-manifest
+op remove /t/env/share/project-path-gateway/install-manifest.ppg-manifest.4242
+
+case install-path-guidance-when-not-in-path
+arg --prefix
+arg /t/prefix
+status 0
+out project-path-gateway: 설치 완료: /t/prefix (버전 0.1.0)
+out project-path-gateway: /t/prefix/bin가 PATH에 없습니다. 셸 설정 파일에 다음 줄을 추가하세요:
+out   export PATH="/t/prefix/bin:$PATH"
+op mkdir-p /t/prefix/bin
+op mkdir-p /t/prefix/share/project-path-gateway
+op copy /repo/bin/project-path-gateway /t/prefix/bin/project-path-gateway.ppg-install.4242
+op chmod 755 /t/prefix/bin/project-path-gateway.ppg-install.4242
+op move /t/prefix/bin/project-path-gateway.ppg-install.4242 /t/prefix/bin/project-path-gateway
+op copy /repo/lib/project-path-gateway.sh /t/prefix/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242
+op chmod 644 /t/prefix/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242
+op move /t/prefix/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242 /t/prefix/share/project-path-gateway/project-path-gateway.sh
+op copy /repo/VERSION /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242
+op chmod 644 /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242
+op move /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242 /t/prefix/share/project-path-gateway/VERSION
+op write /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/install-manifest\n
+op copy /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242
+op chmod 644 /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242
+op move /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242 /t/prefix/share/project-path-gateway/install-manifest
+op remove /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242
+
+case install-no-path-guidance-when-in-path
+env PATH /t/prefix/bin:/usr/bin:/bin
+arg --prefix
+arg /t/prefix
+status 0
+out project-path-gateway: 설치 완료: /t/prefix (버전 0.1.0)
+op mkdir-p /t/prefix/bin
+op mkdir-p /t/prefix/share/project-path-gateway
+op copy /repo/bin/project-path-gateway /t/prefix/bin/project-path-gateway.ppg-install.4242
+op chmod 755 /t/prefix/bin/project-path-gateway.ppg-install.4242
+op move /t/prefix/bin/project-path-gateway.ppg-install.4242 /t/prefix/bin/project-path-gateway
+op copy /repo/lib/project-path-gateway.sh /t/prefix/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242
+op chmod 644 /t/prefix/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242
+op move /t/prefix/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242 /t/prefix/share/project-path-gateway/project-path-gateway.sh
+op copy /repo/VERSION /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242
+op chmod 644 /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242
+op move /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242 /t/prefix/share/project-path-gateway/VERSION
+op write /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/install-manifest\n
+op copy /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242
+op chmod 644 /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242
+op move /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242 /t/prefix/share/project-path-gateway/install-manifest
+op remove /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242
+
+case install-reinstall-replaces-files
+fs file /t/prefix/bin/project-path-gateway
+fs file /t/prefix/share/project-path-gateway/project-path-gateway.sh
+content old
+fs file /t/prefix/share/project-path-gateway/VERSION
+fs file /t/prefix/share/project-path-gateway/install-manifest
+arg --prefix
+arg /t/prefix
+status 0
+out project-path-gateway: 설치 완료: /t/prefix (버전 0.1.0)
+out project-path-gateway: /t/prefix/bin가 PATH에 없습니다. 셸 설정 파일에 다음 줄을 추가하세요:
+out   export PATH="/t/prefix/bin:$PATH"
+op mkdir-p /t/prefix/bin
+op mkdir-p /t/prefix/share/project-path-gateway
+op copy /repo/bin/project-path-gateway /t/prefix/bin/project-path-gateway.ppg-install.4242
+op chmod 755 /t/prefix/bin/project-path-gateway.ppg-install.4242
+op move /t/prefix/bin/project-path-gateway.ppg-install.4242 /t/prefix/bin/project-path-gateway
+op copy /repo/lib/project-path-gateway.sh /t/prefix/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242
+op chmod 644 /t/prefix/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242
+op move /t/prefix/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242 /t/prefix/share/project-path-gateway/project-path-gateway.sh
+op copy /repo/VERSION /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242
+op chmod 644 /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242
+op move /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242 /t/prefix/share/project-path-gateway/VERSION
+op write /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/install-manifest\n
+op copy /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242
+op chmod 644 /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242
+op move /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242 /t/prefix/share/project-path-gateway/install-manifest
+op remove /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242
+
+case install-runs-from-other-working-directory
+self ../repo/install.sh
+fs dir /t/elsewhere
+fs link /t/repo /repo
+cwd /t/elsewhere
+arg --prefix
+arg /t/prefix
+status 0
+out project-path-gateway: 설치 완료: /t/prefix (버전 0.1.0)
+out project-path-gateway: /t/prefix/bin가 PATH에 없습니다. 셸 설정 파일에 다음 줄을 추가하세요:
+out   export PATH="/t/prefix/bin:$PATH"
+op mkdir-p /t/prefix/bin
+op mkdir-p /t/prefix/share/project-path-gateway
+op copy /repo/bin/project-path-gateway /t/prefix/bin/project-path-gateway.ppg-install.4242
+op chmod 755 /t/prefix/bin/project-path-gateway.ppg-install.4242
+op move /t/prefix/bin/project-path-gateway.ppg-install.4242 /t/prefix/bin/project-path-gateway
+op copy /repo/lib/project-path-gateway.sh /t/prefix/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242
+op chmod 644 /t/prefix/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242
+op move /t/prefix/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242 /t/prefix/share/project-path-gateway/project-path-gateway.sh
+op copy /repo/VERSION /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242
+op chmod 644 /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242
+op move /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242 /t/prefix/share/project-path-gateway/VERSION
+op write /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/install-manifest\n
+op copy /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242
+op chmod 644 /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242
+op move /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242 /t/prefix/share/project-path-gateway/install-manifest
+op remove /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242
+
+case install-invalid-option
+arg --bogus
+status 2
+err 사용법: sh install.sh [--prefix DIR]
+
+case install-prefix-without-value
+arg --prefix
+status 2
+err 사용법: sh install.sh [--prefix DIR]
+
+case install-write-failure
+fs dir /t/locked
+fs readonly /t/locked
+arg --prefix
+arg /t/locked/prefix
+status 1
+err project-path-gateway: 설치 실패: /t/locked/prefix/bin
+op mkdir-p /t/locked/prefix/bin
+
+case install-missing-version-file
+fs dir /repo/VERSION
+arg --prefix
+arg /t/prefix
+status 1
+err project-path-gateway: 설치 실패: /repo/VERSION

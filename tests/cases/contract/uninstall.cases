@@ -1,0 +1,87 @@
+# 공개 API 계약: 제거 스크립트 (기능 001 install_uninstall_test, contracts/install.md 2절, FR-088~FR-090)
+target script-main uninstall.sh
+layer api
+unset-env PREFIX
+self /repo/uninstall.sh
+fs file /repo/uninstall.sh
+fs file /t/prefix/share/project-path-gateway/project-path-gateway.sh
+fs file /t/prefix/share/project-path-gateway/VERSION
+fs file /t/prefix/share/project-path-gateway/install-manifest
+content bin/project-path-gateway
+content share/project-path-gateway/project-path-gateway.sh
+content share/project-path-gateway/VERSION
+content share/project-path-gateway/install-manifest
+
+case uninstall-removes-installed-files-only
+fs file /t/prefix/bin/project-path-gateway
+fs file /t/prefix/bin/other-tool
+arg --prefix
+arg /t/prefix
+status 0
+out project-path-gateway: 제거 완료: /t/prefix
+op remove /t/prefix/bin/project-path-gateway
+op remove /t/prefix/share/project-path-gateway/project-path-gateway.sh
+op remove /t/prefix/share/project-path-gateway/VERSION
+op remove /t/prefix/share/project-path-gateway/install-manifest
+op rmdir /t/prefix/share/project-path-gateway
+
+case uninstall-skips-already-missing-file
+fs dir /t/prefix/bin
+fs file /t/prefix/bin/other-tool
+arg --prefix
+arg /t/prefix
+status 0
+out project-path-gateway: 제거 완료: /t/prefix
+op remove /t/prefix/bin/project-path-gateway
+op remove /t/prefix/share/project-path-gateway/project-path-gateway.sh
+op remove /t/prefix/share/project-path-gateway/VERSION
+op remove /t/prefix/share/project-path-gateway/install-manifest
+op rmdir /t/prefix/share/project-path-gateway
+
+case uninstall-default-prefix-uses-home
+env HOME /t/home
+fs file /t/home/.local/share/project-path-gateway/install-manifest
+content bin/project-path-gateway
+content share/project-path-gateway/install-manifest
+status 0
+out project-path-gateway: 제거 완료: /t/home/.local
+op remove /t/home/.local/bin/project-path-gateway
+op remove /t/home/.local/share/project-path-gateway/install-manifest
+op rmdir /t/home/.local/share/project-path-gateway
+
+case uninstall-without-manifest
+fs dir /t/empty
+arg --prefix
+arg /t/empty
+status 1
+err project-path-gateway: 설치 기록이 없습니다: /t/empty
+
+case uninstall-rejects-parent-entry
+fs file /t/prefix/bin/project-path-gateway
+fs file /t/victim
+fs file /t/prefix/share/project-path-gateway/install-manifest
+content bin/project-path-gateway
+content ../victim
+arg --prefix
+arg /t/prefix
+status 1
+err project-path-gateway: 설치 목록에 .. 세그먼트가 있어 제거하지 않습니다: ../victim
+
+case uninstall-rejects-absolute-entry
+fs file /t/prefix/bin/project-path-gateway
+fs file /t/prefix/share/project-path-gateway/install-manifest
+content /abs
+arg --prefix
+arg /t/prefix
+status 1
+err project-path-gateway: 설치 목록에 절대경로가 있어 제거하지 않습니다: /abs
+
+case uninstall-invalid-option
+arg --bogus
+status 2
+err 사용법: sh uninstall.sh [--prefix DIR]
+
+case uninstall-prefix-without-value
+arg --prefix
+status 2
+err 사용법: sh uninstall.sh [--prefix DIR]
