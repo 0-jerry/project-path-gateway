@@ -80,3 +80,40 @@ op returned project_path_gateway_get 0
 op returned project_path_gateway_get 0
 op returned project_path_gateway_get 0
 op returned project_path_gateway_get 0
+
+# 초기화 뒤 데이터 파일 변경·삭제, 루트 삭제 (기능 001 test_data_file_changes_after_init, test_root_deleted_after_init):
+# 가상 파일 시스템은 call 사이에 바뀌지 않으므로, 초기화가 남긴 호출 셸 변수를 caller-var로 주고 바뀐 뒤의 파일 상태로 조회한다.
+case get-after-init-reads-changed-data-file
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/changed
+fs file /t/changed/.tool/project-path-gateway/.project-path-gateway
+fs file /t/changed/.tool/project-path-gateway/project-path-gateway.conf
+content APP_CONFIG=config/new.json
+call project_path_gateway_get APP_CONFIG
+status 0
+out /t/changed/config/new.json
+op returned project_path_gateway_get 0
+
+case get-after-init-data-file-violation
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/changed
+fs file /t/changed/.tool/project-path-gateway/.project-path-gateway
+fs file /t/changed/.tool/project-path-gateway/project-path-gateway.conf
+content bad line
+call project_path_gateway_get APP_CONFIG
+status 2
+err project-path-gateway: /t/changed/.tool/project-path-gateway/project-path-gateway.conf:1: KEY=경로 형식이 아닙니다
+op returned project_path_gateway_get 2
+
+case get-after-init-data-file-deleted
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/changed
+fs file /t/changed/.tool/project-path-gateway/.project-path-gateway
+call project_path_gateway_get APP_CONFIG
+status 2
+err project-path-gateway: project_path_gateway_get: 데이터 파일을 읽을 수 없습니다: /t/changed/.tool/project-path-gateway/project-path-gateway.conf
+op returned project_path_gateway_get 2
+
+case get-after-init-root-deleted
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/deleted
+call project_path_gateway_get APP_CONFIG
+status 2
+err project-path-gateway: project_path_gateway_get: 데이터 파일을 읽을 수 없습니다: /t/deleted/.tool/project-path-gateway/project-path-gateway.conf
+op returned project_path_gateway_get 2

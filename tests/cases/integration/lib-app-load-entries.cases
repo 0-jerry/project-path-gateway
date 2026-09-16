@@ -99,3 +99,13 @@ status 0
 out 1\tA\ta
 op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
 op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+
+case load-entries-path-keeps-tab-equal-and-korean
+arg /r
+stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub-out A=x\ty=z/한글 경로
+status 0
+out 1\tA\tx\ty=z/한글 경로
+op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
