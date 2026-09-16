@@ -1,0 +1,15 @@
+# 인프라 통합: 설치 목록 임시 파일 쓰기와 원본·버전 읽기 (기능 001 install_uninstall_test, contracts/install.md 1절)
+target script-func install.sh ppg__port_write_manifest
+layer infra
+fs dir /pre/share/project-path-gateway
+
+case write-manifest
+arg /pre/share/project-path-gateway/install-manifest.ppg-manifest.4242
+status 0
+op write /pre/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/install-manifest\n
+
+case write-manifest-fails
+fault write /pre/share/project-path-gateway/install-manifest.ppg-manifest.4242
+arg /pre/share/project-path-gateway/install-manifest.ppg-manifest.4242
+status 1
+op write /pre/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/install-manifest\n

@@ -1,0 +1,58 @@
+# 인프라 통합: 설치 스크립트 파일 포트 (기능 001 install_uninstall_test, contracts/install.md 1절)
+target script-func install.sh ppg__port_install_file
+layer infra
+fs file /src/bin/project-path-gateway
+content BIN
+fs dir /pre/bin
+
+case install-file-copy-chmod-move
+arg /src/bin/project-path-gateway
+arg /pre/bin/project-path-gateway
+arg 755
+status 0
+op pid
+op copy /src/bin/project-path-gateway /pre/bin/project-path-gateway.ppg-install.4242
+op chmod 755 /pre/bin/project-path-gateway.ppg-install.4242
+op move /pre/bin/project-path-gateway.ppg-install.4242 /pre/bin/project-path-gateway
+
+case install-file-copy-fails
+fault copy /pre/bin/project-path-gateway.ppg-install.4242
+arg /src/bin/project-path-gateway
+arg /pre/bin/project-path-gateway
+arg 755
+status 1
+op pid
+op copy /src/bin/project-path-gateway /pre/bin/project-path-gateway.ppg-install.4242
+op remove /pre/bin/project-path-gateway.ppg-install.4242
+
+case install-file-chmod-fails
+fault chmod /pre/bin/project-path-gateway.ppg-install.4242
+arg /src/bin/project-path-gateway
+arg /pre/bin/project-path-gateway
+arg 755
+status 1
+op pid
+op copy /src/bin/project-path-gateway /pre/bin/project-path-gateway.ppg-install.4242
+op chmod 755 /pre/bin/project-path-gateway.ppg-install.4242
+op remove /pre/bin/project-path-gateway.ppg-install.4242
+
+case install-file-move-fails
+fault move /pre/bin/project-path-gateway
+arg /src/bin/project-path-gateway
+arg /pre/bin/project-path-gateway
+arg 755
+status 1
+op pid
+op copy /src/bin/project-path-gateway /pre/bin/project-path-gateway.ppg-install.4242
+op chmod 755 /pre/bin/project-path-gateway.ppg-install.4242
+op move /pre/bin/project-path-gateway.ppg-install.4242 /pre/bin/project-path-gateway
+op remove /pre/bin/project-path-gateway.ppg-install.4242
+
+case install-file-missing-directory
+arg /src/bin/project-path-gateway
+arg /pre/share/project-path-gateway/project-path-gateway.sh
+arg 644
+status 1
+op pid
+op copy /src/bin/project-path-gateway /pre/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242
+op remove /pre/share/project-path-gateway/project-path-gateway.sh.ppg-install.4242

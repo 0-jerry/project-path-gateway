@@ -1,0 +1,19 @@
+# 인프라 통합: VERSION 읽기 (기능 001 install_uninstall_test)
+target script-func install.sh ppg__port_read_version
+layer infra
+
+case read-version-strips-newlines
+fs file /repo/VERSION
+content 1.0.0
+content
+arg /repo/VERSION
+status 0
+out-raw 1.0.0x
+op read-file /repo/VERSION
+
+case read-version-unreadable
+fs file /repo/VERSION
+fs deny /repo/VERSION
+arg /repo/VERSION
+status 1
+op read-file /repo/VERSION

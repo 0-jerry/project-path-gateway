@@ -1,0 +1,56 @@
+# 인프라 통합: 제거 스크립트 파일 포트 (기능 001 install_uninstall_test, contracts/install.md 2절)
+target script-func uninstall.sh ppg__app_uninstall
+layer infra
+fs file /pre/bin/project-path-gateway
+fs file /pre/share/project-path-gateway/project-path-gateway.sh
+fs file /pre/share/project-path-gateway/VERSION
+fs file /pre/share/project-path-gateway/install-manifest
+content bin/project-path-gateway
+content share/project-path-gateway/project-path-gateway.sh
+content share/project-path-gateway/VERSION
+content share/project-path-gateway/install-manifest
+
+case uninstall-removes-each-entry-then-rmdir
+arg /pre
+status 0
+out project-path-gateway: 제거 완료: /pre
+op is-file /pre/share/project-path-gateway/install-manifest
+op read-lines /pre/share/project-path-gateway/install-manifest
+op remove /pre/bin/project-path-gateway
+op remove /pre/share/project-path-gateway/project-path-gateway.sh
+op remove /pre/share/project-path-gateway/VERSION
+op remove /pre/share/project-path-gateway/install-manifest
+op rmdir /pre/share/project-path-gateway
+
+case uninstall-reads-manifest-without-trailing-newline
+fs file /pre/share/project-path-gateway/install-manifest
+content bin/project-path-gateway
+content-raw share/project-path-gateway/install-manifest
+arg /pre
+status 0
+out project-path-gateway: 제거 완료: /pre
+op is-file /pre/share/project-path-gateway/install-manifest
+op read-lines /pre/share/project-path-gateway/install-manifest
+op remove /pre/bin/project-path-gateway
+op remove /pre/share/project-path-gateway/install-manifest
+op rmdir /pre/share/project-path-gateway
+
+case uninstall-manifest-unreadable
+fs deny /pre/share/project-path-gateway/install-manifest
+arg /pre
+status 1
+op is-file /pre/share/project-path-gateway/install-manifest
+op read-lines /pre/share/project-path-gateway/install-manifest
+
+case uninstall-share-not-empty-kept
+fs file /pre/share/project-path-gateway/user-file
+arg /pre
+status 0
+out project-path-gateway: 제거 완료: /pre
+op is-file /pre/share/project-path-gateway/install-manifest
+op read-lines /pre/share/project-path-gateway/install-manifest
+op remove /pre/bin/project-path-gateway
+op remove /pre/share/project-path-gateway/project-path-gateway.sh
+op remove /pre/share/project-path-gateway/VERSION
+op remove /pre/share/project-path-gateway/install-manifest
+op rmdir /pre/share/project-path-gateway

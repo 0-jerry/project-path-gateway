@@ -1,0 +1,37 @@
+# 인프라 통합: 설치 원본 디렉터리 (기능 001 install_uninstall_test_runs_from_other_working_directory)
+target script-func install.sh ppg__port_source_dir
+layer infra
+
+case source-dir-absolute-self
+self /repo/install.sh
+fs file /repo/install.sh
+status 0
+out-raw /repox
+op self-path
+op physical-dir /repo
+
+case source-dir-relative-self
+self install.sh
+cwd /repo
+fs file /repo/install.sh
+status 0
+out-raw /repox
+op self-path
+op physical-dir .
+
+case source-dir-linked-repo
+self /work/link/install.sh
+fs file /repo/install.sh
+fs link /work/link /repo
+status 0
+out-raw /repox
+op self-path
+op physical-dir /work/link
+
+case source-dir-missing
+self /nope/install.sh
+fs dir /repo
+status 1
+out-raw /nopex
+op self-path
+op physical-dir /nope
