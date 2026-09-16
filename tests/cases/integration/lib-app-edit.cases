@@ -139,3 +139,46 @@ status 4
 op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
 op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
 op port project_path_gateway__port_read_file /r/.tool/project-path-gateway/project-path-gateway.conf
+
+# 이미 등록된 키 거부 (US2, FR-012): 원문 읽기·교체 없이 10
+case app-edit-reject-existing-key-other-path
+arg add
+arg /r
+arg DOCS_DIR
+arg manual
+stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub-out A=a
+stub-out DOCS_DIR=docs
+status 10
+op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+
+case app-edit-reject-existing-key-same-path
+arg add
+arg /r
+arg DOCS_DIR
+arg docs
+stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub-out DOCS_DIR=docs
+status 10
+op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+
+case app-edit-reject-not-for-prefix-key
+arg add
+arg /r
+arg DOC
+arg d
+stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub-out DOCS_DIR=docs
+stub project_path_gateway__port_read_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub-out-raw DOCS_DIR=docs\nx
+stub project_path_gateway__port_replace_data_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf DOCS_DIR=docs\nDOC=d\n
+status 0
+op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_file /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_replace_data_file /r/.tool/project-path-gateway/project-path-gateway.conf DOCS_DIR=docs\nDOC=d\n
