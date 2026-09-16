@@ -8,6 +8,10 @@
 # 3. 라이브러리·전역 프로그램의 범위 괄호식 [A-Z], [a-z], [0-9]
 # 4. 버전 일치 (VERSION 파일, 라이브러리 첫 줄, 전역 프로그램 PPG_VERSION)
 # 5. 계층 호출 규칙, 함수 이름·본문 형식, 구획 소유 변수 (plan.md "계층 호출 규칙")
+#    대상: 라이브러리, 전역 프로그램, 설치·제거 스크립트. 시스템 포트(__sys_*)는 인프라 구획 전용
+# 6. 환경 접근 위치 (002 contracts/system-ports.md 3절): 시스템 포트 본문 밖의 파일 리다이렉션(E-1),
+#    파일 검사 연산자(E-2), 파일·신호 명령(E-3), $$·$0(E-4), for 목록 글로브(E-5),
+#    파이프라인·명령 치환 안의 변경 시스템 포트 호출
 
 repo_root=$(cd -P -- "$(dirname -- "$0")/.." && pwd -P) || exit 2
 cd "$repo_root" || exit 2
@@ -196,6 +200,67 @@ fi
 if [ -f "$bin" ]; then
 	check_layers "$bin" ppg__ bin || report "$bin: 계층 규칙 위반이 있습니다"
 fi
+for f in install.sh uninstall.sh; do
+	[ -f "$f" ] || continue
+	check_layers "$f" ppg__ script || report "$f: 계층 규칙 위반이 있습니다"
+done
+
+# 6. 환경 접근 위치
+check_env_access() {
+	awk -v file="$1" '
+	function problem(msg) {
+		print file ":" FNR ": " msg > "/dev/stderr"
+		count++
+	}
+	BEGIN { count = 0; curfn = ""; sq = sprintf("%c", 39) }
+	{
+		line = $0
+		if (match(line, /^[A-Za-z_][A-Za-z0-9_]*\(\)[ \t]*[{(]/)) {
+			curfn = substr(line, 1, index(line, "(") - 1)
+			next
+		}
+		if (line ~ /^[})]$/) { curfn = ""; next }
+		if (line ~ /^[ \t]*#/) next
+		if (curfn ~ /__sys_/) next
+		# 작은따옴표 문자열을 지우고(E-4 검사용), 큰따옴표 문자열을 "" 로 줄인다(나머지 검사용).
+		nosq = line
+		gsub(sq "[^" sq "]*" sq, "", nosq)
+		sub(/[ \t]#.*$/, "", nosq)
+		code = nosq
+		gsub(/"([^"\\]|\\.)*"/, "\"\"", code)
+		rest = code
+		while (match(rest, /(>>|>|<)/)) {
+			after = substr(rest, RSTART + RLENGTH)
+			if (after !~ /^&/ && after !~ /^\/dev\/null/) {
+				problem("E-1 시스템 포트 밖 파일 리다이렉션")
+				break
+			}
+			rest = after
+		}
+		if (code ~ /(\[|test)[ \t]+(![ \t]+)?-[defhLprswx][ \t]/)
+			problem("E-2 시스템 포트 밖 파일 검사")
+		if (code ~ /(^|[;&|({!]|\$\(|[ \t](if|then|do|else|elif|while|until))[ \t]*(cd|readlink|mkdir|rmdir|rm|mv|ln|cp|cat|chmod|trap|kill)([ \t]|$)/ ||
+			code ~ /command[ \t]+-v/ || code ~ /pwd[ \t]+-P/)
+			problem("E-3 시스템 포트 밖 파일·신호 명령")
+		if (nosq ~ /\$\$|\$0|\$\{0/)
+			problem("E-4 시스템 포트 밖 $$ 또는 $0")
+		if (code ~ /^[ \t]*for[ \t]+[A-Za-z_][A-Za-z0-9_]*[ \t]+in[ \t].*[*?[]/)
+			problem("E-5 시스템 포트 밖 for 목록 글로브")
+		if (code ~ /__sys_(mkdir|mkdir_p|rmdir|remove|write_text|copy_to|link|move|chmod|trap)([ \t]|$)/) {
+			pipe = code
+			gsub(/\|\|/, "", pipe)
+			if (pipe ~ /\|/ || code ~ /\$\(/)
+				problem("파이프라인·명령 치환 안의 변경 시스템 포트 호출")
+		}
+	}
+	END { exit (count > 0) }
+	' "$1"
+}
+
+for f in "$lib" "$bin" install.sh uninstall.sh; do
+	[ -f "$f" ] || continue
+	check_env_access "$f" || report "$f: 시스템 포트 밖 환경 접근이 있습니다"
+done
 
 if [ "$problems" -gt 0 ]; then
 	printf 'lint: 위반 %s건\n' "$problems" >&2
