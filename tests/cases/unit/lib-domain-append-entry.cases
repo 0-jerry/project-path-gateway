@@ -29,14 +29,14 @@ arg #\s주석
 arg B
 arg b
 status 0
-out-raw #\s주석\nB=b\nx
+out-raw # 주석\nB=b\nx
 
 case append-entry-comment-only
 arg #\s경로\s항목\n#\sKEY=경로\n
 arg DOCS_DIR
 arg docs
 status 0
-out-raw #\s경로\s항목\n#\sKEY=경로\nDOCS_DIR=docs\nx
+out-raw # 경로 항목\n# KEY=경로\nDOCS_DIR=docs\nx
 
 case append-entry-ends-with-blank-lines
 arg A=a\n\n\n
@@ -50,11 +50,11 @@ arg A=a\n
 arg K
 arg 내\s문서/a=b/\\%/-x/*
 status 0
-out-raw A=a\nK=내\s문서/a=b/\\%/-x/*\nx
+out-raw A=a\nK=내 문서/a=b/\\%/-x/*\nx
 
 case append-entry-crlf-comment-kept
 arg #\sc\r\n
 arg K
 arg k
 status 0
-out-raw #\sc\r\nK=k\nx
+out-raw # c\r\nK=k\nx
