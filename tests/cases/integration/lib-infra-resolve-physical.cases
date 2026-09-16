@@ -1,0 +1,290 @@
+# 인프라 통합: 링크를 모두 따라간 최종 물리 경로 (기능 001 verify_filesystem_test, FR-031~FR-035, research R-05)
+target lib-func project_path_gateway__port_resolve_physical
+layer infra
+
+case resolve-link-to-outside-directory
+fs dir /t/outside
+fs dir /t/root
+fs link /t/root/link /t/outside
+arg /t/root/link
+status 0
+out-raw /t/outsidex
+op is-dir /t/root/link
+op physical-dir /t/root/link
+
+case resolve-relative-file-link-to-outside
+fs file /t/outside/f
+fs dir /t/root/d
+fs link /t/root/d/link ../../outside/f
+arg /t/root/d/link
+status 0
+out-raw /t/outside/fx
+op is-dir /t/root/d/link
+op physical-dir /t/root/d
+op is-link /t/root/d/link
+op readlink /t/root/d/link
+op is-dir /t/root/d/../../outside/f
+op physical-dir /t/root/d/../../outside
+op is-link /t/outside/f
+
+case resolve-broken-link-keeps-last-target
+fs dir /t/root
+fs link /t/root/link /t/root/nope
+arg /t/root/link
+status 0
+out-raw /t/root/nopex
+op is-dir /t/root/link
+op physical-dir /t/root
+op is-link /t/root/link
+op readlink /t/root/link
+op is-dir /t/root/nope
+op physical-dir /t/root
+op is-link /t/root/nope
+
+case resolve-cyclic-link-fails
+fs dir /t/root
+fs link /t/root/a b
+fs link /t/root/b a
+arg /t/root/a
+status 1
+op is-dir /t/root/a
+op physical-dir /t/root
+op is-link /t/root/a
+op readlink /t/root/a
+op is-dir /t/root/b
+op physical-dir /t/root
+op is-link /t/root/b
+op readlink /t/root/b
+op is-dir /t/root/a
+op physical-dir /t/root
+op is-link /t/root/a
+op readlink /t/root/a
+op is-dir /t/root/b
+op physical-dir /t/root
+op is-link /t/root/b
+op readlink /t/root/b
+op is-dir /t/root/a
+op physical-dir /t/root
+op is-link /t/root/a
+op readlink /t/root/a
+op is-dir /t/root/b
+op physical-dir /t/root
+op is-link /t/root/b
+op readlink /t/root/b
+op is-dir /t/root/a
+op physical-dir /t/root
+op is-link /t/root/a
+op readlink /t/root/a
+op is-dir /t/root/b
+op physical-dir /t/root
+op is-link /t/root/b
+op readlink /t/root/b
+op is-dir /t/root/a
+op physical-dir /t/root
+op is-link /t/root/a
+op readlink /t/root/a
+op is-dir /t/root/b
+op physical-dir /t/root
+op is-link /t/root/b
+op readlink /t/root/b
+op is-dir /t/root/a
+op physical-dir /t/root
+op is-link /t/root/a
+op readlink /t/root/a
+op is-dir /t/root/b
+op physical-dir /t/root
+op is-link /t/root/b
+op readlink /t/root/b
+op is-dir /t/root/a
+op physical-dir /t/root
+op is-link /t/root/a
+op readlink /t/root/a
+op is-dir /t/root/b
+op physical-dir /t/root
+op is-link /t/root/b
+op readlink /t/root/b
+op is-dir /t/root/a
+op physical-dir /t/root
+op is-link /t/root/a
+op readlink /t/root/a
+op is-dir /t/root/b
+op physical-dir /t/root
+op is-link /t/root/b
+op readlink /t/root/b
+op is-dir /t/root/a
+op physical-dir /t/root
+op is-link /t/root/a
+op readlink /t/root/a
+op is-dir /t/root/b
+op physical-dir /t/root
+op is-link /t/root/b
+op readlink /t/root/b
+op is-dir /t/root/a
+op physical-dir /t/root
+op is-link /t/root/a
+op readlink /t/root/a
+op is-dir /t/root/b
+op physical-dir /t/root
+op is-link /t/root/b
+op readlink /t/root/b
+op is-dir /t/root/a
+op physical-dir /t/root
+op is-link /t/root/a
+op readlink /t/root/a
+op is-dir /t/root/b
+op physical-dir /t/root
+op is-link /t/root/b
+op readlink /t/root/b
+op is-dir /t/root/a
+op physical-dir /t/root
+op is-link /t/root/a
+op readlink /t/root/a
+op is-dir /t/root/b
+op physical-dir /t/root
+op is-link /t/root/b
+op readlink /t/root/b
+op is-dir /t/root/a
+op physical-dir /t/root
+op is-link /t/root/a
+op readlink /t/root/a
+op is-dir /t/root/b
+op physical-dir /t/root
+op is-link /t/root/b
+op readlink /t/root/b
+op is-dir /t/root/a
+op physical-dir /t/root
+op is-link /t/root/a
+op readlink /t/root/a
+op is-dir /t/root/b
+op physical-dir /t/root
+op is-link /t/root/b
+op readlink /t/root/b
+op is-dir /t/root/a
+op physical-dir /t/root
+op is-link /t/root/a
+op readlink /t/root/a
+op is-dir /t/root/b
+op physical-dir /t/root
+op is-link /t/root/b
+op readlink /t/root/b
+op is-dir /t/root/a
+op physical-dir /t/root
+op is-link /t/root/a
+op readlink /t/root/a
+op is-dir /t/root/b
+op physical-dir /t/root
+op is-link /t/root/b
+op readlink /t/root/b
+op is-dir /t/root/a
+op physical-dir /t/root
+op is-link /t/root/a
+op readlink /t/root/a
+op is-dir /t/root/b
+op physical-dir /t/root
+op is-link /t/root/b
+op readlink /t/root/b
+op is-dir /t/root/a
+op physical-dir /t/root
+op is-link /t/root/a
+op readlink /t/root/a
+op is-dir /t/root/b
+op physical-dir /t/root
+op is-link /t/root/b
+op readlink /t/root/b
+op is-dir /t/root/a
+op physical-dir /t/root
+op is-link /t/root/a
+op readlink /t/root/a
+op is-dir /t/root/b
+op physical-dir /t/root
+op is-link /t/root/b
+op readlink /t/root/b
+op is-dir /t/root/a
+op physical-dir /t/root
+op is-link /t/root/a
+op readlink /t/root/a
+op is-dir /t/root/b
+op physical-dir /t/root
+op is-link /t/root/b
+op readlink /t/root/b
+op is-dir /t/root/a
+op physical-dir /t/root
+op is-link /t/root/a
+
+case resolve-denied-parent-fails
+fs file /t/root/locked/file
+fs deny /t/root/locked
+arg /t/root/locked/file
+status 1
+op is-dir /t/root/locked/file
+op physical-dir /t/root/locked
+
+case resolve-sibling-with-root-prefix
+fs dir /t/root2/x
+fs dir /t/root
+fs link /t/root/sib /t/root2/x
+arg /t/root/sib
+status 0
+out-raw /t/root2/xx
+op is-dir /t/root/sib
+op physical-dir /t/root/sib
+
+case resolve-file-link-chain
+fs file /t/root/real/target
+fs link /t/root/l3 real/target
+fs link /t/root/l2 l3
+fs link /t/root/l1 /t/root/l2
+arg /t/root/l1
+status 0
+out-raw /t/root/real/targetx
+op is-dir /t/root/l1
+op physical-dir /t/root
+op is-link /t/root/l1
+op readlink /t/root/l1
+op is-dir /t/root/l2
+op physical-dir /t/root
+op is-link /t/root/l2
+op readlink /t/root/l2
+op is-dir /t/root/l3
+op physical-dir /t/root
+op is-link /t/root/l3
+op readlink /t/root/l3
+op is-dir /t/root/real/target
+op physical-dir /t/root/real
+op is-link /t/root/real/target
+
+case resolve-directory-link
+fs dir /t/root/dir
+fs link /t/root/dl dir
+arg /t/root/dl
+status 0
+out-raw /t/root/dirx
+op is-dir /t/root/dl
+op physical-dir /t/root/dl
+
+case resolve-trailing-slash-and-dot-segments
+fs file /t/root/dir/f
+arg /t/root/./dir/./f
+status 0
+out-raw /t/root/dir/fx
+op is-dir /t/root/./dir/./f
+op physical-dir /t/root/./dir/.
+op is-link /t/root/dir/f
+
+case resolve-space-and-korean
+fs file /t/root/a\sb/한글\s파일
+arg /t/root/a\sb/한글\s파일
+status 0
+out-raw /t/root/a b/한글 파일x
+op is-dir /t/root/a\sb/한글\s파일
+op physical-dir /t/root/a\sb
+op is-link /t/root/a\sb/한글\s파일
+
+case resolve-missing-entry
+fs dir /t/root
+arg /t/root/nope
+status 0
+out-raw /t/root/nopex
+op is-dir /t/root/nope
+op physical-dir /t/root
+op is-link /t/root/nope

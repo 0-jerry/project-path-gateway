@@ -1,0 +1,54 @@
+# 인프라 통합: 디렉터리 물리 경로 (기능 001 root_discovery_test_symlink_start, verify_filesystem_test)
+target lib-func project_path_gateway__port_physical_dir
+layer infra
+
+case physical-dir-symlink-start
+fs dir /t/root/a
+fs link /t/link /t/root
+arg /t/link
+status 0
+out-raw /t/rootx
+op physical-dir /t/link
+
+case physical-dir-relative-link-chain
+fs dir /t/real/sub
+fs link /t/l1 real
+fs link /t/l2 l1/sub
+arg /t/l2
+status 0
+out-raw /t/real/subx
+op physical-dir /t/l2
+
+case physical-dir-trailing-slash
+fs dir /t/root/dir
+arg /t/root/dir/
+status 0
+out-raw /t/root/dirx
+op physical-dir /t/root/dir/
+
+case physical-dir-not-directory
+fs file /t/root/file
+arg /t/root/file
+status 1
+op physical-dir /t/root/file
+
+case physical-dir-denied
+fs dir /t/root/locked
+fs deny /t/root/locked
+arg /t/root/locked
+status 1
+op physical-dir /t/root/locked
+
+case physical-dir-missing
+fs dir /t/root
+arg /t/root/nope
+status 1
+op physical-dir /t/root/nope
+
+case physical-dir-relative-to-cwd
+fs dir /t/root/a/b
+cwd /t/root/a
+arg b/..
+status 0
+out-raw /t/root/ax
+op physical-dir b/..
