@@ -1,0 +1,108 @@
+# 도메인 단위: 등록·갱신 인자 KEY·PATH 규칙의 첫 위반 코드 (기능 004 FR-010, FR-015, research R-02)
+target lib-func project_path_gateway__domain_entry_violation
+layer domain
+
+case entry-violation-valid
+arg DOCS_DIR
+arg docs
+status 0
+
+case entry-violation-valid-special-path
+arg A1_B
+arg 내\s문서/a=b/\\%/-x/*/./x//끝/
+status 0
+
+case entry-violation-valid-leading-dash
+arg K
+arg -n
+status 0
+
+case entry-violation-key-lowercase
+arg docs
+arg docs
+status 0
+out invalid_key
+
+case entry-violation-key-empty
+arg \e
+arg docs
+status 0
+out invalid_key
+
+case entry-violation-key-with-equal
+arg A=B
+arg docs
+status 0
+out invalid_key
+
+case entry-violation-key-leading-digit
+arg 1A
+arg docs
+status 0
+out invalid_key
+
+case entry-violation-key-and-path-both-wrong
+arg docs
+arg /abs
+status 0
+out invalid_key
+
+case entry-violation-path-empty
+arg K
+arg \e
+status 0
+out empty_path
+
+case entry-violation-path-absolute
+arg K
+arg /abs
+status 0
+out absolute_path
+
+case entry-violation-path-parent-leading
+arg K
+arg ../out
+status 0
+out parent_segment
+
+case entry-violation-path-parent-middle
+arg K
+arg a/../b
+status 0
+out parent_segment
+
+case entry-violation-path-parent-only
+arg K
+arg ..
+status 0
+out parent_segment
+
+case entry-violation-path-cr
+arg K
+arg a\rb
+status 0
+out carriage_return
+
+case entry-violation-path-lf
+arg K
+arg a\nb
+status 0
+out line_feed
+
+case entry-violation-path-trailing-lf
+arg K
+arg a\n
+status 0
+out line_feed
+
+case entry-violation-path-parent-before-cr
+arg K
+arg ../a\r
+status 0
+out parent_segment
+
+case entry-violation-path-cr-before-lf
+arg K
+arg a\r\nb
+status 0
+out carriage_return
