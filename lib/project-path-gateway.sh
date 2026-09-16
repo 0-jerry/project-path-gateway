@@ -440,6 +440,13 @@ project_path_gateway__app_edit() (
 		content=$(project_path_gateway__port_read_file "$file") || return 4
 		content=$(project_path_gateway__domain_append_entry "${content%x}" "$3" "$4")
 		;;
+	update)
+		[ -n "$match" ] || return 7
+		rest=${match#*"$tab"}
+		[ "${rest#*"$tab"}" = "$4" ] && return 0
+		content=$(project_path_gateway__port_read_file "$file") || return 4
+		content=$(project_path_gateway__domain_replace_line "${content%x}" "${match%%"$tab"*}" "$3=$4") || return 13
+		;;
 	*) return 13 ;;
 	esac
 	project_path_gateway__port_replace_data_file "$file" "${content%x}"
