@@ -1,0 +1,32 @@
+# 애플리케이션 통합: 정리 동작 걸기 (기능 001 cli_signal_test, contracts/cli.md 2.3절)
+# 인터페이스가 정한 동작 문자열(반환값 포함)과 신호를 바꾸지 않고 on_signal 포트에 넘긴다.
+target bin-func ppg__app_arm_cleanup
+layer app
+
+case arm-cleanup-passes-exit-action
+arg ppg__app_cleanup\s"$PPG_IF_TARGET"
+arg EXIT
+stub ppg__port_on_signal 0 ppg__app_cleanup\s"$PPG_IF_TARGET" EXIT
+status 0
+op port ppg__port_on_signal ppg__app_cleanup\s"$PPG_IF_TARGET" EXIT
+
+case arm-cleanup-passes-int-action-with-status
+arg ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
+arg INT
+stub ppg__port_on_signal 0 ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130 INT
+status 0
+op port ppg__port_on_signal ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130 INT
+
+case arm-cleanup-passes-term-action-with-status
+arg ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
+arg TERM
+stub ppg__port_on_signal 0 ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143 TERM
+status 0
+op port ppg__port_on_signal ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143 TERM
+
+case arm-cleanup-returns-port-status
+arg :
+arg TERM
+stub ppg__port_on_signal 1 : TERM
+status 1
+op port ppg__port_on_signal : TERM
