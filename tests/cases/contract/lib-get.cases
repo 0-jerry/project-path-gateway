@@ -1,0 +1,82 @@
+# 공개 API 계약: project_path_gateway_get (기능 001 library_get_contract_test, contracts/library-api.md 4절)
+target lib-session project_path_gateway
+layer api
+fs file /t/root/.tool/project-path-gateway/.project-path-gateway
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content APP_CONFIG=config/app.json
+
+case get-argument-count
+call project_path_gateway_init /t/root
+call project_path_gateway_get
+call project_path_gateway_get A B
+status 2
+err project-path-gateway: project_path_gateway_get: 인자는 KEY 1개여야 합니다
+err project-path-gateway: project_path_gateway_get: 인자는 KEY 1개여야 합니다
+op returned project_path_gateway_init 0
+op returned project_path_gateway_get 2
+op returned project_path_gateway_get 2
+
+case get-not-initialized
+call project_path_gateway_get APP_CONFIG
+status 2
+err project-path-gateway: project_path_gateway_get: 초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요
+op returned project_path_gateway_get 2
+
+case get-unknown-key
+call project_path_gateway_init /t/root
+call project_path_gateway_get NOPE
+status 2
+err project-path-gateway: project_path_gateway_get: 등록되지 않은 키입니다: NOPE
+op returned project_path_gateway_init 0
+op returned project_path_gateway_get 2
+
+case get-success-prints-absolute-path
+call project_path_gateway_init /t/root
+call project_path_gateway_get APP_CONFIG
+status 0
+out /t/root/config/app.json
+op returned project_path_gateway_init 0
+op returned project_path_gateway_get 0
+
+case get-path-existence-is-not-checked
+fs dir /t/root/config
+call project_path_gateway_init /t/root
+call project_path_gateway_get APP_CONFIG
+status 0
+out /t/root/config/app.json
+op returned project_path_gateway_init 0
+op returned project_path_gateway_get 0
+
+case get-paths-are-joined-verbatim
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content SPACE=a b/c d
+content KOREAN=한글/경로
+content EQUAL=a=b
+content DASH=-x
+content DOT=./a
+content TRAIL=dir/
+content EMPTYSEG=a//b
+call project_path_gateway_init /t/root
+call project_path_gateway_get SPACE
+call project_path_gateway_get KOREAN
+call project_path_gateway_get EQUAL
+call project_path_gateway_get DASH
+call project_path_gateway_get DOT
+call project_path_gateway_get TRAIL
+call project_path_gateway_get EMPTYSEG
+status 0
+out /t/root/a b/c d
+out /t/root/한글/경로
+out /t/root/a=b
+out /t/root/-x
+out /t/root/./a
+out /t/root/dir/
+out /t/root/a//b
+op returned project_path_gateway_init 0
+op returned project_path_gateway_get 0
+op returned project_path_gateway_get 0
+op returned project_path_gateway_get 0
+op returned project_path_gateway_get 0
+op returned project_path_gateway_get 0
+op returned project_path_gateway_get 0
+op returned project_path_gateway_get 0
