@@ -1,13 +1,15 @@
 # project-path-gateway 0.1.0
 #
 # 프로젝트 경로 게이트웨이 라이브러리.
-# 호출 셸에서 이 파일을 불러온(source) 뒤 공개 함수 세 개를 사용한다.
+# 호출 셸에서 이 파일을 불러온(source) 뒤 공개 함수 다섯 개를 사용한다.
 #
-#   project_path_gateway_init [START_DIR]  루트 표식 파일을 찾아 루트를 한 번 계산한다
-#   project_path_gateway_get KEY           키에 등록된 경로를 루트 기준 절대경로로 출력한다
-#   project_path_gateway_verify            등록된 모든 경로의 존재와 루트 내부 여부를 확인한다
+#   project_path_gateway_init [START_DIR]         루트 표식 파일을 찾아 루트를 한 번 계산한다
+#   project_path_gateway_get KEY                  키에 등록된 경로를 루트 기준 절대경로로 출력한다
+#   project_path_gateway_verify [REPORT_FILE]     등록된 모든 경로의 존재와 루트 내부 여부를 확인한다
+#   project_path_gateway_add KEY PATH             새 키와 경로를 데이터 파일 끝에 등록한다(키가 있으면 오류)
+#   project_path_gateway_update KEY PATH          등록된 키의 경로를 바꾼다(키가 없으면 오류)
 #
-# 반환값: 0 성공, 1 검증 실패, 2 인자 오류·미초기화·루트 오류·데이터 파일 오류·미등록 키.
+# 반환값: 0 성공, 1 검증 실패, 2 인자 오류·미초기화·루트 오류·데이터 파일 오류·미등록 키·이미 등록된 키·파일 쓰기 실패.
 #
 # 구조: 도메인 → 애플리케이션 → 인프라 → 인터페이스 네 구획으로 나눈다.
 # project_path_gateway_init 외의 모든 함수는 서브셸 본문으로 정의해 호출 셸 상태를 바꾸지 않고,
@@ -15,7 +17,8 @@
 # 파일 시스템 접근은 인프라 구획의 시스템 포트(project_path_gateway__sys_*)에서만 한다.
 # 경로를 명령 치환으로 전달하는 함수는 끝 개행이 사라지지 않도록 값 뒤에 표지 문자 x를 붙인다.
 # 내부 결과 코드: 3 데이터 파일 규칙 위반, 4 데이터 파일 읽기 불가, 5 경로 확인 실패,
-# 6 루트 표식 파일 없음, 7 미등록 키, 8 디렉터리가 아님.
+# 6 루트 표식 파일 없음, 7 미등록 키, 8 디렉터리가 아님, 9 등록·갱신 인자 규칙 위반, 10 이미 등록된 키,
+# 11 데이터 파일이 링크, 12 데이터 파일 쓰기 권한 없음, 13 데이터 파일 교체 실패.
 
 # === 계층: 도메인 ===
 
@@ -906,5 +909,80 @@ project_path_gateway_verify() (
 		;;
 	esac
 	project_path_gateway__if_data_file_fail project_path_gateway_verify "$status" "$PROJECT_PATH_GATEWAY_ROOT"
+	return 2
+)
+
+# 등록·갱신 실패 문구를 출력한다 (기능 004 contracts/library-api-add-update.md 2절).
+# $1: 공개 함수 이름, $2: 내부 코드, $3: 상세(위반 코드), $4: 루트, $5: KEY, $6: PATH.
+project_path_gateway__if_edit_fail() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	file=$(project_path_gateway__app_data_file "$4")
+	case $2 in
+	9)
+		case $3 in
+		invalid_key) message="키 형식이 잘못되었습니다(대문자로 시작, 대문자·숫자·_만 허용): $5" ;;
+		empty_path) message='경로가 비어 있습니다' ;;
+		absolute_path) message="경로는 /로 시작할 수 없습니다: $6" ;;
+		parent_segment) message="경로에 .. 세그먼트를 쓸 수 없습니다: $6" ;;
+		carriage_return) message='경로에 CR 문자를 쓸 수 없습니다' ;;
+		line_feed) message='경로에 LF 문자를 쓸 수 없습니다' ;;
+		*) message="알 수 없는 위반입니다: $3" ;;
+		esac
+		;;
+	3) return 0 ;;
+	4) message="데이터 파일을 읽을 수 없습니다: $file" ;;
+	7) message="등록되지 않은 키입니다: $5" ;;
+	10) message="이미 등록된 키입니다: $5" ;;
+	11) message="데이터 파일이 심볼릭 링크라 바꿀 수 없습니다: $file" ;;
+	12) message="데이터 파일에 쓰기 권한이 없습니다: $file" ;;
+	13) message="데이터 파일을 쓸 수 없습니다: $file" ;;
+	*) message="알 수 없는 오류입니다(코드 $2)" ;;
+	esac
+	project_path_gateway__if_error "$1" "$message"
+	return 0
+)
+
+# 공개 함수: 새 경로 항목 등록 (기능 004). 키가 이미 있으면 반환 2.
+project_path_gateway_add() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	if [ "$#" -ne 2 ]; then
+		project_path_gateway__if_error project_path_gateway_add '인자는 KEY와 PATH 2개여야 합니다'
+		return 2
+	fi
+	if [ -z "${PROJECT_PATH_GATEWAY_ROOT+x}" ]; then
+		project_path_gateway__if_error project_path_gateway_add '초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요'
+		return 2
+	fi
+	detail=$(project_path_gateway__app_edit add "$PROJECT_PATH_GATEWAY_ROOT" "$1" "$2")
+	status=$?
+	[ "$status" -eq 0 ] && return 0
+	project_path_gateway__if_edit_fail project_path_gateway_add "$status" "$detail" "$PROJECT_PATH_GATEWAY_ROOT" "$1" "$2"
+	return 2
+)
+
+# 공개 함수: 등록된 키의 경로 갱신 (기능 004). 키가 없으면 반환 2.
+project_path_gateway_update() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	if [ "$#" -ne 2 ]; then
+		project_path_gateway__if_error project_path_gateway_update '인자는 KEY와 PATH 2개여야 합니다'
+		return 2
+	fi
+	if [ -z "${PROJECT_PATH_GATEWAY_ROOT+x}" ]; then
+		project_path_gateway__if_error project_path_gateway_update '초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요'
+		return 2
+	fi
+	detail=$(project_path_gateway__app_edit update "$PROJECT_PATH_GATEWAY_ROOT" "$1" "$2")
+	status=$?
+	[ "$status" -eq 0 ] && return 0
+	project_path_gateway__if_edit_fail project_path_gateway_update "$status" "$detail" "$PROJECT_PATH_GATEWAY_ROOT" "$1" "$2"
 	return 2
 )

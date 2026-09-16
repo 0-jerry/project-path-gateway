@@ -169,8 +169,9 @@ check_layers() {
 					continue
 				}
 				if (index(name, pre) != 1) {
-					if (name != "project_path_gateway_init" && name != "project_path_gateway_get" && name != "project_path_gateway_verify")
-						problem(where ": 공개 함수는 init, get, verify 세 개만 허용: " name)
+					if (name != "project_path_gateway_init" && name != "project_path_gateway_get" && name != "project_path_gateway_verify" &&
+						name != "project_path_gateway_add" && name != "project_path_gateway_update")
+						problem(where ": 공개 함수는 init, get, verify, add, update 다섯 개만 허용: " name)
 					else if (s != 4)
 						problem(where ": 공개 함수는 인터페이스 구획에 있어야 함: " name)
 				}
