@@ -199,3 +199,91 @@ call project_path_gateway_add DOCS_DIR docs
 status 2
 err project-path-gateway: project_path_gateway_add: 이미 등록된 키입니다: DOCS_DIR
 op returned project_path_gateway_add 2
+
+# 데이터 파일 오류 (US4-3·4, FR-011): 기능 001과 같은 보고, 반환 2, 변경 없음
+case edit-invalid-add-data-file-violation
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content DOCS_DIR=docs
+content bad line
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_add NEW_DIR new
+status 2
+err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:2: KEY=경로 형식이 아닙니다
+op returned project_path_gateway_add 2
+
+case edit-invalid-add-data-file-missing
+fs file /t/other/.tool/project-path-gateway/.project-path-gateway
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/other
+call project_path_gateway_add NEW_DIR new
+status 2
+err project-path-gateway: project_path_gateway_add: 데이터 파일을 읽을 수 없습니다: /t/other/.tool/project-path-gateway/project-path-gateway.conf
+op returned project_path_gateway_add 2
+
+case edit-invalid-add-data-file-is-directory
+fs file /t/other/.tool/project-path-gateway/.project-path-gateway
+fs dir /t/other/.tool/project-path-gateway/project-path-gateway.conf
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/other
+call project_path_gateway_add NEW_DIR new
+status 2
+err project-path-gateway: project_path_gateway_add: 데이터 파일을 읽을 수 없습니다: /t/other/.tool/project-path-gateway/project-path-gateway.conf
+op returned project_path_gateway_add 2
+
+case edit-invalid-add-tool-directory-denied
+fs deny /t/root/.tool/project-path-gateway
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_add NEW_DIR new
+status 2
+err project-path-gateway: project_path_gateway_add: 데이터 파일을 읽을 수 없습니다: /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op returned project_path_gateway_add 2
+
+# 쓰기 실패 (US4, FR-030~FR-034, SC-005): 데이터 파일은 그대로, 임시 파일은 지운다
+case edit-write-fails-add-data-file-is-link
+fs file /t/root/real.conf
+content DOCS_DIR=docs
+fs link /t/root/.tool/project-path-gateway/project-path-gateway.conf ../../real.conf
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_add NEW_DIR new
+status 2
+err project-path-gateway: project_path_gateway_add: 데이터 파일이 심볼릭 링크라 바꿀 수 없습니다: /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op returned project_path_gateway_add 2
+
+case edit-write-fails-add-data-file-readonly
+fs readonly /t/root/.tool/project-path-gateway/project-path-gateway.conf
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_add NEW_DIR new
+status 2
+err project-path-gateway: project_path_gateway_add: 데이터 파일에 쓰기 권한이 없습니다: /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op returned project_path_gateway_add 2
+
+case edit-write-fails-add-tool-directory-readonly
+fs readonly /t/root/.tool/project-path-gateway
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_add NEW_DIR new
+status 2
+err project-path-gateway: project_path_gateway_add: 데이터 파일을 쓸 수 없습니다: /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op copy-preserve /t/root/.tool/project-path-gateway/project-path-gateway.conf /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op remove /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op returned project_path_gateway_add 2
+
+case edit-write-fails-add-write-fault
+fault write /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_add NEW_DIR new
+status 2
+err project-path-gateway: project_path_gateway_add: 데이터 파일을 쓸 수 없습니다: /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op copy-preserve /t/root/.tool/project-path-gateway/project-path-gateway.conf /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf DOCS_DIR=docs\nNEW_DIR=new\n
+op remove /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op returned project_path_gateway_add 2
+
+case edit-write-fails-add-move-fault
+fault move /t/root/.tool/project-path-gateway/project-path-gateway.conf
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_add NEW_DIR new
+status 2
+err project-path-gateway: project_path_gateway_add: 데이터 파일을 쓸 수 없습니다: /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op copy-preserve /t/root/.tool/project-path-gateway/project-path-gateway.conf /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf DOCS_DIR=docs\nNEW_DIR=new\n
+op move /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op remove /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op returned project_path_gateway_add 2
