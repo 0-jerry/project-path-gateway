@@ -1,0 +1,448 @@
+# 애플리케이션 통합: 프로젝트 초기화 흐름 (기능 001 cli_init_test, contracts/cli.md 2절, research R-10)
+# 사전 검사 실패는 쓰기 포트를 호출하지 않고, 쓰기 실패는 report_failure → cleanup_temp → rollback_dirs 순서로 정리한다.
+target bin-func ppg__app_init_project
+layer app
+
+case init-project-target-not-dir
+arg /p
+stub ppg__port_dir_state 0 /p
+stub-out other
+stub ppg__port_report_failure 0 not_dir /p
+status 10
+op port ppg__port_dir_state /p
+op port ppg__port_report_failure not_dir /p
+
+case init-project-tool-parent-not-dir
+arg /p
+stub ppg__port_dir_state 0 /p
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tool
+stub-out other
+stub ppg__port_dir_state 0 /p/.tool/project-path-gateway
+stub-out absent
+stub ppg__port_report_failure 0 tool_not_dir /p/.tool
+status 10
+op port ppg__port_dir_state /p
+op port ppg__port_dir_state /p/.tool
+op port ppg__port_report_failure tool_not_dir /p/.tool
+
+case init-project-tool-dir-not-dir
+arg /p
+stub ppg__port_dir_state 0 /p
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tool
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tool/project-path-gateway
+stub-out other
+stub ppg__port_report_failure 0 tool_dir_not_dir /p/.tool/project-path-gateway
+status 10
+op port ppg__port_dir_state /p
+op port ppg__port_dir_state /p/.tool
+op port ppg__port_dir_state /p/.tool/project-path-gateway
+op port ppg__port_report_failure tool_dir_not_dir /p/.tool/project-path-gateway
+
+case init-project-marker-not-regular
+arg /p
+stub ppg__port_dir_state 0 /p
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tool
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tool/project-path-gateway
+stub-out dir
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/.project-path-gateway
+stub-out other
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.conf
+stub-out file
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.sh
+stub-out file
+stub ppg__port_report_failure 0 not_regular /p/.tool/project-path-gateway/.project-path-gateway
+status 10
+op port ppg__port_dir_state /p
+op port ppg__port_dir_state /p/.tool
+op port ppg__port_dir_state /p/.tool/project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/.project-path-gateway
+op port ppg__port_report_failure not_regular /p/.tool/project-path-gateway/.project-path-gateway
+
+case init-project-library-not-regular
+arg /p
+stub ppg__port_dir_state 0 /p
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tool
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tool/project-path-gateway
+stub-out dir
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/.project-path-gateway
+stub-out file
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.conf
+stub-out file
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.sh
+stub-out other
+stub ppg__port_report_failure 0 not_regular /p/.tool/project-path-gateway/project-path-gateway.sh
+status 10
+op port ppg__port_dir_state /p
+op port ppg__port_dir_state /p/.tool
+op port ppg__port_dir_state /p/.tool/project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/.project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.conf
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.sh
+op port ppg__port_report_failure not_regular /p/.tool/project-path-gateway/project-path-gateway.sh
+
+case init-project-no-library-source
+arg /p
+stub ppg__port_dir_state 0 /p
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tool
+stub-out absent
+stub ppg__port_dir_state 0 /p/.tool/project-path-gateway
+stub-out absent
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/.project-path-gateway
+stub-out absent
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.conf
+stub-out absent
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.sh
+stub-out absent
+stub ppg__port_library_source 1
+stub-out-raw /pre/share/project-path-gateway/project-path-gateway.shx
+stub ppg__port_report_failure 0 no_library /pre/share/project-path-gateway/project-path-gateway.sh
+status 11
+op port ppg__port_dir_state /p
+op port ppg__port_dir_state /p/.tool
+op port ppg__port_dir_state /p/.tool/project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/.project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.conf
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.sh
+op port ppg__port_library_source
+op port ppg__port_report_failure no_library /pre/share/project-path-gateway/project-path-gateway.sh
+
+case init-project-physical-dir-fails
+arg /p
+stub ppg__port_dir_state 0 /p
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tool
+stub-out absent
+stub ppg__port_dir_state 0 /p/.tool/project-path-gateway
+stub-out absent
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/.project-path-gateway
+stub-out absent
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.conf
+stub-out absent
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.sh
+stub-out absent
+stub ppg__port_library_source 0
+stub-out-raw /pre/share/project-path-gateway/project-path-gateway.shx
+stub ppg__port_physical_dir 1 /p
+stub ppg__port_report_failure 0 not_dir /p
+status 10
+op port ppg__port_dir_state /p
+op port ppg__port_dir_state /p/.tool
+op port ppg__port_dir_state /p/.tool/project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/.project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.conf
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.sh
+op port ppg__port_library_source
+op port ppg__port_physical_dir /p
+op port ppg__port_report_failure not_dir /p
+
+case init-project-ensure-dirs-fails
+arg /p
+stub ppg__port_dir_state 0 /p
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tool
+stub-out absent
+stub ppg__port_dir_state 0 /p/.tool/project-path-gateway
+stub-out absent
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/.project-path-gateway
+stub-out absent
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.conf
+stub-out absent
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.sh
+stub-out absent
+stub ppg__port_library_source 0
+stub-out-raw /pre/share/project-path-gateway/project-path-gateway.shx
+stub ppg__port_physical_dir 0 /p
+stub-out-raw /real/px
+stub ppg__port_ensure_tool_dirs 1 /p
+stub ppg__port_report_failure 0 write /p/.tool/project-path-gateway
+stub ppg__port_cleanup_temp 0 /p/.tool/project-path-gateway
+stub ppg__port_rollback_dirs 0 /p
+status 12
+op port ppg__port_dir_state /p
+op port ppg__port_dir_state /p/.tool
+op port ppg__port_dir_state /p/.tool/project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/.project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.conf
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.sh
+op port ppg__port_library_source
+op port ppg__port_physical_dir /p
+op port ppg__port_ensure_tool_dirs /p
+op port ppg__port_report_failure write /p/.tool/project-path-gateway
+op port ppg__port_cleanup_temp /p/.tool/project-path-gateway
+op port ppg__port_rollback_dirs /p
+
+case init-project-write-marker-fails
+arg /p
+stub ppg__port_dir_state 0 /p
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tool
+stub-out absent
+stub ppg__port_dir_state 0 /p/.tool/project-path-gateway
+stub-out absent
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/.project-path-gateway
+stub-out absent
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.conf
+stub-out absent
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.sh
+stub-out absent
+stub ppg__port_library_source 0
+stub-out-raw /pre/share/project-path-gateway/project-path-gateway.shx
+stub ppg__port_physical_dir 0 /p
+stub-out-raw /real/px
+stub ppg__port_ensure_tool_dirs 0 /p
+stub ppg__port_write_new 1 /p/.tool/project-path-gateway/.project-path-gateway ppg__domain_marker_content
+stub ppg__port_report_failure 0 write /p/.tool/project-path-gateway/.project-path-gateway
+stub ppg__port_cleanup_temp 0 /p/.tool/project-path-gateway
+stub ppg__port_rollback_dirs 0 /p
+status 12
+op port ppg__port_dir_state /p
+op port ppg__port_dir_state /p/.tool
+op port ppg__port_dir_state /p/.tool/project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/.project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.conf
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.sh
+op port ppg__port_library_source
+op port ppg__port_physical_dir /p
+op port ppg__port_ensure_tool_dirs /p
+op port ppg__port_file_state /p/.tool/project-path-gateway/.project-path-gateway
+op port ppg__port_write_new /p/.tool/project-path-gateway/.project-path-gateway ppg__domain_marker_content
+op port ppg__port_report_failure write /p/.tool/project-path-gateway/.project-path-gateway
+op port ppg__port_cleanup_temp /p/.tool/project-path-gateway
+op port ppg__port_rollback_dirs /p
+
+case init-project-copy-library-fails-after-two-files
+arg /p
+stub ppg__port_dir_state 0 /p
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tool
+stub-out absent
+stub ppg__port_dir_state 0 /p/.tool/project-path-gateway
+stub-out absent
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/.project-path-gateway
+stub-out absent
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.conf
+stub-out absent
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.sh
+stub-out absent
+stub ppg__port_library_source 0
+stub-out-raw /pre/share/project-path-gateway/project-path-gateway.shx
+stub ppg__port_physical_dir 0 /p
+stub-out-raw /real/px
+stub ppg__port_ensure_tool_dirs 0 /p
+stub ppg__port_write_new 0 /p/.tool/project-path-gateway/.project-path-gateway ppg__domain_marker_content
+stub ppg__port_write_new 0 /p/.tool/project-path-gateway/project-path-gateway.conf ppg__domain_data_template
+stub ppg__port_copy_new 1 /p/.tool/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
+stub ppg__port_report_action 0 create .tool/project-path-gateway/.project-path-gateway
+stub ppg__port_report_action 0 create .tool/project-path-gateway/project-path-gateway.conf
+stub ppg__port_report_failure 0 write /p/.tool/project-path-gateway/project-path-gateway.sh
+stub ppg__port_cleanup_temp 0 /p/.tool/project-path-gateway
+stub ppg__port_rollback_dirs 0 /p
+status 12
+op port ppg__port_dir_state /p
+op port ppg__port_dir_state /p/.tool
+op port ppg__port_dir_state /p/.tool/project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/.project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.conf
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.sh
+op port ppg__port_library_source
+op port ppg__port_physical_dir /p
+op port ppg__port_ensure_tool_dirs /p
+op port ppg__port_file_state /p/.tool/project-path-gateway/.project-path-gateway
+op port ppg__port_write_new /p/.tool/project-path-gateway/.project-path-gateway ppg__domain_marker_content
+op port ppg__port_report_action create .tool/project-path-gateway/.project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.conf
+op port ppg__port_write_new /p/.tool/project-path-gateway/project-path-gateway.conf ppg__domain_data_template
+op port ppg__port_report_action create .tool/project-path-gateway/project-path-gateway.conf
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.sh
+op port ppg__port_copy_new /p/.tool/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_report_failure write /p/.tool/project-path-gateway/project-path-gateway.sh
+op port ppg__port_cleanup_temp /p/.tool/project-path-gateway
+op port ppg__port_rollback_dirs /p
+
+case init-project-replace-library-fails
+arg /p
+stub ppg__port_dir_state 0 /p
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tool
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tool/project-path-gateway
+stub-out dir
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/.project-path-gateway
+stub-out file
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.conf
+stub-out file
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.sh
+stub-out file
+stub ppg__port_library_source 0
+stub-out-raw /pre/share/project-path-gateway/project-path-gateway.shx
+stub ppg__port_physical_dir 0 /p
+stub-out-raw /real/px
+stub ppg__port_ensure_tool_dirs 0 /p
+stub ppg__port_replace 1 /p/.tool/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
+stub ppg__port_report_action 0 keep .tool/project-path-gateway/.project-path-gateway
+stub ppg__port_report_action 0 keep .tool/project-path-gateway/project-path-gateway.conf
+stub ppg__port_report_failure 0 write /p/.tool/project-path-gateway/project-path-gateway.sh
+stub ppg__port_cleanup_temp 0 /p/.tool/project-path-gateway
+stub ppg__port_rollback_dirs 0 /p
+status 12
+op port ppg__port_dir_state /p
+op port ppg__port_dir_state /p/.tool
+op port ppg__port_dir_state /p/.tool/project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/.project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.conf
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.sh
+op port ppg__port_library_source
+op port ppg__port_physical_dir /p
+op port ppg__port_ensure_tool_dirs /p
+op port ppg__port_file_state /p/.tool/project-path-gateway/.project-path-gateway
+op port ppg__port_report_action keep .tool/project-path-gateway/.project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.conf
+op port ppg__port_report_action keep .tool/project-path-gateway/project-path-gateway.conf
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.sh
+op port ppg__port_replace /p/.tool/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_report_failure write /p/.tool/project-path-gateway/project-path-gateway.sh
+op port ppg__port_cleanup_temp /p/.tool/project-path-gateway
+op port ppg__port_rollback_dirs /p
+
+case init-project-new-project
+arg /p
+stub ppg__port_dir_state 0 /p
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tool
+stub-out absent
+stub ppg__port_dir_state 0 /p/.tool/project-path-gateway
+stub-out absent
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/.project-path-gateway
+stub-out absent
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.conf
+stub-out absent
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.sh
+stub-out absent
+stub ppg__port_library_source 0
+stub-out-raw /pre/share/project-path-gateway/project-path-gateway.shx
+stub ppg__port_physical_dir 0 /p
+stub-out-raw /real/px
+stub ppg__port_ensure_tool_dirs 0 /p
+stub ppg__port_write_new 0 /p/.tool/project-path-gateway/.project-path-gateway ppg__domain_marker_content
+stub ppg__port_write_new 0 /p/.tool/project-path-gateway/project-path-gateway.conf ppg__domain_data_template
+stub ppg__port_copy_new 0 /p/.tool/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
+stub ppg__port_report_action 0 create .tool/project-path-gateway/.project-path-gateway
+stub ppg__port_report_action 0 create .tool/project-path-gateway/project-path-gateway.conf
+stub ppg__port_report_action 0 create .tool/project-path-gateway/project-path-gateway.sh
+stub ppg__port_report_done 0 /real/p
+status 0
+op port ppg__port_dir_state /p
+op port ppg__port_dir_state /p/.tool
+op port ppg__port_dir_state /p/.tool/project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/.project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.conf
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.sh
+op port ppg__port_library_source
+op port ppg__port_physical_dir /p
+op port ppg__port_ensure_tool_dirs /p
+op port ppg__port_file_state /p/.tool/project-path-gateway/.project-path-gateway
+op port ppg__port_write_new /p/.tool/project-path-gateway/.project-path-gateway ppg__domain_marker_content
+op port ppg__port_report_action create .tool/project-path-gateway/.project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.conf
+op port ppg__port_write_new /p/.tool/project-path-gateway/project-path-gateway.conf ppg__domain_data_template
+op port ppg__port_report_action create .tool/project-path-gateway/project-path-gateway.conf
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.sh
+op port ppg__port_copy_new /p/.tool/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_report_action create .tool/project-path-gateway/project-path-gateway.sh
+op port ppg__port_report_done /real/p
+
+case init-project-rerun-keeps-data-and-replaces-library
+arg /p
+stub ppg__port_dir_state 0 /p
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tool
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tool/project-path-gateway
+stub-out dir
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/.project-path-gateway
+stub-out file
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.conf
+stub-out file
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.sh
+stub-out file
+stub ppg__port_library_source 0
+stub-out-raw /pre/share/project-path-gateway/project-path-gateway.shx
+stub ppg__port_physical_dir 0 /p
+stub-out-raw /real/px
+stub ppg__port_ensure_tool_dirs 0 /p
+stub ppg__port_replace 0 /p/.tool/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
+stub ppg__port_report_action 0 keep .tool/project-path-gateway/.project-path-gateway
+stub ppg__port_report_action 0 keep .tool/project-path-gateway/project-path-gateway.conf
+stub ppg__port_report_action 0 replace .tool/project-path-gateway/project-path-gateway.sh
+stub ppg__port_report_done 0 /real/p
+status 0
+op port ppg__port_dir_state /p
+op port ppg__port_dir_state /p/.tool
+op port ppg__port_dir_state /p/.tool/project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/.project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.conf
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.sh
+op port ppg__port_library_source
+op port ppg__port_physical_dir /p
+op port ppg__port_ensure_tool_dirs /p
+op port ppg__port_file_state /p/.tool/project-path-gateway/.project-path-gateway
+op port ppg__port_report_action keep .tool/project-path-gateway/.project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.conf
+op port ppg__port_report_action keep .tool/project-path-gateway/project-path-gateway.conf
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.sh
+op port ppg__port_replace /p/.tool/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_report_action replace .tool/project-path-gateway/project-path-gateway.sh
+op port ppg__port_report_done /real/p
+
+case init-project-data-file-deleted-is-recreated
+arg /p
+stub ppg__port_dir_state 0 /p
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tool
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tool/project-path-gateway
+stub-out dir
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/.project-path-gateway
+stub-out file
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.conf
+stub-out absent
+stub ppg__port_file_state 0 /p/.tool/project-path-gateway/project-path-gateway.sh
+stub-out file
+stub ppg__port_library_source 0
+stub-out-raw /pre/share/project-path-gateway/project-path-gateway.shx
+stub ppg__port_physical_dir 0 /p
+stub-out-raw /real/px
+stub ppg__port_ensure_tool_dirs 0 /p
+stub ppg__port_write_new 0 /p/.tool/project-path-gateway/project-path-gateway.conf ppg__domain_data_template
+stub ppg__port_replace 0 /p/.tool/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
+stub ppg__port_report_action 0 keep .tool/project-path-gateway/.project-path-gateway
+stub ppg__port_report_action 0 create .tool/project-path-gateway/project-path-gateway.conf
+stub ppg__port_report_action 0 replace .tool/project-path-gateway/project-path-gateway.sh
+stub ppg__port_report_done 0 /real/p
+status 0
+op port ppg__port_dir_state /p
+op port ppg__port_dir_state /p/.tool
+op port ppg__port_dir_state /p/.tool/project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/.project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.conf
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.sh
+op port ppg__port_library_source
+op port ppg__port_physical_dir /p
+op port ppg__port_ensure_tool_dirs /p
+op port ppg__port_file_state /p/.tool/project-path-gateway/.project-path-gateway
+op port ppg__port_report_action keep .tool/project-path-gateway/.project-path-gateway
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.conf
+op port ppg__port_write_new /p/.tool/project-path-gateway/project-path-gateway.conf ppg__domain_data_template
+op port ppg__port_report_action create .tool/project-path-gateway/project-path-gateway.conf
+op port ppg__port_file_state /p/.tool/project-path-gateway/project-path-gateway.sh
+op port ppg__port_replace /p/.tool/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_report_action replace .tool/project-path-gateway/project-path-gateway.sh
+op port ppg__port_report_done /real/p
