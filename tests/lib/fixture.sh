@@ -52,3 +52,22 @@ tree_list() {
 in_shell() {
 	"$TEST_SHELL" -c "$@"
 }
+
+# 디렉터리 바로 아래 항목 이름(숨김 포함)을 한 줄에 하나씩 정렬해 출력한다.
+dir_entries() {
+	for entry in "$1"/* "$1"/.[!.]* "$1"/..?*; do
+		if [ -e "$entry" ] || [ -L "$entry" ]; then
+			printf '%s\n' "${entry##*/}"
+		fi
+	done | LC_ALL=C sort
+}
+
+# shellcheck disable=SC2012 # 파일 하나의 inode·권한 열만 읽는다
+inode_of() {
+	ls -di "$1" | awk '{print $1}'
+}
+
+# shellcheck disable=SC2012 # 파일 하나의 inode·권한 열만 읽는다
+mode_of() {
+	ls -ld "$1" | cut -c1-10
+}

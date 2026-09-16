@@ -1,0 +1,373 @@
+#!/bin/sh
+# project-path-gateway 전역 프로그램
+#
+# 프로젝트 초기화 명령만 제공한다. 조회·검증은 프로젝트 안 라이브러리가 담당한다 (FR-083).
+#
+#   project-path-gateway init [TARGET_DIR]
+#   project-path-gateway --help | -h
+#   project-path-gateway --version
+#
+# 구조: 도메인 → 애플리케이션 → 인프라 → 인터페이스 네 구획으로 나눈다 (plan.md 계층 대응).
+# 인프라 상태 변수(PPG_INFRA_)를 유지해야 하므로 함수는 서브셸 본문으로 정의하지 않는다.
+# 애플리케이션 내부 코드: 0 성공, 10 사전 검사 실패, 11 라이브러리 원본 없음, 12 쓰기 실패.
+
+PPG_VERSION=0.1.0
+
+# === 계층: 도메인 ===
+
+# 파일 종류(marker, data, library)와 대상 상태(absent, file, other)로 처리(create, keep, replace, fail)를 정한다.
+ppg__domain_plan_action() {
+	case $2 in
+	absent) printf 'create\n' ;;
+	file)
+		if [ "$1" = library ]; then
+			printf 'replace\n'
+		else
+			printf 'keep\n'
+		fi
+		;;
+	*) printf 'fail\n' ;;
+	esac
+}
+
+# 루트 표식 파일 내용 (contracts/files.md 2절).
+ppg__domain_marker_content() {
+	printf '%s\n' \
+		'# project-path-gateway 루트 표식 파일입니다. 이 파일을 담은 .tool/ 디렉터리의 상위 디렉터리가 프로젝트 루트입니다.' \
+		'format=1'
+}
+
+# 새 데이터 파일 내용, 항목 0개 (contracts/files.md 3.2절).
+ppg__domain_data_template() {
+	printf '%s\n' \
+		'# project-path-gateway 데이터 파일' \
+		'# 한 줄에 KEY=경로 형식으로 적습니다. 경로는 프로젝트 루트(.tool/의 상위 디렉터리) 기준 상대경로입니다.' \
+		'# 키: 대문자로 시작하고 대문자·숫자·_만 사용합니다. 파일 안에서 중복될 수 없습니다.' \
+		'# 경로: /로 시작할 수 없고 .. 세그먼트를 쓸 수 없습니다. = 앞뒤 공백은 제거되지 않습니다.' \
+		'# 빈 줄과 #으로 시작하는 줄은 무시합니다.' \
+		'#' \
+		'# 예:' \
+		'# SOURCES_ROOT=sources' \
+		'# BUILD_SCRIPT=scripts/build.sh'
+}
+
+ppg__domain_tool_relpath() {
+	printf '.tool/project-path-gateway\n'
+}
+
+ppg__domain_file_name() {
+	case $1 in
+	marker) printf '.project-path-gateway\n' ;;
+	data) printf 'project-path-gateway.conf\n' ;;
+	library) printf 'project-path-gateway.sh\n' ;;
+	esac
+}
+
+# 디렉터리와 이름을 결합한다. 디렉터리가 /이면 슬래시를 중복하지 않는다.
+ppg__domain_join() {
+	printf '%s/%s\n' "${1%/}" "$2"
+}
+
+# === 계층: 애플리케이션 ===
+
+# 프로젝트 초기화 흐름 (contracts/cli.md 2절, research R-10).
+ppg__app_init_project() {
+	target=$1
+	if [ "$(ppg__port_dir_state "$target")" != dir ]; then
+		ppg__port_report_failure not_dir "$target"
+		return 10
+	fi
+	tool_parent=$(ppg__domain_join "$target" .tool)
+	if [ "$(ppg__port_dir_state "$tool_parent")" = other ]; then
+		ppg__port_report_failure tool_not_dir "$tool_parent"
+		return 10
+	fi
+	tool_dir=$(ppg__domain_join "$target" "$(ppg__domain_tool_relpath)")
+	if [ "$(ppg__port_dir_state "$tool_dir")" = other ]; then
+		ppg__port_report_failure tool_dir_not_dir "$tool_dir"
+		return 10
+	fi
+	for kind in marker data library; do
+		path=$(ppg__domain_join "$tool_dir" "$(ppg__domain_file_name "$kind")")
+		if [ "$(ppg__domain_plan_action "$kind" "$(ppg__port_file_state "$path")")" = fail ]; then
+			ppg__port_report_failure not_regular "$path"
+			return 10
+		fi
+	done
+	if ! library_source=$(ppg__port_library_source); then
+		ppg__port_report_failure no_library "${library_source%x}"
+		return 11
+	fi
+	library_source=${library_source%x}
+	if ! target_physical=$(ppg__port_physical_dir "$target"); then
+		ppg__port_report_failure not_dir "$target"
+		return 10
+	fi
+	target_physical=${target_physical%x}
+
+	if ! ppg__port_ensure_tool_dirs "$target"; then
+		ppg__port_report_failure write "$tool_dir"
+		ppg__app_cleanup "$target"
+		ppg__port_rollback_dirs "$target"
+		return 12
+	fi
+	for kind in marker data library; do
+		name=$(ppg__domain_file_name "$kind")
+		path=$(ppg__domain_join "$tool_dir" "$name")
+		action=$(ppg__domain_plan_action "$kind" "$(ppg__port_file_state "$path")")
+		written=0
+		case $kind:$action in
+		marker:create) ppg__port_write_new "$path" ppg__domain_marker_content && written=1 ;;
+		data:create) ppg__port_write_new "$path" ppg__domain_data_template && written=1 ;;
+		library:create) ppg__port_copy_new "$path" "$library_source" && written=1 ;;
+		library:replace) ppg__port_replace "$path" "$library_source" && written=1 ;;
+		*:keep) written=1 ;;
+		esac
+		if [ "$written" -ne 1 ]; then
+			ppg__port_report_failure write "$path"
+			ppg__app_cleanup "$target"
+			ppg__port_rollback_dirs "$target"
+			return 12
+		fi
+		ppg__port_report_action "$action" "$(ppg__domain_join "$(ppg__domain_tool_relpath)" "$name")"
+	done
+	ppg__port_report_done "$target_physical"
+	return 0
+}
+
+# 이번 실행의 임시 파일을 지운다. 종료·신호 trap과 쓰기 실패 처리에서 호출한다.
+ppg__app_cleanup() {
+	ppg__port_cleanup_temp "$(ppg__domain_join "$1" "$(ppg__domain_tool_relpath)")"
+}
+
+# === 계층: 인프라 ===
+
+# 디렉터리 상태: absent, dir, other
+ppg__port_dir_state() {
+	if [ -d "$1" ]; then
+		printf 'dir\n'
+	elif [ -e "$1" ] || [ -L "$1" ]; then
+		printf 'other\n'
+	else
+		printf 'absent\n'
+	fi
+}
+
+# 파일 상태: absent, file, other
+ppg__port_file_state() {
+	if [ -f "$1" ]; then
+		printf 'file\n'
+	elif [ -e "$1" ] || [ -L "$1" ]; then
+		printf 'other\n'
+	else
+		printf 'absent\n'
+	fi
+}
+
+# 디렉터리의 물리 경로를 끝 표지 방식으로 출력한다.
+ppg__port_physical_dir() {
+	ppg_infra_dir=$(cd -P -- "$1" 2>/dev/null && pwd -P && printf x) || return 1
+	ppg_infra_dir=${ppg_infra_dir%x}
+	printf '%sx' "${ppg_infra_dir%?}"
+}
+
+# 실행 파일($0)의 심볼릭 링크를 해소한 실제 디렉터리를 끝 표지 방식으로 출력한다 (research R-09).
+ppg__port_self_dir() {
+	ppg_infra_self=$0
+	case $ppg_infra_self in
+	*/*) ;;
+	*) ppg_infra_self=$(command -v -- "$ppg_infra_self") || return 1 ;;
+	esac
+	ppg_infra_count=0
+	while [ -L "$ppg_infra_self" ]; do
+		ppg_infra_count=$((ppg_infra_count + 1))
+		[ "$ppg_infra_count" -le 40 ] || return 1
+		ppg_infra_link_dir=$(ppg__port_physical_dir "${ppg_infra_self%/*}") || return 1
+		ppg_infra_link_dir=${ppg_infra_link_dir%x}
+		ppg_infra_target=$(readlink -- "$ppg_infra_self" && printf x) || return 1
+		ppg_infra_target=${ppg_infra_target%x}
+		ppg_infra_target=${ppg_infra_target%?}
+		case $ppg_infra_target in
+		/*) ppg_infra_self=$ppg_infra_target ;;
+		*) ppg_infra_self=${ppg_infra_link_dir%/}/$ppg_infra_target ;;
+		esac
+	done
+	case $ppg_infra_self in
+	*/*) ppg__port_physical_dir "${ppg_infra_self%/*}" ;;
+	*) ppg__port_physical_dir . ;;
+	esac
+}
+
+# 설치된 라이브러리 원본 경로를 끝 표지 방식으로 출력한다. 읽을 수 없으면 경로를 출력하고 반환 1.
+ppg__port_library_source() {
+	ppg_infra_self_dir=$(ppg__port_self_dir) || {
+		printf '%sx' "$0"
+		return 1
+	}
+	ppg_infra_source=${ppg_infra_self_dir%x}/../share/project-path-gateway/project-path-gateway.sh
+	printf '%sx' "$ppg_infra_source"
+	[ -f "$ppg_infra_source" ] && [ -r "$ppg_infra_source" ]
+}
+
+# .tool과 도구 디렉터리 중 없는 것을 만들고, 이번 실행에서 만든 것을 상태 변수에 기록한다.
+ppg__port_ensure_tool_dirs() {
+	PPG_INFRA_CREATED_TOOL=0
+	PPG_INFRA_CREATED_TOOLDIR=0
+	if [ ! -d "${1%/}/.tool" ]; then
+		mkdir -- "${1%/}/.tool" 2>/dev/null || return 1
+		PPG_INFRA_CREATED_TOOL=1
+	fi
+	if [ ! -d "${1%/}/.tool/project-path-gateway" ]; then
+		mkdir -- "${1%/}/.tool/project-path-gateway" 2>/dev/null || return 1
+		PPG_INFRA_CREATED_TOOLDIR=1
+	fi
+	return 0
+}
+
+# 이번 실행에서 만든 디렉터리만 도구 디렉터리 → .tool 순서로 되돌린다.
+ppg__port_rollback_dirs() {
+	if [ "${PPG_INFRA_CREATED_TOOLDIR-0}" = 1 ]; then
+		rmdir -- "${1%/}/.tool/project-path-gateway" 2>/dev/null
+	fi
+	if [ "${PPG_INFRA_CREATED_TOOL-0}" = 1 ]; then
+		rmdir -- "${1%/}/.tool" 2>/dev/null
+	fi
+	return 0
+}
+
+# 대상과 같은 디렉터리의 임시 파일 경로: <디렉터리>/.ppg-tmp.<PID>.<대상 파일 이름>
+ppg__infra_temp_path() {
+	printf '%s/.ppg-tmp.%s.%s\n' "${1%/*}" "$$" "${1##*/}"
+}
+
+# CONTENT_FUNC 출력을 임시 파일에 쓰고 ln으로 새 파일을 연결한다. 대상이 이미 있으면 실패한다.
+ppg__port_write_new() {
+	ppg_infra_temp=$(ppg__infra_temp_path "$1")
+	{ "$2" >"$ppg_infra_temp"; } 2>/dev/null || {
+		rm -f -- "$ppg_infra_temp"
+		return 1
+	}
+	ppg__infra_link_temp "$ppg_infra_temp" "$1"
+}
+
+# 원본 파일을 임시 파일에 복사하고 ln으로 새 파일을 연결한다.
+ppg__port_copy_new() {
+	ppg_infra_temp=$(ppg__infra_temp_path "$1")
+	{ cat -- "$2" >"$ppg_infra_temp"; } 2>/dev/null || {
+		rm -f -- "$ppg_infra_temp"
+		return 1
+	}
+	ppg__infra_link_temp "$ppg_infra_temp" "$1"
+}
+
+ppg__infra_link_temp() {
+	if ln -- "$1" "$2" 2>/dev/null; then
+		rm -f -- "$1"
+		return 0
+	fi
+	rm -f -- "$1"
+	return 1
+}
+
+# 원본 파일을 임시 파일에 복사한 뒤 mv -f로 기존 파일을 교체한다.
+ppg__port_replace() {
+	ppg_infra_temp=$(ppg__infra_temp_path "$1")
+	{ cat -- "$2" >"$ppg_infra_temp"; } 2>/dev/null &&
+		mv -f -- "$ppg_infra_temp" "$1" 2>/dev/null && return 0
+	rm -f -- "$ppg_infra_temp"
+	return 1
+}
+
+# 도구 디렉터리에서 이번 실행(PID)의 임시 파일만 지운다. 경로 부분은 따옴표로 감싸 문자 그대로 취급한다.
+ppg__port_cleanup_temp() {
+	rm -f -- "$1"/.ppg-tmp."$$".* 2>/dev/null
+	return 0
+}
+
+# === 계층: 인터페이스 ===
+
+ppg__if_usage() {
+	printf '%s\n' \
+		'사용법:' \
+		'  project-path-gateway init [TARGET_DIR]   프로젝트에 .tool/project-path-gateway/를 만들고 라이브러리를 설치·교체합니다' \
+		'  project-path-gateway --help | -h          이 도움말을 출력합니다' \
+		'  project-path-gateway --version            버전을 출력합니다' \
+		'' \
+		'TARGET_DIR을 생략하면 현재 작업 디렉터리를 프로젝트 루트로 초기화합니다.'
+}
+
+# 파일별 처리 결과 보고 포트 구현.
+ppg__port_report_action() {
+	case $1 in
+	create) ppg_if_label=생성 ;;
+	keep) ppg_if_label=유지 ;;
+	replace) ppg_if_label=교체 ;;
+	*) ppg_if_label=$1 ;;
+	esac
+	printf 'project-path-gateway: %s: %s\n' "$ppg_if_label" "$2"
+}
+
+ppg__port_report_done() {
+	printf 'project-path-gateway: 초기화 완료: %s\n' "$1"
+}
+
+# 실패 보고 포트 구현 (contracts/cli.md 2.1절, 2.2절).
+ppg__port_report_failure() {
+	case $1 in
+	not_dir) ppg_if_message="디렉터리가 아닙니다: $2" ;;
+	tool_not_dir) ppg_if_message=".tool이 디렉터리가 아닙니다: $2" ;;
+	tool_dir_not_dir) ppg_if_message="도구 디렉터리가 디렉터리가 아닙니다: $2" ;;
+	not_regular) ppg_if_message="일반 파일이 아닙니다: $2" ;;
+	no_library) ppg_if_message="라이브러리 원본을 찾지 못했습니다: $2. 설치 스크립트를 다시 실행하세요" ;;
+	write) ppg_if_message="파일을 쓰지 못했습니다: $2" ;;
+	*) ppg_if_message="알 수 없는 오류입니다: $1 $2" ;;
+	esac
+	printf 'project-path-gateway: init: %s\n' "$ppg_if_message" >&2
+}
+
+# 종료와 중단 신호에 임시 파일 정리를 건다. dash는 신호로 끝날 때 EXIT trap을 실행하지 않으므로
+# INT, TERM을 따로 건다 (research R-10). 정리는 애플리케이션에 위임한다.
+ppg__if_set_traps() {
+	PPG_IF_TARGET=$1
+	trap 'ppg__app_cleanup "$PPG_IF_TARGET"' EXIT
+	trap 'ppg__app_cleanup "$PPG_IF_TARGET"; exit 130' INT
+	trap 'ppg__app_cleanup "$PPG_IF_TARGET"; exit 143' TERM
+}
+
+main() {
+	case ${1-} in
+	--help | -h)
+		ppg__if_usage
+		exit 0
+		;;
+	--version)
+		printf 'project-path-gateway %s\n' "$PPG_VERSION"
+		exit 0
+		;;
+	init)
+		shift
+		if [ "$#" -gt 1 ]; then
+			printf 'project-path-gateway: init: 인자는 0개 또는 1개여야 합니다\n' >&2
+			exit 2
+		fi
+		ppg__if_set_traps "${1-.}"
+		ppg__app_init_project "${1-.}"
+		case $? in
+		0) exit 0 ;;
+		10) exit 2 ;;
+		*) exit 1 ;;
+		esac
+		;;
+	'')
+		ppg__if_usage >&2
+		exit 2
+		;;
+	*)
+		printf 'project-path-gateway: 알 수 없는 명령입니다: %s\n' "$1" >&2
+		ppg__if_usage >&2
+		exit 2
+		;;
+	esac
+}
+
+[ "${PPG_SOURCE_ONLY-}" = 1 ] || main "$@"
