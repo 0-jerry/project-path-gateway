@@ -727,6 +727,36 @@ project_path_gateway__port_report_outside() (
 	printf 'project-path-gateway: 루트 밖: %s=%s -> %s\n' "$1" "$2" "$3" >&2
 )
 
+# 리포트를 지정한 검증 (기능 003 research R-02). 항목 줄과 요약 코드를 한 번에 받아 기존과 같은 문구로 출력하고
+# 같은 줄을 리포트로 저장한다. $1: 루트, $2: 리포트 파일. 반환: 1 검증 실패, 2 오류, 0 통과(아직 처리하지 않음).
+project_path_gateway__if_verify_report() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	nl='
+'
+	captured=$(project_path_gateway__app_verify "$1" 2>&1
+		printf 'x%s' "$?")
+	status=${captured##*x}
+	captured=${captured%x*}
+	case $status in
+	0) return 0 ;;
+	1) ;;
+	*)
+		printf '%s' "$captured" >&2
+		project_path_gateway__if_data_file_fail project_path_gateway_verify "$status" "$1"
+		return 2
+		;;
+	esac
+	last=${captured%"$nl"}
+	summary=${last##*"$nl"}
+	body="${last%"$summary"}project-path-gateway: 검증 실패 ${summary#fail }건$nl"
+	printf '%s' "$body" >&2
+	project_path_gateway__app_write_report "$2" "$body"
+	return 1
+)
+
 # 공개 함수: 등록 경로 검증 (contracts/library-api.md 5절, 기능 003 REPORT_FILE 선택 인자).
 project_path_gateway_verify() (
 	set +e +u +f
@@ -744,6 +774,11 @@ project_path_gateway_verify() (
 	if [ -z "${PROJECT_PATH_GATEWAY_ROOT+x}" ]; then
 		project_path_gateway__if_error project_path_gateway_verify '초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요'
 		return 2
+	fi
+	if [ "$#" -eq 1 ]; then
+		project_path_gateway__if_verify_report "$PROJECT_PATH_GATEWAY_ROOT" "$1"
+		status=$?
+		[ "$status" -eq 0 ] || return "$status"
 	fi
 	result=$(project_path_gateway__app_verify "$PROJECT_PATH_GATEWAY_ROOT")
 	status=$?

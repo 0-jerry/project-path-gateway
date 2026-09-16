@@ -57,7 +57,18 @@ fs dir /t/root/a
 call project_path_gateway_init /t/root
 call project_path_gateway_verify
 call project_path_gateway_verify /out/report.txt
-status 0
+status 1
+err project-path-gateway: 누락: B=b
+err project-path-gateway: 누락: C=c/d
+err project-path-gateway: 검증 실패 2건
+err project-path-gateway: 누락: B=b
+err project-path-gateway: 누락: C=c/d
+err project-path-gateway: 검증 실패 2건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 1
+op write /out/.ppg-report.4242.report.txt project-path-gateway:\s누락:\sB=b\nproject-path-gateway:\s누락:\sC=c/d\nproject-path-gateway:\s검증\s실패\s2건\n
+op move /out/.ppg-report.4242.report.txt /out/report.txt
+op returned project_path_gateway_verify 1
 
 case verify-report-fail-broken-link-and-outside-link
 fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
@@ -69,7 +80,18 @@ fs link /t/root/out /elsewhere
 call project_path_gateway_init /t/root
 call project_path_gateway_verify
 call project_path_gateway_verify /out/report.txt
-status 0
+status 1
+err project-path-gateway: 누락: BROKEN=broken
+err project-path-gateway: 루트 밖: OUT=out -> /elsewhere
+err project-path-gateway: 검증 실패 2건
+err project-path-gateway: 누락: BROKEN=broken
+err project-path-gateway: 루트 밖: OUT=out -> /elsewhere
+err project-path-gateway: 검증 실패 2건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 1
+op write /out/.ppg-report.4242.report.txt project-path-gateway:\s누락:\sBROKEN=broken\nproject-path-gateway:\s루트\s밖:\sOUT=out\s->\s/elsewhere\nproject-path-gateway:\s검증\s실패\s2건\n
+op move /out/.ppg-report.4242.report.txt /out/report.txt
+op returned project_path_gateway_verify 1
 
 case verify-report-fail-overwrites-previous-report
 fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
@@ -78,7 +100,13 @@ fs file /out/report.txt
 content 이전 리포트
 call project_path_gateway_init /t/root
 call project_path_gateway_verify /out/report.txt
-status 0
+status 1
+err project-path-gateway: 누락: A=a
+err project-path-gateway: 검증 실패 1건
+op returned project_path_gateway_init 0
+op write /out/.ppg-report.4242.report.txt project-path-gateway:\s누락:\sA=a\nproject-path-gateway:\s검증\s실패\s1건\n
+op move /out/.ppg-report.4242.report.txt /out/report.txt
+op returned project_path_gateway_verify 1
 
 case verify-report-fail-report-path-with-space-and-korean
 fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
@@ -86,7 +114,13 @@ content A=a
 fs dir /out/결과\s폴더
 call project_path_gateway_init /t/root
 call project_path_gateway_verify /out/결과\s폴더/리포트\s1.txt
-status 0
+status 1
+err project-path-gateway: 누락: A=a
+err project-path-gateway: 검증 실패 1건
+op returned project_path_gateway_init 0
+op write /out/결과\s폴더/.ppg-report.4242.리포트\s1.txt project-path-gateway:\s누락:\sA=a\nproject-path-gateway:\s검증\s실패\s1건\n
+op move /out/결과\s폴더/.ppg-report.4242.리포트\s1.txt /out/결과\s폴더/리포트\s1.txt
+op returned project_path_gateway_verify 1
 
 case verify-report-fail-relative-report-path
 cwd /out
@@ -94,7 +128,13 @@ fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
 content A=a
 call project_path_gateway_init /t/root
 call project_path_gateway_verify report.txt
-status 0
+status 1
+err project-path-gateway: 누락: A=a
+err project-path-gateway: 검증 실패 1건
+op returned project_path_gateway_init 0
+op write ./.ppg-report.4242.report.txt project-path-gateway:\s누락:\sA=a\nproject-path-gateway:\s검증\s실패\s1건\n
+op move ./.ppg-report.4242.report.txt report.txt
+op returned project_path_gateway_verify 1
 
 case verify-report-fail-report-file-is-link-to-file
 fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
@@ -104,7 +144,13 @@ content 링크 대상
 fs link /out/report.txt keep.txt
 call project_path_gateway_init /t/root
 call project_path_gateway_verify /out/report.txt
-status 0
+status 1
+err project-path-gateway: 누락: A=a
+err project-path-gateway: 검증 실패 1건
+op returned project_path_gateway_init 0
+op write /out/.ppg-report.4242.report.txt project-path-gateway:\s누락:\sA=a\nproject-path-gateway:\s검증\s실패\s1건\n
+op move /out/.ppg-report.4242.report.txt /out/report.txt
+op returned project_path_gateway_verify 1
 
 case verify-report-fail-key-and-path-with-space-equal-korean
 fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
@@ -112,14 +158,29 @@ content SP_KEY=a b=c/한글 경로
 call project_path_gateway_init /t/root
 call project_path_gateway_verify
 call project_path_gateway_verify /out/report.txt
-status 0
+status 1
+err project-path-gateway: 누락: SP_KEY=a b=c/한글 경로
+err project-path-gateway: 검증 실패 1건
+err project-path-gateway: 누락: SP_KEY=a b=c/한글 경로
+err project-path-gateway: 검증 실패 1건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 1
+op write /out/.ppg-report.4242.report.txt project-path-gateway:\s누락:\sSP_KEY=a\sb=c/한글\s경로\nproject-path-gateway:\s검증\s실패\s1건\n
+op move /out/.ppg-report.4242.report.txt /out/report.txt
+op returned project_path_gateway_verify 1
 
 case verify-report-fail-report-at-registered-path
 fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
 content REPORT=report.txt
 call project_path_gateway_init /t/root
 call project_path_gateway_verify /t/root/report.txt
-status 0
+status 1
+err project-path-gateway: 누락: REPORT=report.txt
+err project-path-gateway: 검증 실패 1건
+op returned project_path_gateway_init 0
+op write /t/root/.ppg-report.4242.report.txt project-path-gateway:\s누락:\sREPORT=report.txt\nproject-path-gateway:\s검증\s실패\s1건\n
+op move /t/root/.ppg-report.4242.report.txt /t/root/report.txt
+op returned project_path_gateway_verify 1
 
 case verify-report-fail-two-hundred-missing
 fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
@@ -325,4 +386,209 @@ content KEY_198=missing/file_198
 content KEY_199=missing/file_199
 call project_path_gateway_init /t/root
 call project_path_gateway_verify /out/report.txt
-status 0
+status 1
+err project-path-gateway: 누락: KEY_0=missing/file_0
+err project-path-gateway: 누락: KEY_1=missing/file_1
+err project-path-gateway: 누락: KEY_2=missing/file_2
+err project-path-gateway: 누락: KEY_3=missing/file_3
+err project-path-gateway: 누락: KEY_4=missing/file_4
+err project-path-gateway: 누락: KEY_5=missing/file_5
+err project-path-gateway: 누락: KEY_6=missing/file_6
+err project-path-gateway: 누락: KEY_7=missing/file_7
+err project-path-gateway: 누락: KEY_8=missing/file_8
+err project-path-gateway: 누락: KEY_9=missing/file_9
+err project-path-gateway: 누락: KEY_10=missing/file_10
+err project-path-gateway: 누락: KEY_11=missing/file_11
+err project-path-gateway: 누락: KEY_12=missing/file_12
+err project-path-gateway: 누락: KEY_13=missing/file_13
+err project-path-gateway: 누락: KEY_14=missing/file_14
+err project-path-gateway: 누락: KEY_15=missing/file_15
+err project-path-gateway: 누락: KEY_16=missing/file_16
+err project-path-gateway: 누락: KEY_17=missing/file_17
+err project-path-gateway: 누락: KEY_18=missing/file_18
+err project-path-gateway: 누락: KEY_19=missing/file_19
+err project-path-gateway: 누락: KEY_20=missing/file_20
+err project-path-gateway: 누락: KEY_21=missing/file_21
+err project-path-gateway: 누락: KEY_22=missing/file_22
+err project-path-gateway: 누락: KEY_23=missing/file_23
+err project-path-gateway: 누락: KEY_24=missing/file_24
+err project-path-gateway: 누락: KEY_25=missing/file_25
+err project-path-gateway: 누락: KEY_26=missing/file_26
+err project-path-gateway: 누락: KEY_27=missing/file_27
+err project-path-gateway: 누락: KEY_28=missing/file_28
+err project-path-gateway: 누락: KEY_29=missing/file_29
+err project-path-gateway: 누락: KEY_30=missing/file_30
+err project-path-gateway: 누락: KEY_31=missing/file_31
+err project-path-gateway: 누락: KEY_32=missing/file_32
+err project-path-gateway: 누락: KEY_33=missing/file_33
+err project-path-gateway: 누락: KEY_34=missing/file_34
+err project-path-gateway: 누락: KEY_35=missing/file_35
+err project-path-gateway: 누락: KEY_36=missing/file_36
+err project-path-gateway: 누락: KEY_37=missing/file_37
+err project-path-gateway: 누락: KEY_38=missing/file_38
+err project-path-gateway: 누락: KEY_39=missing/file_39
+err project-path-gateway: 누락: KEY_40=missing/file_40
+err project-path-gateway: 누락: KEY_41=missing/file_41
+err project-path-gateway: 누락: KEY_42=missing/file_42
+err project-path-gateway: 누락: KEY_43=missing/file_43
+err project-path-gateway: 누락: KEY_44=missing/file_44
+err project-path-gateway: 누락: KEY_45=missing/file_45
+err project-path-gateway: 누락: KEY_46=missing/file_46
+err project-path-gateway: 누락: KEY_47=missing/file_47
+err project-path-gateway: 누락: KEY_48=missing/file_48
+err project-path-gateway: 누락: KEY_49=missing/file_49
+err project-path-gateway: 누락: KEY_50=missing/file_50
+err project-path-gateway: 누락: KEY_51=missing/file_51
+err project-path-gateway: 누락: KEY_52=missing/file_52
+err project-path-gateway: 누락: KEY_53=missing/file_53
+err project-path-gateway: 누락: KEY_54=missing/file_54
+err project-path-gateway: 누락: KEY_55=missing/file_55
+err project-path-gateway: 누락: KEY_56=missing/file_56
+err project-path-gateway: 누락: KEY_57=missing/file_57
+err project-path-gateway: 누락: KEY_58=missing/file_58
+err project-path-gateway: 누락: KEY_59=missing/file_59
+err project-path-gateway: 누락: KEY_60=missing/file_60
+err project-path-gateway: 누락: KEY_61=missing/file_61
+err project-path-gateway: 누락: KEY_62=missing/file_62
+err project-path-gateway: 누락: KEY_63=missing/file_63
+err project-path-gateway: 누락: KEY_64=missing/file_64
+err project-path-gateway: 누락: KEY_65=missing/file_65
+err project-path-gateway: 누락: KEY_66=missing/file_66
+err project-path-gateway: 누락: KEY_67=missing/file_67
+err project-path-gateway: 누락: KEY_68=missing/file_68
+err project-path-gateway: 누락: KEY_69=missing/file_69
+err project-path-gateway: 누락: KEY_70=missing/file_70
+err project-path-gateway: 누락: KEY_71=missing/file_71
+err project-path-gateway: 누락: KEY_72=missing/file_72
+err project-path-gateway: 누락: KEY_73=missing/file_73
+err project-path-gateway: 누락: KEY_74=missing/file_74
+err project-path-gateway: 누락: KEY_75=missing/file_75
+err project-path-gateway: 누락: KEY_76=missing/file_76
+err project-path-gateway: 누락: KEY_77=missing/file_77
+err project-path-gateway: 누락: KEY_78=missing/file_78
+err project-path-gateway: 누락: KEY_79=missing/file_79
+err project-path-gateway: 누락: KEY_80=missing/file_80
+err project-path-gateway: 누락: KEY_81=missing/file_81
+err project-path-gateway: 누락: KEY_82=missing/file_82
+err project-path-gateway: 누락: KEY_83=missing/file_83
+err project-path-gateway: 누락: KEY_84=missing/file_84
+err project-path-gateway: 누락: KEY_85=missing/file_85
+err project-path-gateway: 누락: KEY_86=missing/file_86
+err project-path-gateway: 누락: KEY_87=missing/file_87
+err project-path-gateway: 누락: KEY_88=missing/file_88
+err project-path-gateway: 누락: KEY_89=missing/file_89
+err project-path-gateway: 누락: KEY_90=missing/file_90
+err project-path-gateway: 누락: KEY_91=missing/file_91
+err project-path-gateway: 누락: KEY_92=missing/file_92
+err project-path-gateway: 누락: KEY_93=missing/file_93
+err project-path-gateway: 누락: KEY_94=missing/file_94
+err project-path-gateway: 누락: KEY_95=missing/file_95
+err project-path-gateway: 누락: KEY_96=missing/file_96
+err project-path-gateway: 누락: KEY_97=missing/file_97
+err project-path-gateway: 누락: KEY_98=missing/file_98
+err project-path-gateway: 누락: KEY_99=missing/file_99
+err project-path-gateway: 누락: KEY_100=missing/file_100
+err project-path-gateway: 누락: KEY_101=missing/file_101
+err project-path-gateway: 누락: KEY_102=missing/file_102
+err project-path-gateway: 누락: KEY_103=missing/file_103
+err project-path-gateway: 누락: KEY_104=missing/file_104
+err project-path-gateway: 누락: KEY_105=missing/file_105
+err project-path-gateway: 누락: KEY_106=missing/file_106
+err project-path-gateway: 누락: KEY_107=missing/file_107
+err project-path-gateway: 누락: KEY_108=missing/file_108
+err project-path-gateway: 누락: KEY_109=missing/file_109
+err project-path-gateway: 누락: KEY_110=missing/file_110
+err project-path-gateway: 누락: KEY_111=missing/file_111
+err project-path-gateway: 누락: KEY_112=missing/file_112
+err project-path-gateway: 누락: KEY_113=missing/file_113
+err project-path-gateway: 누락: KEY_114=missing/file_114
+err project-path-gateway: 누락: KEY_115=missing/file_115
+err project-path-gateway: 누락: KEY_116=missing/file_116
+err project-path-gateway: 누락: KEY_117=missing/file_117
+err project-path-gateway: 누락: KEY_118=missing/file_118
+err project-path-gateway: 누락: KEY_119=missing/file_119
+err project-path-gateway: 누락: KEY_120=missing/file_120
+err project-path-gateway: 누락: KEY_121=missing/file_121
+err project-path-gateway: 누락: KEY_122=missing/file_122
+err project-path-gateway: 누락: KEY_123=missing/file_123
+err project-path-gateway: 누락: KEY_124=missing/file_124
+err project-path-gateway: 누락: KEY_125=missing/file_125
+err project-path-gateway: 누락: KEY_126=missing/file_126
+err project-path-gateway: 누락: KEY_127=missing/file_127
+err project-path-gateway: 누락: KEY_128=missing/file_128
+err project-path-gateway: 누락: KEY_129=missing/file_129
+err project-path-gateway: 누락: KEY_130=missing/file_130
+err project-path-gateway: 누락: KEY_131=missing/file_131
+err project-path-gateway: 누락: KEY_132=missing/file_132
+err project-path-gateway: 누락: KEY_133=missing/file_133
+err project-path-gateway: 누락: KEY_134=missing/file_134
+err project-path-gateway: 누락: KEY_135=missing/file_135
+err project-path-gateway: 누락: KEY_136=missing/file_136
+err project-path-gateway: 누락: KEY_137=missing/file_137
+err project-path-gateway: 누락: KEY_138=missing/file_138
+err project-path-gateway: 누락: KEY_139=missing/file_139
+err project-path-gateway: 누락: KEY_140=missing/file_140
+err project-path-gateway: 누락: KEY_141=missing/file_141
+err project-path-gateway: 누락: KEY_142=missing/file_142
+err project-path-gateway: 누락: KEY_143=missing/file_143
+err project-path-gateway: 누락: KEY_144=missing/file_144
+err project-path-gateway: 누락: KEY_145=missing/file_145
+err project-path-gateway: 누락: KEY_146=missing/file_146
+err project-path-gateway: 누락: KEY_147=missing/file_147
+err project-path-gateway: 누락: KEY_148=missing/file_148
+err project-path-gateway: 누락: KEY_149=missing/file_149
+err project-path-gateway: 누락: KEY_150=missing/file_150
+err project-path-gateway: 누락: KEY_151=missing/file_151
+err project-path-gateway: 누락: KEY_152=missing/file_152
+err project-path-gateway: 누락: KEY_153=missing/file_153
+err project-path-gateway: 누락: KEY_154=missing/file_154
+err project-path-gateway: 누락: KEY_155=missing/file_155
+err project-path-gateway: 누락: KEY_156=missing/file_156
+err project-path-gateway: 누락: KEY_157=missing/file_157
+err project-path-gateway: 누락: KEY_158=missing/file_158
+err project-path-gateway: 누락: KEY_159=missing/file_159
+err project-path-gateway: 누락: KEY_160=missing/file_160
+err project-path-gateway: 누락: KEY_161=missing/file_161
+err project-path-gateway: 누락: KEY_162=missing/file_162
+err project-path-gateway: 누락: KEY_163=missing/file_163
+err project-path-gateway: 누락: KEY_164=missing/file_164
+err project-path-gateway: 누락: KEY_165=missing/file_165
+err project-path-gateway: 누락: KEY_166=missing/file_166
+err project-path-gateway: 누락: KEY_167=missing/file_167
+err project-path-gateway: 누락: KEY_168=missing/file_168
+err project-path-gateway: 누락: KEY_169=missing/file_169
+err project-path-gateway: 누락: KEY_170=missing/file_170
+err project-path-gateway: 누락: KEY_171=missing/file_171
+err project-path-gateway: 누락: KEY_172=missing/file_172
+err project-path-gateway: 누락: KEY_173=missing/file_173
+err project-path-gateway: 누락: KEY_174=missing/file_174
+err project-path-gateway: 누락: KEY_175=missing/file_175
+err project-path-gateway: 누락: KEY_176=missing/file_176
+err project-path-gateway: 누락: KEY_177=missing/file_177
+err project-path-gateway: 누락: KEY_178=missing/file_178
+err project-path-gateway: 누락: KEY_179=missing/file_179
+err project-path-gateway: 누락: KEY_180=missing/file_180
+err project-path-gateway: 누락: KEY_181=missing/file_181
+err project-path-gateway: 누락: KEY_182=missing/file_182
+err project-path-gateway: 누락: KEY_183=missing/file_183
+err project-path-gateway: 누락: KEY_184=missing/file_184
+err project-path-gateway: 누락: KEY_185=missing/file_185
+err project-path-gateway: 누락: KEY_186=missing/file_186
+err project-path-gateway: 누락: KEY_187=missing/file_187
+err project-path-gateway: 누락: KEY_188=missing/file_188
+err project-path-gateway: 누락: KEY_189=missing/file_189
+err project-path-gateway: 누락: KEY_190=missing/file_190
+err project-path-gateway: 누락: KEY_191=missing/file_191
+err project-path-gateway: 누락: KEY_192=missing/file_192
+err project-path-gateway: 누락: KEY_193=missing/file_193
+err project-path-gateway: 누락: KEY_194=missing/file_194
+err project-path-gateway: 누락: KEY_195=missing/file_195
+err project-path-gateway: 누락: KEY_196=missing/file_196
+err project-path-gateway: 누락: KEY_197=missing/file_197
+err project-path-gateway: 누락: KEY_198=missing/file_198
+err project-path-gateway: 누락: KEY_199=missing/file_199
+err project-path-gateway: 검증 실패 200건
+op returned project_path_gateway_init 0
+op write /out/.ppg-report.4242.report.txt project-path-gateway:\s누락:\sKEY_0=missing/file_0\nproject-path-gateway:\s누락:\sKEY_1=missing/file_1\nproject-path-gateway:\s누락:\sKEY_2=missing/file_2\nproject-path-gateway:\s누락:\sKEY_3=missing/file_3\nproject-path-gateway:\s누락:\sKEY_4=missing/file_4\nproject-path-gateway:\s누락:\sKEY_5=missing/file_5\nproject-path-gateway:\s누락:\sKEY_6=missing/file_6\nproject-path-gateway:\s누락:\sKEY_7=missing/file_7\nproject-path-gateway:\s누락:\sKEY_8=missing/file_8\nproject-path-gateway:\s누락:\sKEY_9=missing/file_9\nproject-path-gateway:\s누락:\sKEY_10=missing/file_10\nproject-path-gateway:\s누락:\sKEY_11=missing/file_11\nproject-path-gateway:\s누락:\sKEY_12=missing/file_12\nproject-path-gateway:\s누락:\sKEY_13=missing/file_13\nproject-path-gateway:\s누락:\sKEY_14=missing/file_14\nproject-path-gateway:\s누락:\sKEY_15=missing/file_15\nproject-path-gateway:\s누락:\sKEY_16=missing/file_16\nproject-path-gateway:\s누락:\sKEY_17=missing/file_17\nproject-path-gateway:\s누락:\sKEY_18=missing/file_18\nproject-path-gateway:\s누락:\sKEY_19=missing/file_19\nproject-path-gateway:\s누락:\sKEY_20=missing/file_20\nproject-path-gateway:\s누락:\sKEY_21=missing/file_21\nproject-path-gateway:\s누락:\sKEY_22=missing/file_22\nproject-path-gateway:\s누락:\sKEY_23=missing/file_23\nproject-path-gateway:\s누락:\sKEY_24=missing/file_24\nproject-path-gateway:\s누락:\sKEY_25=missing/file_25\nproject-path-gateway:\s누락:\sKEY_26=missing/file_26\nproject-path-gateway:\s누락:\sKEY_27=missing/file_27\nproject-path-gateway:\s누락:\sKEY_28=missing/file_28\nproject-path-gateway:\s누락:\sKEY_29=missing/file_29\nproject-path-gateway:\s누락:\sKEY_30=missing/file_30\nproject-path-gateway:\s누락:\sKEY_31=missing/file_31\nproject-path-gateway:\s누락:\sKEY_32=missing/file_32\nproject-path-gateway:\s누락:\sKEY_33=missing/file_33\nproject-path-gateway:\s누락:\sKEY_34=missing/file_34\nproject-path-gateway:\s누락:\sKEY_35=missing/file_35\nproject-path-gateway:\s누락:\sKEY_36=missing/file_36\nproject-path-gateway:\s누락:\sKEY_37=missing/file_37\nproject-path-gateway:\s누락:\sKEY_38=missing/file_38\nproject-path-gateway:\s누락:\sKEY_39=missing/file_39\nproject-path-gateway:\s누락:\sKEY_40=missing/file_40\nproject-path-gateway:\s누락:\sKEY_41=missing/file_41\nproject-path-gateway:\s누락:\sKEY_42=missing/file_42\nproject-path-gateway:\s누락:\sKEY_43=missing/file_43\nproject-path-gateway:\s누락:\sKEY_44=missing/file_44\nproject-path-gateway:\s누락:\sKEY_45=missing/file_45\nproject-path-gateway:\s누락:\sKEY_46=missing/file_46\nproject-path-gateway:\s누락:\sKEY_47=missing/file_47\nproject-path-gateway:\s누락:\sKEY_48=missing/file_48\nproject-path-gateway:\s누락:\sKEY_49=missing/file_49\nproject-path-gateway:\s누락:\sKEY_50=missing/file_50\nproject-path-gateway:\s누락:\sKEY_51=missing/file_51\nproject-path-gateway:\s누락:\sKEY_52=missing/file_52\nproject-path-gateway:\s누락:\sKEY_53=missing/file_53\nproject-path-gateway:\s누락:\sKEY_54=missing/file_54\nproject-path-gateway:\s누락:\sKEY_55=missing/file_55\nproject-path-gateway:\s누락:\sKEY_56=missing/file_56\nproject-path-gateway:\s누락:\sKEY_57=missing/file_57\nproject-path-gateway:\s누락:\sKEY_58=missing/file_58\nproject-path-gateway:\s누락:\sKEY_59=missing/file_59\nproject-path-gateway:\s누락:\sKEY_60=missing/file_60\nproject-path-gateway:\s누락:\sKEY_61=missing/file_61\nproject-path-gateway:\s누락:\sKEY_62=missing/file_62\nproject-path-gateway:\s누락:\sKEY_63=missing/file_63\nproject-path-gateway:\s누락:\sKEY_64=missing/file_64\nproject-path-gateway:\s누락:\sKEY_65=missing/file_65\nproject-path-gateway:\s누락:\sKEY_66=missing/file_66\nproject-path-gateway:\s누락:\sKEY_67=missing/file_67\nproject-path-gateway:\s누락:\sKEY_68=missing/file_68\nproject-path-gateway:\s누락:\sKEY_69=missing/file_69\nproject-path-gateway:\s누락:\sKEY_70=missing/file_70\nproject-path-gateway:\s누락:\sKEY_71=missing/file_71\nproject-path-gateway:\s누락:\sKEY_72=missing/file_72\nproject-path-gateway:\s누락:\sKEY_73=missing/file_73\nproject-path-gateway:\s누락:\sKEY_74=missing/file_74\nproject-path-gateway:\s누락:\sKEY_75=missing/file_75\nproject-path-gateway:\s누락:\sKEY_76=missing/file_76\nproject-path-gateway:\s누락:\sKEY_77=missing/file_77\nproject-path-gateway:\s누락:\sKEY_78=missing/file_78\nproject-path-gateway:\s누락:\sKEY_79=missing/file_79\nproject-path-gateway:\s누락:\sKEY_80=missing/file_80\nproject-path-gateway:\s누락:\sKEY_81=missing/file_81\nproject-path-gateway:\s누락:\sKEY_82=missing/file_82\nproject-path-gateway:\s누락:\sKEY_83=missing/file_83\nproject-path-gateway:\s누락:\sKEY_84=missing/file_84\nproject-path-gateway:\s누락:\sKEY_85=missing/file_85\nproject-path-gateway:\s누락:\sKEY_86=missing/file_86\nproject-path-gateway:\s누락:\sKEY_87=missing/file_87\nproject-path-gateway:\s누락:\sKEY_88=missing/file_88\nproject-path-gateway:\s누락:\sKEY_89=missing/file_89\nproject-path-gateway:\s누락:\sKEY_90=missing/file_90\nproject-path-gateway:\s누락:\sKEY_91=missing/file_91\nproject-path-gateway:\s누락:\sKEY_92=missing/file_92\nproject-path-gateway:\s누락:\sKEY_93=missing/file_93\nproject-path-gateway:\s누락:\sKEY_94=missing/file_94\nproject-path-gateway:\s누락:\sKEY_95=missing/file_95\nproject-path-gateway:\s누락:\sKEY_96=missing/file_96\nproject-path-gateway:\s누락:\sKEY_97=missing/file_97\nproject-path-gateway:\s누락:\sKEY_98=missing/file_98\nproject-path-gateway:\s누락:\sKEY_99=missing/file_99\nproject-path-gateway:\s누락:\sKEY_100=missing/file_100\nproject-path-gateway:\s누락:\sKEY_101=missing/file_101\nproject-path-gateway:\s누락:\sKEY_102=missing/file_102\nproject-path-gateway:\s누락:\sKEY_103=missing/file_103\nproject-path-gateway:\s누락:\sKEY_104=missing/file_104\nproject-path-gateway:\s누락:\sKEY_105=missing/file_105\nproject-path-gateway:\s누락:\sKEY_106=missing/file_106\nproject-path-gateway:\s누락:\sKEY_107=missing/file_107\nproject-path-gateway:\s누락:\sKEY_108=missing/file_108\nproject-path-gateway:\s누락:\sKEY_109=missing/file_109\nproject-path-gateway:\s누락:\sKEY_110=missing/file_110\nproject-path-gateway:\s누락:\sKEY_111=missing/file_111\nproject-path-gateway:\s누락:\sKEY_112=missing/file_112\nproject-path-gateway:\s누락:\sKEY_113=missing/file_113\nproject-path-gateway:\s누락:\sKEY_114=missing/file_114\nproject-path-gateway:\s누락:\sKEY_115=missing/file_115\nproject-path-gateway:\s누락:\sKEY_116=missing/file_116\nproject-path-gateway:\s누락:\sKEY_117=missing/file_117\nproject-path-gateway:\s누락:\sKEY_118=missing/file_118\nproject-path-gateway:\s누락:\sKEY_119=missing/file_119\nproject-path-gateway:\s누락:\sKEY_120=missing/file_120\nproject-path-gateway:\s누락:\sKEY_121=missing/file_121\nproject-path-gateway:\s누락:\sKEY_122=missing/file_122\nproject-path-gateway:\s누락:\sKEY_123=missing/file_123\nproject-path-gateway:\s누락:\sKEY_124=missing/file_124\nproject-path-gateway:\s누락:\sKEY_125=missing/file_125\nproject-path-gateway:\s누락:\sKEY_126=missing/file_126\nproject-path-gateway:\s누락:\sKEY_127=missing/file_127\nproject-path-gateway:\s누락:\sKEY_128=missing/file_128\nproject-path-gateway:\s누락:\sKEY_129=missing/file_129\nproject-path-gateway:\s누락:\sKEY_130=missing/file_130\nproject-path-gateway:\s누락:\sKEY_131=missing/file_131\nproject-path-gateway:\s누락:\sKEY_132=missing/file_132\nproject-path-gateway:\s누락:\sKEY_133=missing/file_133\nproject-path-gateway:\s누락:\sKEY_134=missing/file_134\nproject-path-gateway:\s누락:\sKEY_135=missing/file_135\nproject-path-gateway:\s누락:\sKEY_136=missing/file_136\nproject-path-gateway:\s누락:\sKEY_137=missing/file_137\nproject-path-gateway:\s누락:\sKEY_138=missing/file_138\nproject-path-gateway:\s누락:\sKEY_139=missing/file_139\nproject-path-gateway:\s누락:\sKEY_140=missing/file_140\nproject-path-gateway:\s누락:\sKEY_141=missing/file_141\nproject-path-gateway:\s누락:\sKEY_142=missing/file_142\nproject-path-gateway:\s누락:\sKEY_143=missing/file_143\nproject-path-gateway:\s누락:\sKEY_144=missing/file_144\nproject-path-gateway:\s누락:\sKEY_145=missing/file_145\nproject-path-gateway:\s누락:\sKEY_146=missing/file_146\nproject-path-gateway:\s누락:\sKEY_147=missing/file_147\nproject-path-gateway:\s누락:\sKEY_148=missing/file_148\nproject-path-gateway:\s누락:\sKEY_149=missing/file_149\nproject-path-gateway:\s누락:\sKEY_150=missing/file_150\nproject-path-gateway:\s누락:\sKEY_151=missing/file_151\nproject-path-gateway:\s누락:\sKEY_152=missing/file_152\nproject-path-gateway:\s누락:\sKEY_153=missing/file_153\nproject-path-gateway:\s누락:\sKEY_154=missing/file_154\nproject-path-gateway:\s누락:\sKEY_155=missing/file_155\nproject-path-gateway:\s누락:\sKEY_156=missing/file_156\nproject-path-gateway:\s누락:\sKEY_157=missing/file_157\nproject-path-gateway:\s누락:\sKEY_158=missing/file_158\nproject-path-gateway:\s누락:\sKEY_159=missing/file_159\nproject-path-gateway:\s누락:\sKEY_160=missing/file_160\nproject-path-gateway:\s누락:\sKEY_161=missing/file_161\nproject-path-gateway:\s누락:\sKEY_162=missing/file_162\nproject-path-gateway:\s누락:\sKEY_163=missing/file_163\nproject-path-gateway:\s누락:\sKEY_164=missing/file_164\nproject-path-gateway:\s누락:\sKEY_165=missing/file_165\nproject-path-gateway:\s누락:\sKEY_166=missing/file_166\nproject-path-gateway:\s누락:\sKEY_167=missing/file_167\nproject-path-gateway:\s누락:\sKEY_168=missing/file_168\nproject-path-gateway:\s누락:\sKEY_169=missing/file_169\nproject-path-gateway:\s누락:\sKEY_170=missing/file_170\nproject-path-gateway:\s누락:\sKEY_171=missing/file_171\nproject-path-gateway:\s누락:\sKEY_172=missing/file_172\nproject-path-gateway:\s누락:\sKEY_173=missing/file_173\nproject-path-gateway:\s누락:\sKEY_174=missing/file_174\nproject-path-gateway:\s누락:\sKEY_175=missing/file_175\nproject-path-gateway:\s누락:\sKEY_176=missing/file_176\nproject-path-gateway:\s누락:\sKEY_177=missing/file_177\nproject-path-gateway:\s누락:\sKEY_178=missing/file_178\nproject-path-gateway:\s누락:\sKEY_179=missing/file_179\nproject-path-gateway:\s누락:\sKEY_180=missing/file_180\nproject-path-gateway:\s누락:\sKEY_181=missing/file_181\nproject-path-gateway:\s누락:\sKEY_182=missing/file_182\nproject-path-gateway:\s누락:\sKEY_183=missing/file_183\nproject-path-gateway:\s누락:\sKEY_184=missing/file_184\nproject-path-gateway:\s누락:\sKEY_185=missing/file_185\nproject-path-gateway:\s누락:\sKEY_186=missing/file_186\nproject-path-gateway:\s누락:\sKEY_187=missing/file_187\nproject-path-gateway:\s누락:\sKEY_188=missing/file_188\nproject-path-gateway:\s누락:\sKEY_189=missing/file_189\nproject-path-gateway:\s누락:\sKEY_190=missing/file_190\nproject-path-gateway:\s누락:\sKEY_191=missing/file_191\nproject-path-gateway:\s누락:\sKEY_192=missing/file_192\nproject-path-gateway:\s누락:\sKEY_193=missing/file_193\nproject-path-gateway:\s누락:\sKEY_194=missing/file_194\nproject-path-gateway:\s누락:\sKEY_195=missing/file_195\nproject-path-gateway:\s누락:\sKEY_196=missing/file_196\nproject-path-gateway:\s누락:\sKEY_197=missing/file_197\nproject-path-gateway:\s누락:\sKEY_198=missing/file_198\nproject-path-gateway:\s누락:\sKEY_199=missing/file_199\nproject-path-gateway:\s검증\s실패\s200건\n
+op move /out/.ppg-report.4242.report.txt /out/report.txt
+op returned project_path_gateway_verify 1
