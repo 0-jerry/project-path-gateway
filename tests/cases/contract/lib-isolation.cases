@@ -248,3 +248,71 @@ op returned eval 0
 op returned project_path_gateway_get 0
 op returned eval 0
 op returned eval 0
+
+# 등록·갱신 격리 (기능 004 FR-041): 옵션·IFS·trap·작업 디렉터리·접두어 밖 변수가 바뀌지 않고(op changed 없음),
+# 루트 변수는 op changed 비교 대상이 아니므로 마지막 조회 결과로 유지를 확인한다.
+case isolation-edit-options-ifs-trap-cwd-and-root-kept
+caller-set -euf
+caller-ifs /
+caller-trap USR1 echo\st
+cwd /t/루트\sroot/a\sb
+call project_path_gateway_init /t/루트\sroot
+call project_path_gateway_add NEW_DIR new
+call eval project_path_gateway_add\sA\sx\s2>/dev/null\s||\sprintf\s'add=%s\\n'\s"$?"
+call project_path_gateway_update A a\sb/*
+call project_path_gateway_update MISSING moved
+call eval project_path_gateway_update\sNOPE\sx\s2>/dev/null\s||\sprintf\s'update=%s\\n'\s"$?"
+call project_path_gateway_get A
+status 0
+out add=2
+out update=2
+out /t/루트 root/a b/*
+op returned project_path_gateway_init 0
+op copy-preserve /t/루트\sroot/.tool/project-path-gateway/project-path-gateway.conf /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf A=a\sb/*\nMISSING=nope\nNEW_DIR=new\n
+op move /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/루트\sroot/.tool/project-path-gateway/project-path-gateway.conf
+op returned project_path_gateway_add 0
+op returned eval 0
+op returned project_path_gateway_update 0
+op copy-preserve /t/루트\sroot/.tool/project-path-gateway/project-path-gateway.conf /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf A=a\sb/*\nMISSING=moved\n
+op move /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/루트\sroot/.tool/project-path-gateway/project-path-gateway.conf
+op returned project_path_gateway_update 0
+op returned eval 0
+op returned project_path_gateway_get 0
+
+case isolation-edit-caller-variables-unchanged
+caller-var file keep-file
+caller-var content keep-content
+caller-var records keep-records
+caller-var match keep-match
+caller-var tab keep-tab
+caller-var rest keep-rest
+caller-var detail keep-detail
+caller-var status keep-status
+caller-var violation keep-violation
+caller-var temp keep-temp
+caller-var pid keep-pid
+caller-var message keep-message
+call project_path_gateway_init /t/루트\sroot
+call project_path_gateway_add NEW_DIR new
+call project_path_gateway_add A x
+call project_path_gateway_update MISSING moved
+call project_path_gateway_update bad x
+call eval printf\s'%s\\n'\s"$file$content$records$match$tab$rest$detail$status$violation$temp$pid$message"
+status 0
+out keep-filekeep-contentkeep-recordskeep-matchkeep-tabkeep-restkeep-detailkeep-statuskeep-violationkeep-tempkeep-pidkeep-message
+err project-path-gateway: project_path_gateway_add: 이미 등록된 키입니다: A
+err project-path-gateway: project_path_gateway_update: 키 형식이 잘못되었습니다(대문자로 시작, 대문자·숫자·_만 허용): bad
+op returned project_path_gateway_init 0
+op copy-preserve /t/루트\sroot/.tool/project-path-gateway/project-path-gateway.conf /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf A=a\sb/*\nMISSING=nope\nNEW_DIR=new\n
+op move /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/루트\sroot/.tool/project-path-gateway/project-path-gateway.conf
+op returned project_path_gateway_add 0
+op returned project_path_gateway_add 2
+op copy-preserve /t/루트\sroot/.tool/project-path-gateway/project-path-gateway.conf /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf A=a\sb/*\nMISSING=moved\n
+op move /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/루트\sroot/.tool/project-path-gateway/project-path-gateway.conf
+op returned project_path_gateway_update 0
+op returned project_path_gateway_update 2
+op returned eval 0
