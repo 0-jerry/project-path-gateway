@@ -1,0 +1,154 @@
+# 도메인 단위: 키 규칙 (기능 001 domain_key_test, FR-014, research R-04)
+# 키마다 LC_ALL=C와 LC_ALL=en_US.UTF-8 두 사례로 로캘 무관 판정을 확인한다(research D-11).
+target lib-func project_path_gateway__domain_is_valid_key
+layer domain
+
+case key-valid-a-upper-c
+env LC_ALL C
+arg A
+status 0
+
+case key-valid-a-upper-utf8
+env LC_ALL en_US.UTF-8
+arg A
+status 0
+
+case key-valid-app-config-c
+env LC_ALL C
+arg APP_CONFIG
+status 0
+
+case key-valid-app-config-utf8
+env LC_ALL en_US.UTF-8
+arg APP_CONFIG
+status 0
+
+case key-valid-digits-underscore-c
+env LC_ALL C
+arg A1_B2
+status 0
+
+case key-valid-digits-underscore-utf8
+env LC_ALL en_US.UTF-8
+arg A1_B2
+status 0
+
+case key-invalid-empty-c
+env LC_ALL C
+arg \e
+status 1
+
+case key-invalid-empty-utf8
+env LC_ALL en_US.UTF-8
+arg \e
+status 1
+
+case key-invalid-lowercase-c
+env LC_ALL C
+arg a
+status 1
+
+case key-invalid-lowercase-utf8
+env LC_ALL en_US.UTF-8
+arg a
+status 1
+
+case key-invalid-mixed-case-c
+env LC_ALL C
+arg Abc
+status 1
+
+case key-invalid-mixed-case-utf8
+env LC_ALL en_US.UTF-8
+arg Abc
+status 1
+
+case key-invalid-leading-digit-c
+env LC_ALL C
+arg 1A
+status 1
+
+case key-invalid-leading-digit-utf8
+env LC_ALL en_US.UTF-8
+arg 1A
+status 1
+
+case key-invalid-leading-underscore-c
+env LC_ALL C
+arg _A
+status 1
+
+case key-invalid-leading-underscore-utf8
+env LC_ALL en_US.UTF-8
+arg _A
+status 1
+
+case key-invalid-hyphen-c
+env LC_ALL C
+arg A-B
+status 1
+
+case key-invalid-hyphen-utf8
+env LC_ALL en_US.UTF-8
+arg A-B
+status 1
+
+case key-invalid-space-c
+env LC_ALL C
+arg A\sB
+status 1
+
+case key-invalid-space-utf8
+env LC_ALL en_US.UTF-8
+arg A\sB
+status 1
+
+case key-invalid-accented-c
+env LC_ALL C
+arg AÉ
+status 1
+
+case key-invalid-accented-utf8
+env LC_ALL en_US.UTF-8
+arg AÉ
+status 1
+
+case key-invalid-trailing-space-c
+env LC_ALL C
+arg A\s
+status 1
+
+case key-invalid-trailing-space-utf8
+env LC_ALL en_US.UTF-8
+arg A\s
+status 1
+
+case key-invalid-trailing-cr-c
+env LC_ALL C
+arg A\r
+status 1
+
+case key-invalid-trailing-cr-utf8
+env LC_ALL en_US.UTF-8
+arg A\r
+status 1
+
+case key-invalid-lower-b-c
+env LC_ALL C
+arg b
+status 1
+
+case key-invalid-lower-b-utf8
+env LC_ALL en_US.UTF-8
+arg b
+status 1
+
+case key-invalid-lower-z-c
+env LC_ALL C
+arg z
+status 1
+
+case key-invalid-lower-z-utf8
+env LC_ALL en_US.UTF-8
+arg z
+status 1
