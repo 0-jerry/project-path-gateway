@@ -74,6 +74,29 @@ project_path_gateway__domain_path_violation() (
 	return 0
 )
 
+# 등록·갱신 인자 KEY·PATH의 첫 위반 코드를 출력한다. 위반이 없으면 아무것도 출력하지 않는다 (기능 004 research R-02).
+# 순서: 키 규칙, 경로 규칙(path_violation), 경로의 LF.
+project_path_gateway__domain_entry_violation() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	if ! project_path_gateway__domain_is_valid_key "$1"; then
+		printf 'invalid_key\n'
+		return 0
+	fi
+	violation=$(project_path_gateway__domain_path_violation "$2")
+	if [ -n "$violation" ]; then
+		printf '%s\n' "$violation"
+		return 0
+	fi
+	case $2 in
+	*'
+'*) printf 'line_feed\n' ;;
+	esac
+	return 0
+)
+
 # 줄을 분류해 ignore, entry 또는 위반 원인 코드를 출력한다 (data-model 1.5).
 # 중복 키 검사는 파일 전체 상태가 필요하므로 seen 함수로 따로 한다.
 project_path_gateway__domain_classify_line() (
