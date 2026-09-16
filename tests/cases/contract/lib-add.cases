@@ -184,3 +184,18 @@ status 1
 err project-path-gateway: 누락: NEW_DIR=not/yet/created
 err project-path-gateway: 검증 실패 1건
 op returned project_path_gateway_verify 1
+
+# 이미 등록된 키 거부 (US2-1·2, FR-012, SC-002): 경로가 같아도 오류, 데이터 파일 변경 없음
+case add-rejects-existing-key-other-path
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_add DOCS_DIR manual
+status 2
+err project-path-gateway: project_path_gateway_add: 이미 등록된 키입니다: DOCS_DIR
+op returned project_path_gateway_add 2
+
+case add-rejects-existing-key-same-path
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_add DOCS_DIR docs
+status 2
+err project-path-gateway: project_path_gateway_add: 이미 등록된 키입니다: DOCS_DIR
+op returned project_path_gateway_add 2
