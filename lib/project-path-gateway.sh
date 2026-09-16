@@ -100,6 +100,22 @@ project_path_gateway__domain_entry_violation() (
 	return 0
 )
 
+# 등록 새 원문을 끝 표지 방식으로 출력한다 (기능 004 research R-05). 원문 끝에 KEY=PATH와 LF를 더하며,
+# 원문이 LF 없이 끝나면 LF를 먼저 더한다.
+project_path_gateway__domain_append_entry() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	nl='
+'
+	case $1 in
+	'' | *"$nl") printf '%s%s=%s\nx' "$1" "$2" "$3" ;;
+	*) printf '%s\n%s=%s\nx' "$1" "$2" "$3" ;;
+	esac
+	return 0
+)
+
 # 줄을 분류해 ignore, entry 또는 위반 원인 코드를 출력한다 (data-model 1.5).
 # 중복 키 검사는 파일 전체 상태가 필요하므로 seen 함수로 따로 한다.
 project_path_gateway__domain_classify_line() (
