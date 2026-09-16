@@ -1,0 +1,192 @@
+# 인프라 통합: 실행 파일($0) 링크 해소 디렉터리 (기능 001 cli_init_test, research R-09)
+target bin-func ppg__port_self_dir
+layer infra
+
+case self-dir-path-with-slash
+self /opt/ppg/bin/project-path-gateway
+fs file /opt/ppg/bin/project-path-gateway
+status 0
+out-raw /opt/ppg/binx
+op self-path
+op is-link /opt/ppg/bin/project-path-gateway
+op physical-dir /opt/ppg/bin
+
+case self-dir-name-found-in-path
+self project-path-gateway
+env PATH /usr/bin:/opt/ppg/bin
+fs dir /usr/bin
+fs file /opt/ppg/bin/project-path-gateway
+status 0
+out-raw /opt/ppg/binx
+op self-path
+op command-path project-path-gateway
+op is-link /opt/ppg/bin/project-path-gateway
+op physical-dir /opt/ppg/bin
+
+case self-dir-name-not-in-path
+self project-path-gateway
+env PATH /usr/bin
+fs dir /usr/bin
+status 1
+op self-path
+op command-path project-path-gateway
+
+case self-dir-relative-link-chain
+self /t/linkbin/ppg
+fs file /opt/ppg/bin/project-path-gateway
+fs link /t/linkbin/ppg ../mid/ppg
+fs link /t/mid/ppg /opt/ppg/bin/project-path-gateway
+status 0
+out-raw /opt/ppg/binx
+op self-path
+op is-link /t/linkbin/ppg
+op physical-dir /t/linkbin
+op readlink /t/linkbin/ppg
+op is-link /t/linkbin/../mid/ppg
+op physical-dir /t/linkbin/../mid
+op readlink /t/linkbin/../mid/ppg
+op is-link /opt/ppg/bin/project-path-gateway
+op physical-dir /opt/ppg/bin
+
+case self-dir-link-in-linked-directory
+self /t/ldir/ppg
+fs dir /t/real
+fs link /t/ldir real
+fs link /t/real/ppg ../bin/ppg
+fs file /t/bin/ppg
+status 0
+out-raw /t/binx
+op self-path
+op is-link /t/ldir/ppg
+op physical-dir /t/ldir
+op readlink /t/ldir/ppg
+op is-link /t/real/../bin/ppg
+op physical-dir /t/real/../bin
+
+case self-dir-link-loop-over-40
+self /t/a
+fs link /t/a b
+fs link /t/b a
+status 1
+op self-path
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a

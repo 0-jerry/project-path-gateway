@@ -1,0 +1,185 @@
+# 인프라 통합: 설치된 라이브러리 원본 경로 (기능 001 cli_init_test_symlinked_program_finds_library_source, _missing_library_source)
+target bin-func ppg__port_library_source
+layer infra
+
+case library-source-found
+self /opt/ppg/bin/project-path-gateway
+fs file /opt/ppg/bin/project-path-gateway
+fs file /opt/ppg/share/project-path-gateway/project-path-gateway.sh
+status 0
+out-raw /opt/ppg/bin/../share/project-path-gateway/project-path-gateway.shx
+op self-path
+op is-link /opt/ppg/bin/project-path-gateway
+op physical-dir /opt/ppg/bin
+op is-file /opt/ppg/bin/../share/project-path-gateway/project-path-gateway.sh
+op is-readable /opt/ppg/bin/../share/project-path-gateway/project-path-gateway.sh
+
+case library-source-symlinked-program
+self /t/linkbin/ppg
+fs link /t/linkbin/ppg /opt/ppg/bin/project-path-gateway
+fs file /opt/ppg/bin/project-path-gateway
+fs file /opt/ppg/share/project-path-gateway/project-path-gateway.sh
+status 0
+out-raw /opt/ppg/bin/../share/project-path-gateway/project-path-gateway.shx
+op self-path
+op is-link /t/linkbin/ppg
+op physical-dir /t/linkbin
+op readlink /t/linkbin/ppg
+op is-link /opt/ppg/bin/project-path-gateway
+op physical-dir /opt/ppg/bin
+op is-file /opt/ppg/bin/../share/project-path-gateway/project-path-gateway.sh
+op is-readable /opt/ppg/bin/../share/project-path-gateway/project-path-gateway.sh
+
+case library-source-missing
+self /opt/ppg/bin/project-path-gateway
+fs file /opt/ppg/bin/project-path-gateway
+fs dir /opt/ppg/share
+status 1
+out-raw /opt/ppg/bin/../share/project-path-gateway/project-path-gateway.shx
+op self-path
+op is-link /opt/ppg/bin/project-path-gateway
+op physical-dir /opt/ppg/bin
+op is-file /opt/ppg/bin/../share/project-path-gateway/project-path-gateway.sh
+
+case library-source-unreadable
+self /opt/ppg/bin/project-path-gateway
+fs file /opt/ppg/bin/project-path-gateway
+fs file /opt/ppg/share/project-path-gateway/project-path-gateway.sh
+fs deny /opt/ppg/share/project-path-gateway/project-path-gateway.sh
+status 1
+out-raw /opt/ppg/bin/../share/project-path-gateway/project-path-gateway.shx
+op self-path
+op is-link /opt/ppg/bin/project-path-gateway
+op physical-dir /opt/ppg/bin
+op is-file /opt/ppg/bin/../share/project-path-gateway/project-path-gateway.sh
+op is-readable /opt/ppg/bin/../share/project-path-gateway/project-path-gateway.sh
+
+case library-source-self-dir-fails
+self /t/a
+fs link /t/a b
+fs link /t/b a
+status 1
+out-raw /t/ax
+op self-path
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op physical-dir /t
+op readlink /t/a
+op is-link /t/b
+op physical-dir /t
+op readlink /t/b
+op is-link /t/a
+op self-path
