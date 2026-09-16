@@ -878,3 +878,113 @@ op returned project_path_gateway_init 0
 op write /out/.ppg-report.4242.report.txt project-path-gateway:\s검증\s통과\s1건\n
 op move /out/.ppg-report.4242.report.txt /out/report.txt
 op returned project_path_gateway_verify 0
+
+# US3: 리포트 쓰기 실패 (FR-021, FR-023, FR-024, SC-004). 검증 출력은 그대로, 오류 줄 추가, 반환 2, 임시 파일 정리
+
+case verify-report-write-fails-pass-parent-missing
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+fs dir /t/root/a
+call project_path_gateway_init /t/root
+call project_path_gateway_verify /out/none/report.txt
+status 0
+
+case verify-report-write-fails-pass-readonly-directory
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+fs dir /t/root/a
+fs readonly /out
+call project_path_gateway_init /t/root
+call project_path_gateway_verify /out/report.txt
+status 0
+
+case verify-report-write-fails-pass-target-is-directory
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+fs dir /t/root/a
+fs dir /out/report.txt
+call project_path_gateway_init /t/root
+call project_path_gateway_verify /out/report.txt
+status 0
+
+case verify-report-write-fails-pass-target-is-link-to-directory
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+fs dir /t/root/a
+fs dir /out/sub
+fs link /out/report.txt sub
+call project_path_gateway_init /t/root
+call project_path_gateway_verify /out/report.txt
+status 0
+
+case verify-report-write-fails-pass-empty-name
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+fs dir /t/root/a
+call project_path_gateway_init /t/root
+call project_path_gateway_verify /out/
+status 0
+
+case verify-report-write-fails-fail-parent-missing
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+call project_path_gateway_init /t/root
+call project_path_gateway_verify /out/none/report.txt
+status 0
+
+case verify-report-write-fails-fail-readonly-directory
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+fs readonly /out
+call project_path_gateway_init /t/root
+call project_path_gateway_verify /out/report.txt
+status 0
+
+case verify-report-write-fails-fail-target-is-directory
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+fs dir /out/report.txt
+call project_path_gateway_init /t/root
+call project_path_gateway_verify /out/report.txt
+status 0
+
+case verify-report-write-fails-fail-target-is-link-to-directory
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+fs dir /out/sub
+fs link /out/report.txt sub
+call project_path_gateway_init /t/root
+call project_path_gateway_verify /out/report.txt
+status 0
+
+case verify-report-write-fails-fail-empty-name
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+call project_path_gateway_init /t/root
+call project_path_gateway_verify /out/
+status 0
+
+# 격리: 리포트 쓰기 성공·실패 모두 호출 셸 옵션·IFS·trap·작업 디렉터리를 바꾸지 않는다 (FR-030)
+case verify-report-write-fails-isolation-set-eu
+caller-set -eu
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+fs dir /t/root/a
+fs readonly /out/locked
+call project_path_gateway_init /t/root
+call project_path_gateway_verify /out/report.txt
+call project_path_gateway_verify /out/locked/report.txt
+call true
+status 0
+
+case verify-report-write-fails-isolation-ifs-noglob-trap-cwd
+caller-ifs /
+caller-set -f
+caller-trap USR1 echo\st
+cwd /out
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A=a
+call project_path_gateway_init /t/root
+call project_path_gateway_verify report.txt
+call project_path_gateway_verify /out/locked/report.txt
+status 0
