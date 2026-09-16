@@ -1,0 +1,29 @@
+# 인프라 통합: 이번 실행 임시 파일 정리 (기능 001 cli_init_test_traps_clean_only_own_temp_files의 정리 부분, research R-10)
+target bin-func ppg__port_cleanup_temp
+layer infra
+
+case cleanup-only-own-pid
+fs file /t/공백\s있는\s대상/.tool/project-path-gateway/.ppg-tmp.4242.x
+fs file /t/공백\s있는\s대상/.tool/project-path-gateway/.ppg-tmp.1.x
+fs file /t/공백\s있는\s대상/.tool/project-path-gateway/.ppg-tmp.42420.x
+fs file /t/공백\s있는\s대상/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+arg /t/공백\s있는\s대상/.tool/project-path-gateway
+status 0
+op pid
+op list-prefix /t/공백\s있는\s대상/.tool/project-path-gateway .ppg-tmp.4242.
+op remove /t/공백\s있는\s대상/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op remove /t/공백\s있는\s대상/.tool/project-path-gateway/.ppg-tmp.4242.x
+
+case cleanup-no-temp-files
+fs file /t/p/.tool/project-path-gateway/.project-path-gateway
+arg /t/p/.tool/project-path-gateway
+status 0
+op pid
+op list-prefix /t/p/.tool/project-path-gateway .ppg-tmp.4242.
+
+case cleanup-missing-directory
+fs dir /t/p
+arg /t/p/.tool/project-path-gateway
+status 0
+op pid
+op list-prefix /t/p/.tool/project-path-gateway .ppg-tmp.4242.
