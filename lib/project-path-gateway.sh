@@ -116,6 +116,41 @@ project_path_gateway__domain_append_entry() (
 	return 0
 )
 
+# 갱신 새 원문을 끝 표지 방식으로 출력한다 (기능 004 research R-05). 원문을 LF 기준으로 나눠 LINENO번째 줄 내용만
+# LINE으로 바꾸고, LF 위치와 파일 끝 LF 유무는 그대로 둔다. 줄 수보다 큰 LINENO이면 반환 1.
+project_path_gateway__domain_replace_line() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	nl='
+'
+	rest=$1
+	done_part=
+	n=0
+	while [ -n "$rest" ]; do
+		n=$((n + 1))
+		case $rest in
+		*"$nl"*)
+			current=${rest%%"$nl"*}
+			rest=${rest#*"$nl"}
+			sep=$nl
+			;;
+		*)
+			current=$rest
+			rest=
+			sep=
+			;;
+		esac
+		if [ "$n" -eq "$2" ]; then
+			printf '%s%s%s%sx' "$done_part" "$3" "$sep" "$rest"
+			return 0
+		fi
+		done_part=$done_part$current$sep
+	done
+	return 1
+)
+
 # 줄을 분류해 ignore, entry 또는 위반 원인 코드를 출력한다 (data-model 1.5).
 # 중복 키 검사는 파일 전체 상태가 필요하므로 seen 함수로 따로 한다.
 project_path_gateway__domain_classify_line() (
