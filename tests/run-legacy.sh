@@ -1,14 +1,14 @@
 #!/bin/sh
 # 테스트 실행기 (research R-12)
 #
-# 사용법: sh tests/run.sh [--shell PATH]... [테스트 파일...]
+# 사용법: sh tests/run-legacy.sh [--shell PATH]... [테스트 파일...]
 #
 # tests/unit, tests/integration, tests/contract 아래 *_test.sh 파일의 test_ 함수를
 # 대상 셸마다, 함수마다 새 프로세스와 새 임시 디렉터리에서 실행한다.
 # 반환 0은 통과, 77은 건너뜀, 그 외는 실패다.
 
 usage() {
-	printf '사용법: sh tests/run.sh [--shell PATH]... [테스트 파일...]\n' >&2
+	printf '사용법: sh tests/run-legacy.sh [--shell PATH]... [테스트 파일...]\n' >&2
 }
 
 repo_root=$(cd -P -- "$(dirname -- "$0")/.." && pwd -P) || exit 2

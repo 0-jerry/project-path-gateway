@@ -24,7 +24,7 @@ report() {
 # 1. ShellCheck
 if command -v shellcheck >/dev/null 2>&1; then
 	files=
-	for f in "$lib" "$bin" install.sh uninstall.sh scripts/*.sh tests/run.sh tests/lib/*.sh tests/*/*_test.sh; do
+	for f in "$lib" "$bin" install.sh uninstall.sh scripts/*.sh tests/run.sh tests/run-legacy.sh tests/lib/*.sh tests/*/*_test.sh; do
 		[ -f "$f" ] && files="$files $f"
 	done
 	if [ -n "$files" ]; then
