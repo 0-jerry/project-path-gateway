@@ -1,0 +1,39 @@
+# 도메인 단위: 경로 결합 (기능 001 domain_join_inside_test, FR-021)
+target lib-func project_path_gateway__domain_join
+layer domain
+
+case join-plain
+arg /r
+arg a
+status 0
+out /r/a
+
+case join-root-slash
+arg /
+arg a
+status 0
+out /a
+
+case join-dot-segment
+arg /r
+arg ./a
+status 0
+out /r/./a
+
+case join-trailing-slash
+arg /r
+arg dir/
+status 0
+out /r/dir/
+
+case join-space-korean
+arg /내\s루트
+arg a\sb/한글
+status 0
+out /내 루트/a b/한글
+
+case join-hyphen
+arg /r
+arg -a
+status 0
+out /r/-a

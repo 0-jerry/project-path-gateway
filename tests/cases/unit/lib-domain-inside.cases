@@ -1,0 +1,63 @@
+# 도메인 단위: 루트 내부 판정 (기능 001 domain_join_inside_test, FR-032, 경계 사례 루트 / 와 /a/root2)
+target lib-func project_path_gateway__domain_is_inside
+layer domain
+
+case inside-same
+arg /a/root
+arg /a/root
+status 0
+
+case inside-child
+arg /a/root
+arg /a/root/x
+status 0
+
+case inside-prefix-sibling
+arg /a/root
+arg /a/root2
+status 1
+
+case inside-parent
+arg /a/root
+arg /a
+status 1
+
+case inside-other
+arg /a/root
+arg /b
+status 1
+
+case inside-root-slash-any
+arg /
+arg /anything
+status 0
+
+case inside-root-slash-self
+arg /
+arg /
+status 0
+
+case inside-space-korean-child
+arg /내\s루트
+arg /내\s루트/a\sb
+status 0
+
+case inside-space-korean-sibling
+arg /내\s루트
+arg /내\s루트2/a
+status 1
+
+case inside-bracket-not-pattern
+arg /a/[r]
+arg /a/r/x
+status 1
+
+case inside-star-literal-child
+arg /a/*
+arg /a/*/x
+status 0
+
+case inside-star-not-pattern
+arg /a/*
+arg /a/b/x
+status 1
