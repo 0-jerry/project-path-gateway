@@ -1,0 +1,113 @@
+# 도메인 단위: 줄 분류 (기능 001 domain_line_test, FR-012~FR-016, data-model 1.5)
+target lib-func project_path_gateway__domain_classify_line
+layer domain
+
+case classify-ignore-empty
+arg \e
+status 0
+out ignore
+
+case classify-ignore-comment
+arg #x
+status 0
+out ignore
+
+case classify-ignore-hash-only
+arg #
+status 0
+out ignore
+
+case classify-ignore-comment-with-entry
+arg #\sA=/etc
+status 0
+out ignore
+
+case classify-ignore-comment-with-cr
+arg #x\r
+status 0
+out ignore
+
+case classify-violation-space-only
+arg \s
+status 0
+out no_separator
+
+case classify-violation-tab-only
+arg \t
+status 0
+out no_separator
+
+case classify-violation-indented-comment
+arg \s#x
+status 0
+out no_separator
+
+case classify-violation-no-equal
+arg abc
+status 0
+out no_separator
+
+case classify-violation-cr-only
+arg \r
+status 0
+out no_separator
+
+case classify-violation-lowercase-key
+arg a=b
+status 0
+out invalid_key
+
+case classify-violation-space-before-equal
+arg A\s=b
+status 0
+out invalid_key
+
+case classify-violation-empty-key
+arg =b
+status 0
+out invalid_key
+
+case classify-violation-cr-in-key
+arg A\r=b
+status 0
+out invalid_key
+
+case classify-violation-empty-path
+arg A=
+status 0
+out empty_path
+
+case classify-violation-absolute-path
+arg A=/etc/hosts
+status 0
+out absolute_path
+
+case classify-violation-parent-segment
+arg A=a/../b
+status 0
+out parent_segment
+
+case classify-violation-cr-in-path
+arg A=b\r
+status 0
+out carriage_return
+
+case classify-entry-simple
+arg A=b
+status 0
+out entry
+
+case classify-entry-leading-space-path
+arg A=\sb
+status 0
+out entry
+
+case classify-entry-equal-in-path
+arg A=b=c
+status 0
+out entry
+
+case classify-entry-app-config
+arg APP_CONFIG=config/app.json
+status 0
+out entry

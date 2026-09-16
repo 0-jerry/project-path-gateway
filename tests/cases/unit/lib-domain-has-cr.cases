@@ -1,0 +1,15 @@
+# 도메인 단위: CR 포함 판정 (기능 001 domain_line_test, CRLF 안내)
+target lib-func project_path_gateway__domain_has_cr
+layer domain
+
+case has-cr-trailing
+arg A=b\r
+status 0
+
+case has-cr-none
+arg A=b
+status 1
+
+case has-cr-empty
+arg \e
+status 1

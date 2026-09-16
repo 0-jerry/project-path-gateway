@@ -1,0 +1,36 @@
+# 도메인 단위: 중복 키 목록 조회 (기능 001 domain_line_test_seen_keys)
+target lib-func project_path_gateway__domain_seen_lineno
+layer domain
+
+case seen-lineno-empty-list
+arg \e
+arg A
+status 0
+
+case seen-lineno-a
+arg :AB=2:A=5:B_1=9:
+arg A
+status 0
+out 5
+
+case seen-lineno-ab
+arg :AB=2:A=5:B_1=9:
+arg AB
+status 0
+out 2
+
+case seen-lineno-b-1
+arg :AB=2:A=5:B_1=9:
+arg B_1
+status 0
+out 9
+
+case seen-lineno-prefix-only
+arg :AB=2:A=5:B_1=9:
+arg B
+status 0
+
+case seen-lineno-missing
+arg :AB=2:A=5:B_1=9:
+arg C
+status 0

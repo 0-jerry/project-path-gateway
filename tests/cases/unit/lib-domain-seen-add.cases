@@ -1,0 +1,17 @@
+# 도메인 단위: 중복 키 목록 추가 (기능 001 domain_line_test_seen_keys)
+target lib-func project_path_gateway__domain_seen_add
+layer domain
+
+case seen-add-to-empty
+arg \e
+arg AB
+arg 2
+status 0
+out-raw :AB=2:
+
+case seen-add-second
+arg :AB=2:
+arg A
+arg 5
+status 0
+out-raw :AB=2:A=5:
