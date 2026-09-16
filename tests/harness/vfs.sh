@@ -57,6 +57,8 @@ ppgt_vfs_interrupt() {
 		eval "$ppgt_vfs_action"
 		return 0
 	fi
+	# 기억한 동작이 없으면 신호 기본 동작(종료)을 흉내 낸다. 신호로 끝나는 셸은 EXIT trap을 실행하지 않는 것으로 본다(dash 기준).
+	trap - EXIT
 	exit $((128 + $(ppgt_signum "$PPGT_INT_SIG")))
 }
 
