@@ -230,3 +230,41 @@
 | 003-EDGE-10 | 서로 다른 셸 프로세스 동시 실행은 한 실행의 완전한 리포트 | FR-020 | `tests/cases/integration/lib-infra-write-report.cases:write-report-pid-in-temp-name` | 10 |
 | 003-EDGE-11 | 한 셸 백그라운드 동시 실행은 보장하지 않고 문서화 | FR-020, FR-031 | `tests/cases/integration/lib-infra-write-report.cases:write-report-pid-in-temp-name` | 10 |
 | 003-EDGE-12 | 리포트 지정 여부와 상관없이 호출 셸 상태 불변 | FR-030 | `tests/cases/contract/lib-verify-report.cases:verify-report-write-fails-isolation-set-eu`, `tests/cases/contract/lib-verify-report.cases:verify-report-write-fails-isolation-ifs-noglob-trap-cwd`, `tests/cases/contract/lib-isolation.cases:isolation-working-directory-options-and-traps-unchanged` | - |
+
+## 4. 기능 004 수용 시나리오·경계 사례
+
+기능 004(경로 항목 등록·갱신, `specs/004-add-update-path-entry/spec.md`)의 수용 시나리오와 경계 사례 표 행이다. 출처에는 `004-` 접두어를 붙이고,
+요구사항 열은 기능 004의 FR·SC ID다(EDGE-15의 FR-017은 기능 001). 항목 200개 갱신은 `tests/cases/contract/lib-update.cases:update-last-key-of-200-entries`가 확인한다.
+등록·갱신 뒤 조회는 dry-run에서 파일 상태가 호출 사이에 이어지지 않아 바뀐 원문으로 만든 별도 사례로 확인하고, 실제 연속 동작은 수동 확인 11절에서 본다.
+
+| 출처 | 요약 | 요구사항 | 사례 | 수동 확인 |
+|---|---|---|---|---|
+| 004-US1-1 | 주석만 있는 파일에 등록, 주석 유지, 반환 0, 등록 뒤 조회 | FR-001, FR-020, FR-024, SC-001 | `tests/cases/contract/lib-add.cases:add-to-comment-only-file`, `tests/cases/contract/lib-add.cases:add-then-get-prints-absolute-path`, `tests/cases/unit/lib-domain-append-entry.cases:append-entry-comment-only` | 11 |
+| 004-US1-2 | 항목 2개 뒤 등록, 기존 줄·순서 유지 | FR-020, SC-003 | `tests/cases/contract/lib-add.cases:add-after-two-entries`, `tests/cases/integration/lib-app-edit.cases:app-edit-add-success` | - |
+| 004-US1-3 | 공백·한글·= 경로를 그대로 저장 | FR-010, FR-020 | `tests/cases/contract/lib-add.cases:add-path-with-space-korean-equal`, `tests/cases/unit/lib-domain-append-entry.cases:append-entry-special-path-bytes` | - |
+| 004-US1-4 | 없는 경로도 등록되고 검증이 누락으로 보고 | FR-014, SC-004 | `tests/cases/contract/lib-add.cases:add-path-that-does-not-exist`, `tests/cases/contract/lib-add.cases:add-then-verify-reports-missing` | 11 |
+| 004-US2-1 | 이미 있는 키를 다른 경로로 등록하면 오류, 파일 그대로 | FR-012, SC-002 | `tests/cases/contract/lib-add.cases:add-rejects-existing-key-other-path`, `tests/cases/integration/lib-app-edit.cases:app-edit-reject-existing-key-other-path` | 11 |
+| 004-US2-2 | 이미 있는 키를 같은 경로로 등록해도 오류 | FR-012, SC-002 | `tests/cases/contract/lib-add.cases:add-rejects-existing-key-same-path`, `tests/cases/integration/lib-app-edit.cases:app-edit-reject-existing-key-same-path` | 11 |
+| 004-US3-1 | 주석·빈 줄 섞인 파일의 가운데 키 갱신, 대상 줄만 변경, 갱신 뒤 조회 | FR-021, SC-003 | `tests/cases/contract/lib-update.cases:update-middle-key-in-mixed-file`, `tests/cases/contract/lib-update.cases:update-then-get-prints-new-path`, `tests/cases/unit/lib-domain-replace-line.cases:replace-line-blank-comment-cr-mixed` | 11 |
+| 004-US3-2 | 없는 키 갱신은 오류, 새로 등록하지 않음 | FR-013, SC-002 | `tests/cases/contract/lib-update.cases:update-missing-key`, `tests/cases/integration/lib-app-edit.cases:app-edit-update-missing-key` | 11 |
+| 004-US3-3 | 같은 경로 갱신은 반환 0, 파일 그대로 | FR-022 | `tests/cases/contract/lib-update.cases:update-same-path-writes-nothing`, `tests/cases/integration/lib-app-edit.cases:app-edit-update-same-path-no-write` | 11 |
+| 004-US4-1 | 키 규칙 위반은 오류, 파일 그대로 | FR-010, FR-015 | `tests/cases/contract/lib-add.cases:edit-invalid-add-key-lowercase`, `tests/cases/contract/lib-update.cases:edit-invalid-update-key-lowercase`, `tests/cases/unit/lib-domain-entry-violation.cases:entry-violation-key-lowercase` | - |
+| 004-US4-2 | 경로 규칙 위반(/, .., 빈 문자열, CR, LF)은 오류, 파일 그대로 | FR-010, FR-015 | `tests/cases/contract/lib-add.cases:edit-invalid-add-path-absolute`, `tests/cases/contract/lib-add.cases:edit-invalid-add-path-parent-segment`, `tests/cases/contract/lib-add.cases:edit-invalid-add-path-empty`, `tests/cases/contract/lib-add.cases:edit-invalid-add-path-carriage-return`, `tests/cases/contract/lib-add.cases:edit-invalid-add-path-line-feed`, `tests/cases/contract/lib-update.cases:edit-invalid-update-path-line-feed` | - |
+| 004-US4-3 | 규칙 위반 데이터 파일은 기능 001과 같은 보고, 파일 그대로 | FR-011 | `tests/cases/contract/lib-add.cases:edit-invalid-add-data-file-violation`, `tests/cases/contract/lib-update.cases:edit-invalid-update-data-file-violation`, `tests/cases/integration/lib-app-edit.cases:app-edit-invalid-update-data-file-violation` | - |
+| 004-US4-4 | 미초기화는 오류, 파일 그대로 | FR-003 | `tests/cases/contract/lib-add.cases:edit-invalid-add-not-initialized`, `tests/cases/contract/lib-update.cases:edit-invalid-update-not-initialized` | - |
+| 004-EDGE-1 | 인자가 2개가 아니면 인자 오류, 읽기·쓰기 없음 | FR-002 | `tests/cases/contract/lib-add.cases:edit-invalid-add-argument-count`, `tests/cases/contract/lib-update.cases:edit-invalid-update-argument-count` | - |
+| 004-EDGE-2 | 데이터 파일 없음·읽기 불가는 조회와 같은 오류, 파일 만들지 않음 | FR-011 | `tests/cases/contract/lib-add.cases:edit-invalid-add-data-file-missing`, `tests/cases/contract/lib-add.cases:edit-invalid-add-data-file-is-directory`, `tests/cases/contract/lib-update.cases:edit-invalid-update-tool-directory-denied`, `tests/cases/integration/lib-app-edit.cases:app-edit-invalid-add-unreadable-data-file` | - |
+| 004-EDGE-3 | 마지막 줄 개행 없음: 등록은 개행 보탬, 갱신은 개행 없음 유지 | FR-020, FR-021 | `tests/cases/contract/lib-add.cases:add-last-line-without-lf`, `tests/cases/contract/lib-update.cases:update-last-line-without-lf-is-target`, `tests/cases/unit/lib-domain-replace-line.cases:replace-line-last-without-lf-not-target` | 11 |
+| 004-EDGE-4 | 0바이트 데이터 파일에 등록하면 한 줄 | FR-020 | `tests/cases/contract/lib-add.cases:add-to-empty-data-file`, `tests/cases/unit/lib-domain-append-entry.cases:append-entry-empty-content` | - |
+| 004-EDGE-5 | 데이터 파일 쓰기 권한 없음은 거부(같은 경로 갱신은 반환 0) | FR-032, FR-022 | `tests/cases/contract/lib-add.cases:edit-write-fails-add-data-file-readonly`, `tests/cases/contract/lib-update.cases:edit-write-fails-update-same-path-readonly-is-not-written`, `tests/cases/integration/lib-infra-replace-data-file.cases:replace-data-file-readonly-file-dir-writable` | 11 |
+| 004-EDGE-6 | 이전 버전 라이브러리는 전역 프로그램 init으로 교체 | FR-045 | `tests/cases/contract/cli-init.cases:cli-init-rerun-replaces-only-library` | 3 |
+| 004-EDGE-7 | 같은 키가 주석으로만 있으면 등록 가능 | FR-012 | `tests/cases/contract/lib-add.cases:add-key-present-only-in-comment` | - |
+| 004-EDGE-8 | 앞부분이 같은 키는 다른 키 | FR-012, FR-021 | `tests/cases/contract/lib-update.cases:update-prefix-key-only-exact-line`, `tests/cases/integration/lib-app-edit.cases:app-edit-reject-not-for-prefix-key` | - |
+| 004-EDGE-9 | 끝 /·. 세그먼트·빈 세그먼트 경로는 허용 | FR-010 | `tests/cases/unit/lib-domain-entry-violation.cases:entry-violation-valid-special-path` | - |
+| 004-EDGE-10 | 경로 존재·루트 내부 여부는 판정하지 않음 | FR-014 | `tests/cases/contract/lib-add.cases:add-path-that-does-not-exist`, `tests/cases/contract/lib-add.cases:add-then-verify-reports-missing` | 11 |
+| 004-EDGE-11 | 쓰기 실패는 오류, 파일 그대로, 임시 파일 없음 | FR-030, FR-031, FR-033, SC-005 | `tests/cases/contract/lib-add.cases:edit-write-fails-add-tool-directory-readonly`, `tests/cases/contract/lib-add.cases:edit-write-fails-add-write-fault`, `tests/cases/contract/lib-update.cases:edit-write-fails-update-move-fault`, `tests/cases/integration/lib-infra-replace-data-file.cases:replace-data-file-copy-fails` | 11 |
+| 004-EDGE-12 | 신호 중단 시 파일은 이전 또는 새 내용, 임시 파일 하나가 남을 수 있음 | FR-030 | `tests/cases/integration/lib-infra-replace-data-file.cases:replace-data-file-interrupted-before-write` | 11 |
+| 004-EDGE-13 | 데이터 파일이 심볼릭 링크면 거부(같은 경로 갱신은 반환 0) | FR-032, FR-022 | `tests/cases/contract/lib-add.cases:edit-write-fails-add-data-file-is-link`, `tests/cases/contract/lib-update.cases:edit-write-fails-update-same-path-link-is-not-written`, `tests/cases/integration/lib-infra-replace-data-file.cases:replace-data-file-link-refused` | 11 |
+| 004-EDGE-14 | 서로 다른 프로세스 동시 등록·갱신은 파일이 깨지지 않음 | FR-030, FR-043 | `tests/cases/integration/lib-infra-replace-data-file.cases:replace-data-file-success` | 11 |
+| 004-EDGE-15 | 등록·갱신 직후 조회·검증에 바로 반영 | FR-017, SC-001 | `tests/cases/contract/lib-add.cases:add-then-get-prints-absolute-path`, `tests/cases/contract/lib-update.cases:update-then-get-prints-new-path` | 11 |
+| 004-EDGE-16 | set -euf·바꾼 IFS에서도 결과 같고 호출 셸 상태 불변 | FR-041 | `tests/cases/contract/lib-isolation.cases:isolation-edit-options-ifs-trap-cwd-and-root-kept`, `tests/cases/contract/lib-isolation.cases:isolation-edit-caller-variables-unchanged` | - |
