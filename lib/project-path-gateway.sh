@@ -289,6 +289,47 @@ project_path_gateway__app_lookup() (
 	}
 )
 
+# 모든 항목의 존재(V-1)와 루트 내부 여부(V-2)를 파일 순서대로 판정한다. 실패 항목은 보고 포트로 보고하고,
+# 끝에 "ok <통과 수>" 또는 "fail <실패 수>" 한 줄을 출력한다. 반환: 0 모두 통과, 1 실패 있음, 3·4 데이터 파일 오류.
+project_path_gateway__app_verify() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	records=$(project_path_gateway__app_load_entries "$1") || return $?
+	tab=$(printf '\t')
+	printf '%s\n' "$records" | {
+		passed=0
+		failed=0
+		while IFS= read -r record; do
+			[ -n "$record" ] || continue
+			rest=${record#*"$tab"}
+			key=${rest%%"$tab"*}
+			path=${rest#*"$tab"}
+			full=$(project_path_gateway__domain_join "$1" "$path")
+			if project_path_gateway__port_exists "$full" &&
+				physical=$(project_path_gateway__port_resolve_physical "$full"); then
+				physical=${physical%x}
+				if project_path_gateway__domain_is_inside "$1" "$physical"; then
+					passed=$((passed + 1))
+				else
+					project_path_gateway__port_report_outside "$key" "$path" "$physical"
+					failed=$((failed + 1))
+				fi
+			else
+				project_path_gateway__port_report_missing "$key" "$path"
+				failed=$((failed + 1))
+			fi
+		done
+		if [ "$failed" -gt 0 ]; then
+			printf 'fail %s\n' "$failed"
+			return 1
+		fi
+		printf 'ok %s\n' "$passed"
+		return 0
+	}
+)
+
 # === 계층: 인프라 ===
 
 # 디렉터리이면 반환 0.
@@ -348,6 +389,58 @@ project_path_gateway__port_find_root() (
 		[ "$dir" = / ] && return 1
 		dir=${dir%/*}
 		[ -n "$dir" ] || dir=/
+	done
+)
+
+# 경로가 존재하면 반환 0. 심볼릭 링크는 최종 대상이 있어야 하며, 끊어진·순환 링크와 권한 부족은 거짓이다.
+project_path_gateway__port_exists() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	[ -e "$1" ]
+)
+
+# 심볼릭 링크를 모두 따라간 최종 물리 경로를 끝 표지 방식으로 출력한다. 실패하면 반환 1 (research R-05).
+project_path_gateway__port_resolve_physical() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	current=$1
+	count=0
+	while :; do
+		if [ -d "$current" ]; then
+			project_path_gateway__port_physical_dir "$current"
+			return $?
+		fi
+		case $current in
+		*/*)
+			parent=${current%/*}
+			name=${current##*/}
+			;;
+		*)
+			parent=.
+			name=$current
+			;;
+		esac
+		[ -n "$parent" ] || parent=/
+		parent=$(project_path_gateway__port_physical_dir "$parent") || return 1
+		parent=${parent%x}
+		current=${parent%/}/$name
+		if [ ! -L "$current" ]; then
+			printf '%sx' "$current"
+			return 0
+		fi
+		count=$((count + 1))
+		[ "$count" -le 40 ] || return 1
+		target=$(readlink -- "$current" && printf x) || return 1
+		target=${target%x}
+		target=${target%?}
+		case $target in
+		/*) current=$target ;;
+		*) current=${parent%/}/$target ;;
+		esac
 	done
 )
 
@@ -467,5 +560,53 @@ project_path_gateway_get() (
 	7) project_path_gateway__if_error project_path_gateway_get "등록되지 않은 키입니다: $1" ;;
 	*) project_path_gateway__if_data_file_fail project_path_gateway_get "$status" "$PROJECT_PATH_GATEWAY_ROOT" ;;
 	esac
+	return 2
+)
+
+# 검증 누락 보고 포트 구현.
+project_path_gateway__port_report_missing() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	printf 'project-path-gateway: 누락: %s=%s\n' "$1" "$2" >&2
+)
+
+# 검증 루트 밖 보고 포트 구현.
+project_path_gateway__port_report_outside() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	printf 'project-path-gateway: 루트 밖: %s=%s -> %s\n' "$1" "$2" "$3" >&2
+)
+
+# 공개 함수: 등록 경로 검증 (contracts/library-api.md 5절).
+project_path_gateway_verify() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	if [ "$#" -ne 0 ]; then
+		project_path_gateway__if_error project_path_gateway_verify '인자를 받지 않습니다'
+		return 2
+	fi
+	if [ -z "${PROJECT_PATH_GATEWAY_ROOT+x}" ]; then
+		project_path_gateway__if_error project_path_gateway_verify '초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요'
+		return 2
+	fi
+	result=$(project_path_gateway__app_verify "$PROJECT_PATH_GATEWAY_ROOT")
+	status=$?
+	case $status in
+	0)
+		printf 'project-path-gateway: 검증 통과 %s건\n' "${result#ok }"
+		return 0
+		;;
+	1)
+		printf 'project-path-gateway: 검증 실패 %s건\n' "${result#fail }" >&2
+		return 1
+		;;
+	esac
+	project_path_gateway__if_data_file_fail project_path_gateway_verify "$status" "$PROJECT_PATH_GATEWAY_ROOT"
 	return 2
 )
