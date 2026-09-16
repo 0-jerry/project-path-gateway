@@ -499,6 +499,40 @@ project_path_gateway__port_write_report() (
 	return 1
 )
 
+# 파일 원문을 끝 표지 방식으로 출력한다. 읽지 못하면 반환 1 (기능 004 research R-04).
+project_path_gateway__port_read_file() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	project_path_gateway__sys_read_file "$1"
+)
+
+# 데이터 파일을 새 원문으로 바꾼다 (기능 004 research R-06). 링크이면 반환 1, 쓰기 권한이 없으면 반환 2.
+# 원본 모드를 복사한 같은 디렉터리 임시 파일(.ppg-tmp.<PID>.<이름>)에 새 원문을 쓴 뒤 제자리로 옮긴다.
+# 복사·쓰기·옮기기에 실패하면 임시 파일을 지우고 반환 3.
+project_path_gateway__port_replace_data_file() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	if project_path_gateway__sys_is_link "$1"; then
+		return 1
+	fi
+	if ! project_path_gateway__sys_is_writable "$1"; then
+		return 2
+	fi
+	pid=$(project_path_gateway__sys_pid)
+	temp="${1%/*}/.ppg-tmp.$pid.${1##*/}"
+	if project_path_gateway__sys_copy_preserve "$1" "$temp" &&
+		project_path_gateway__sys_write_text "$temp" "$2" &&
+		project_path_gateway__sys_move "$temp" "$1"; then
+		return 0
+	fi
+	project_path_gateway__sys_remove "$temp"
+	return 3
+)
+
 # 시스템 포트: 디렉터리이면 반환 0 (링크를 따라간다).
 project_path_gateway__sys_is_dir() (
 	set +e +u +f
@@ -524,6 +558,15 @@ project_path_gateway__sys_is_readable() (
 '
 	unset CDPATH
 	[ -r "$1" ]
+)
+
+# 시스템 포트: 쓰기 권한이 있으면 반환 0.
+project_path_gateway__sys_is_writable() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	[ -w "$1" ]
 )
 
 # 시스템 포트: 존재하면 반환 0 (링크를 따라간다).
@@ -577,6 +620,16 @@ project_path_gateway__sys_read_lines() (
 	done <"$1"
 )
 
+# 시스템 포트: 파일 내용을 끝 표지 방식으로 출력한다. 읽지 못하면 반환 1.
+project_path_gateway__sys_read_file() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	text=$(cat -- "$1" 2>/dev/null && printf x) || return 1
+	printf '%s' "$text"
+)
+
 # 시스템 포트: 현재 셸의 프로세스 ID를 한 줄로 출력한다.
 project_path_gateway__sys_pid() (
 	set +e +u +f
@@ -593,6 +646,15 @@ project_path_gateway__sys_write_text() (
 '
 	unset CDPATH
 	{ printf '%s' "$2" >"$1"; } 2>/dev/null
+)
+
+# 시스템 포트: 원본 파일을 모드와 함께 대상에 복사한다. 실패하면 반환 1.
+project_path_gateway__sys_copy_preserve() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	cp -p -- "$1" "$2" 2>/dev/null
 )
 
 # 시스템 포트: 원본을 대상 자리로 옮긴다(대상이 있으면 바꾼다). 실패하면 반환 1.
