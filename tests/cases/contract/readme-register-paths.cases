@@ -1,0 +1,44 @@
+# 공개 API 계약: README 경로 등록 스크립트 사용 예 (기능 004 FR-043, US1·US3)
+# 가상 파일 시스템은 라이브러리 함수 호출 사이에 바뀐 상태를 이어 주지 않는다. 그래서 두 번째 register_path의 쓰기 원문은
+# 첫 번째 등록·갱신 결과가 아니라 처음 데이터 파일을 기준으로 만들어진다(실제 연속 동작은 tests/manual-checks.md 11절).
+target readme-example register-paths
+layer api
+self scripts/register-paths.sh
+fs file /t/my\sproject/.tool/project-path-gateway/.project-path-gateway
+fs file /t/my\sproject/.tool/project-path-gateway/project-path-gateway.sh
+
+case readme-register-paths-new-project
+fs file /t/my\sproject/.tool/project-path-gateway/project-path-gateway.conf
+content # 경로 항목
+cwd /t/my\sproject
+status 0
+op source ./.tool/project-path-gateway/project-path-gateway.sh
+op copy-preserve /t/my\sproject/.tool/project-path-gateway/project-path-gateway.conf /t/my\sproject/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/my\sproject/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\s경로\s항목\nAPP_CONFIG=config/app.json\n
+op move /t/my\sproject/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/my\sproject/.tool/project-path-gateway/project-path-gateway.conf
+op copy-preserve /t/my\sproject/.tool/project-path-gateway/project-path-gateway.conf /t/my\sproject/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/my\sproject/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\s경로\s항목\nDOCS=docs\n
+op move /t/my\sproject/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/my\sproject/.tool/project-path-gateway/project-path-gateway.conf
+
+case readme-register-paths-updates-existing-key
+fs file /t/my\sproject/.tool/project-path-gateway/project-path-gateway.conf
+content APP_CONFIG=config/old.json
+cwd /t/my\sproject
+status 0
+op source ./.tool/project-path-gateway/project-path-gateway.sh
+op copy-preserve /t/my\sproject/.tool/project-path-gateway/project-path-gateway.conf /t/my\sproject/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/my\sproject/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf APP_CONFIG=config/app.json\n
+op move /t/my\sproject/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/my\sproject/.tool/project-path-gateway/project-path-gateway.conf
+op copy-preserve /t/my\sproject/.tool/project-path-gateway/project-path-gateway.conf /t/my\sproject/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/my\sproject/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf APP_CONFIG=config/old.json\nDOCS=docs\n
+op move /t/my\sproject/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/my\sproject/.tool/project-path-gateway/project-path-gateway.conf
+
+case readme-register-paths-already-registered-writes-only-new-key
+fs file /t/my\sproject/.tool/project-path-gateway/project-path-gateway.conf
+content APP_CONFIG=config/app.json
+cwd /t/my\sproject
+status 0
+op source ./.tool/project-path-gateway/project-path-gateway.sh
+op copy-preserve /t/my\sproject/.tool/project-path-gateway/project-path-gateway.conf /t/my\sproject/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/my\sproject/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf APP_CONFIG=config/app.json\nDOCS=docs\n
+op move /t/my\sproject/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/my\sproject/.tool/project-path-gateway/project-path-gateway.conf
