@@ -839,6 +839,13 @@ call project_path_gateway_init /t/root
 call project_path_gateway_verify
 call project_path_gateway_verify /out/report.txt
 status 0
+out project-path-gateway: 검증 통과 3건
+out project-path-gateway: 검증 통과 3건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 0
+op write /out/.ppg-report.4242.report.txt project-path-gateway:\s검증\s통과\s3건\n
+op move /out/.ppg-report.4242.report.txt /out/report.txt
+op returned project_path_gateway_verify 0
 
 # 짝(SC-002): 이 사례 안의 리포트 미지정 호출
 case verify-report-pass-zero-entries
@@ -848,6 +855,13 @@ call project_path_gateway_init /t/root
 call project_path_gateway_verify
 call project_path_gateway_verify /out/report.txt
 status 0
+out project-path-gateway: 검증 통과 0건
+out project-path-gateway: 검증 통과 0건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 0
+op write /out/.ppg-report.4242.report.txt project-path-gateway:\s검증\s통과\s0건\n
+op move /out/.ppg-report.4242.report.txt /out/report.txt
+op returned project_path_gateway_verify 0
 
 case verify-report-pass-overwrites-previous-failure-report
 fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
@@ -859,3 +873,8 @@ content project-path-gateway: 검증 실패 1건
 call project_path_gateway_init /t/root
 call project_path_gateway_verify /out/report.txt
 status 0
+out project-path-gateway: 검증 통과 1건
+op returned project_path_gateway_init 0
+op write /out/.ppg-report.4242.report.txt project-path-gateway:\s검증\s통과\s1건\n
+op move /out/.ppg-report.4242.report.txt /out/report.txt
+op returned project_path_gateway_verify 0

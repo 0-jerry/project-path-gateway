@@ -728,7 +728,7 @@ project_path_gateway__port_report_outside() (
 )
 
 # 리포트를 지정한 검증 (기능 003 research R-02). 항목 줄과 요약 코드를 한 번에 받아 기존과 같은 문구로 출력하고
-# 같은 줄을 리포트로 저장한다. $1: 루트, $2: 리포트 파일. 반환: 1 검증 실패, 2 오류, 0 통과(아직 처리하지 않음).
+# 같은 줄을 리포트로 저장한다. $1: 루트, $2: 리포트 파일. 반환: 0 통과, 1 검증 실패, 2 오류.
 project_path_gateway__if_verify_report() (
 	set +e +u +f
 	IFS=' 	''
@@ -741,7 +741,13 @@ project_path_gateway__if_verify_report() (
 	status=${captured##*x}
 	captured=${captured%x*}
 	case $status in
-	0) return 0 ;;
+	0)
+		body="project-path-gateway: 검증 통과 ${captured#ok }"
+		body="${body%"$nl"}건$nl"
+		printf '%s' "$body"
+		project_path_gateway__app_write_report "$2" "$body"
+		return 0
+		;;
 	1) ;;
 	*)
 		printf '%s' "$captured" >&2
@@ -777,8 +783,7 @@ project_path_gateway_verify() (
 	fi
 	if [ "$#" -eq 1 ]; then
 		project_path_gateway__if_verify_report "$PROJECT_PATH_GATEWAY_ROOT" "$1"
-		status=$?
-		[ "$status" -eq 0 ] || return "$status"
+		return $?
 	fi
 	result=$(project_path_gateway__app_verify "$PROJECT_PATH_GATEWAY_ROOT")
 	status=$?
