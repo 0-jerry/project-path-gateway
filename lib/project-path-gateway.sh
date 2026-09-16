@@ -387,6 +387,20 @@ project_path_gateway__app_edit() (
 		return 9
 	fi
 	records=$(project_path_gateway__app_load_entries "$2") || return $?
+	file=$(project_path_gateway__app_data_file "$2")
+	case $1 in
+	add)
+		content=$(project_path_gateway__port_read_file "$file") || return 4
+		content=$(project_path_gateway__domain_append_entry "${content%x}" "$3" "$4")
+		;;
+	*) return 13 ;;
+	esac
+	project_path_gateway__port_replace_data_file "$file" "${content%x}"
+	case $? in
+	0) return 0 ;;
+	1) return 11 ;;
+	2) return 12 ;;
+	esac
 	return 13
 )
 
