@@ -1,0 +1,16 @@
+# 애플리케이션 통합: 검증 리포트 쓰기 전달 (기능 003 FR-020, data-model 3절)
+# 리포트 경로와 본문을 쓰기 포트에 그대로 넘기고 포트 반환값을 그대로 돌려준다.
+target lib-func project_path_gateway__app_write_report
+layer app
+
+case app-write-report-success
+arg /w/리포트\s파일.txt
+arg project-path-gateway:\s검증\s통과\s1건\n
+stub project_path_gateway__port_write_report 0 /w/리포트\s파일.txt project-path-gateway:\s검증\s통과\s1건\n
+status 0
+
+case app-write-report-failure
+arg report.txt
+arg a\n\nb\n
+stub project_path_gateway__port_write_report 1 report.txt a\n\nb\n
+status 0
