@@ -1,0 +1,104 @@
+# 인프라 통합: 데이터 파일 교체 (기능 004 FR-030~FR-034, research R-06)
+# 링크이면 1, 쓰기 권한이 없으면 2. 원본 모드를 복사한 같은 디렉터리 임시 파일(.ppg-tmp.<PID>.<이름>)에 새 내용을 쓰고
+# mv로 바꾼다. 복사·쓰기·이동에 실패하면 임시 파일을 지우고 3.
+target lib-func project_path_gateway__port_replace_data_file
+layer infra
+fs file /r/.tool/project-path-gateway/project-path-gateway.conf
+content K=old
+
+case replace-data-file-success
+arg /r/.tool/project-path-gateway/project-path-gateway.conf
+arg K=old\nN=new\n
+status 0
+op is-link /r/.tool/project-path-gateway/project-path-gateway.conf
+op is-writable /r/.tool/project-path-gateway/project-path-gateway.conf
+op pid
+op copy-preserve /r/.tool/project-path-gateway/project-path-gateway.conf /r/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /r/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf K=old\nN=new\n
+op move /r/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /r/.tool/project-path-gateway/project-path-gateway.conf
+
+case replace-data-file-content-bytes-kept
+arg /r/.tool/project-path-gateway/project-path-gateway.conf
+arg #\sc\r\nK=내\s문서\\%\s-x\n\nL=b
+status 0
+op is-link /r/.tool/project-path-gateway/project-path-gateway.conf
+op is-writable /r/.tool/project-path-gateway/project-path-gateway.conf
+op pid
+op copy-preserve /r/.tool/project-path-gateway/project-path-gateway.conf /r/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /r/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\sc\r\nK=내\s문서\\%\s-x\n\nL=b
+op move /r/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /r/.tool/project-path-gateway/project-path-gateway.conf
+
+case replace-data-file-link-refused
+fs file /r/real.conf
+content K=old
+fs link /r/.tool/project-path-gateway/project-path-gateway.conf ../../real.conf
+arg /r/.tool/project-path-gateway/project-path-gateway.conf
+arg K=new\n
+status 1
+op is-link /r/.tool/project-path-gateway/project-path-gateway.conf
+
+case replace-data-file-readonly-file-dir-writable
+fs readonly /r/.tool/project-path-gateway/project-path-gateway.conf
+arg /r/.tool/project-path-gateway/project-path-gateway.conf
+arg K=new\n
+status 2
+op is-link /r/.tool/project-path-gateway/project-path-gateway.conf
+op is-writable /r/.tool/project-path-gateway/project-path-gateway.conf
+
+case replace-data-file-copy-fails
+fault copy-preserve /r/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+arg /r/.tool/project-path-gateway/project-path-gateway.conf
+arg K=new\n
+status 3
+op is-link /r/.tool/project-path-gateway/project-path-gateway.conf
+op is-writable /r/.tool/project-path-gateway/project-path-gateway.conf
+op pid
+op copy-preserve /r/.tool/project-path-gateway/project-path-gateway.conf /r/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op remove /r/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+
+case replace-data-file-write-fails
+fault write /r/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+arg /r/.tool/project-path-gateway/project-path-gateway.conf
+arg K=new\n
+status 3
+op is-link /r/.tool/project-path-gateway/project-path-gateway.conf
+op is-writable /r/.tool/project-path-gateway/project-path-gateway.conf
+op pid
+op copy-preserve /r/.tool/project-path-gateway/project-path-gateway.conf /r/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /r/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf K=new\n
+op remove /r/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+
+case replace-data-file-move-fails
+fault move /r/.tool/project-path-gateway/project-path-gateway.conf
+arg /r/.tool/project-path-gateway/project-path-gateway.conf
+arg K=new\n
+status 3
+op is-link /r/.tool/project-path-gateway/project-path-gateway.conf
+op is-writable /r/.tool/project-path-gateway/project-path-gateway.conf
+op pid
+op copy-preserve /r/.tool/project-path-gateway/project-path-gateway.conf /r/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /r/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf K=new\n
+op move /r/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /r/.tool/project-path-gateway/project-path-gateway.conf
+op remove /r/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+
+case replace-data-file-readonly-tool-directory
+fs readonly /r/.tool/project-path-gateway
+arg /r/.tool/project-path-gateway/project-path-gateway.conf
+arg K=new\n
+status 3
+op is-link /r/.tool/project-path-gateway/project-path-gateway.conf
+op is-writable /r/.tool/project-path-gateway/project-path-gateway.conf
+op pid
+op copy-preserve /r/.tool/project-path-gateway/project-path-gateway.conf /r/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op remove /r/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+
+# 신호 중단: 라이브러리는 trap을 걸지 않으므로 두 번째 변경 작업(write) 직전 중단에서 임시 파일 정리 없이 끝난다(FR-030 신호 한계).
+case replace-data-file-interrupted-before-write
+interrupt INT 2
+arg /r/.tool/project-path-gateway/project-path-gateway.conf
+arg K=new\n
+status 130
+op is-link /r/.tool/project-path-gateway/project-path-gateway.conf
+op is-writable /r/.tool/project-path-gateway/project-path-gateway.conf
+op pid
+op copy-preserve /r/.tool/project-path-gateway/project-path-gateway.conf /r/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
