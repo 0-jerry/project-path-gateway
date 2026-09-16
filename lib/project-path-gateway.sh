@@ -12,6 +12,7 @@
 # 구조: 도메인 → 애플리케이션 → 인프라 → 인터페이스 네 구획으로 나눈다.
 # project_path_gateway_init 외의 모든 함수는 서브셸 본문으로 정의해 호출 셸 상태를 바꾸지 않고,
 # 본문 첫 줄에서 셸 옵션, IFS, CDPATH를 기본 상태로 되돌린다.
+# 파일 시스템 접근은 인프라 구획의 시스템 포트(project_path_gateway__sys_*)에서만 한다.
 # 경로를 명령 치환으로 전달하는 함수는 끝 개행이 사라지지 않도록 값 뒤에 표지 문자 x를 붙인다.
 # 내부 결과 코드: 3 데이터 파일 규칙 위반, 4 데이터 파일 읽기 불가, 5 경로 확인 실패,
 # 6 루트 표식 파일 없음, 7 미등록 키, 8 디렉터리가 아님.
@@ -332,13 +333,16 @@ project_path_gateway__app_verify() (
 
 # === 계층: 인프라 ===
 
+# 시스템 포트(project_path_gateway__sys_*)만 파일 시스템에 접근한다. 본문은 명령 하나이며 다른 내부 함수를 호출하지 않는다.
+# 포트(project_path_gateway__port_*)는 탐색·링크 추적 논리를 담고 환경 접근은 시스템 포트에 맡긴다.
+
 # 디렉터리이면 반환 0.
 project_path_gateway__port_is_dir() (
 	set +e +u +f
 	IFS=' 	''
 '
 	unset CDPATH
-	[ -d "$1" ]
+	project_path_gateway__sys_is_dir "$1"
 )
 
 # 디렉터리의 물리 경로를 끝 표지 방식으로 출력한다. 실패하면 반환 1.
@@ -347,10 +351,7 @@ project_path_gateway__port_physical_dir() (
 	IFS=' 	''
 '
 	unset CDPATH
-	dir=$(cd -P -- "$1" 2>/dev/null && pwd -P && printf x) || return 1
-	dir=${dir%x}
-	printf '%sx' "${dir%?}"
-	return 0
+	project_path_gateway__sys_physical_dir "$1"
 )
 
 # 일반 파일이고 읽을 수 있으면 반환 0.
@@ -359,7 +360,7 @@ project_path_gateway__port_readable_file() (
 	IFS=' 	''
 '
 	unset CDPATH
-	[ -f "$1" ] && [ -r "$1" ]
+	project_path_gateway__sys_is_file "$1" && project_path_gateway__sys_is_readable "$1"
 )
 
 # 파일의 각 줄을 개행을 붙여 출력한다. 마지막 줄에 개행이 없어도 출력한다.
@@ -368,9 +369,7 @@ project_path_gateway__port_read_lines() (
 	IFS=' 	''
 '
 	unset CDPATH
-	while IFS= read -r line || [ -n "$line" ]; do
-		printf '%s\n' "$line"
-	done <"$1"
+	project_path_gateway__sys_read_lines "$1"
 )
 
 # 물리 시작 디렉터리부터 /까지 올라가며 루트 표식 파일이 일반 파일로 있는 가장 가까운 디렉터리를
@@ -382,7 +381,7 @@ project_path_gateway__port_find_root() (
 	unset CDPATH
 	dir=$1
 	while :; do
-		if [ -f "${dir%/}/.tool/project-path-gateway/.project-path-gateway" ]; then
+		if project_path_gateway__sys_is_file "${dir%/}/.tool/project-path-gateway/.project-path-gateway"; then
 			printf '%sx' "$dir"
 			return 0
 		fi
@@ -398,7 +397,7 @@ project_path_gateway__port_exists() (
 	IFS=' 	''
 '
 	unset CDPATH
-	[ -e "$1" ]
+	project_path_gateway__sys_exists "$1"
 )
 
 # 심볼릭 링크를 모두 따라간 최종 물리 경로를 끝 표지 방식으로 출력한다. 실패하면 반환 1 (research R-05).
@@ -410,8 +409,8 @@ project_path_gateway__port_resolve_physical() (
 	current=$1
 	count=0
 	while :; do
-		if [ -d "$current" ]; then
-			project_path_gateway__port_physical_dir "$current"
+		if project_path_gateway__sys_is_dir "$current"; then
+			project_path_gateway__sys_physical_dir "$current"
 			return $?
 		fi
 		case $current in
@@ -425,23 +424,100 @@ project_path_gateway__port_resolve_physical() (
 			;;
 		esac
 		[ -n "$parent" ] || parent=/
-		parent=$(project_path_gateway__port_physical_dir "$parent") || return 1
+		parent=$(project_path_gateway__sys_physical_dir "$parent") || return 1
 		parent=${parent%x}
 		current=${parent%/}/$name
-		if [ ! -L "$current" ]; then
+		if ! project_path_gateway__sys_is_link "$current"; then
 			printf '%sx' "$current"
 			return 0
 		fi
 		count=$((count + 1))
 		[ "$count" -le 40 ] || return 1
-		target=$(readlink -- "$current" && printf x) || return 1
+		target=$(project_path_gateway__sys_readlink "$current") || return 1
 		target=${target%x}
-		target=${target%?}
 		case $target in
 		/*) current=$target ;;
 		*) current=${parent%/}/$target ;;
 		esac
 	done
+)
+
+# 시스템 포트: 디렉터리이면 반환 0 (링크를 따라간다).
+project_path_gateway__sys_is_dir() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	[ -d "$1" ]
+)
+
+# 시스템 포트: 일반 파일이면 반환 0 (링크를 따라간다).
+project_path_gateway__sys_is_file() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	[ -f "$1" ]
+)
+
+# 시스템 포트: 읽을 수 있으면 반환 0.
+project_path_gateway__sys_is_readable() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	[ -r "$1" ]
+)
+
+# 시스템 포트: 존재하면 반환 0 (링크를 따라간다).
+project_path_gateway__sys_exists() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	[ -e "$1" ]
+)
+
+# 시스템 포트: 심볼릭 링크이면 반환 0 (따라가지 않는다).
+project_path_gateway__sys_is_link() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	[ -L "$1" ]
+)
+
+# 시스템 포트: 디렉터리의 물리 경로를 끝 표지 방식으로 출력한다. 실패하면 반환 1.
+project_path_gateway__sys_physical_dir() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	dir=$(cd -P -- "$1" 2>/dev/null && pwd -P && printf x) || return 1
+	dir=${dir%x}
+	printf '%sx' "${dir%?}"
+)
+
+# 시스템 포트: 심볼릭 링크 대상 문자열을 끝 표지 방식으로 출력한다. 실패하면 반환 1.
+project_path_gateway__sys_readlink() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	target=$(readlink -- "$1" && printf x) || return 1
+	target=${target%x}
+	printf '%sx' "${target%?}"
+)
+
+# 시스템 포트: 파일의 각 줄을 개행을 붙여 출력한다. 마지막 줄에 개행이 없어도 출력한다.
+project_path_gateway__sys_read_lines() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	while IFS= read -r line || [ -n "$line" ]; do
+		printf '%s\n' "$line"
+	done <"$1"
 )
 
 # === 계층: 인터페이스 ===
