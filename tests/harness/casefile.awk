@@ -19,7 +19,7 @@ function reset_file() {
 	in_case = 0
 	last_field = ""
 	last_fs_kind = ""
-	dir = file_dir(FILENAME)
+	dir = file_dir(cur_file)
 }
 
 function file_dir(f,   n, parts) {
@@ -30,9 +30,9 @@ function file_dir(f,   n, parts) {
 
 function err(line, cause) {
 	if (in_case) {
-		if (!(cur_loc in case_err)) case_err[cur_loc] = FILENAME ":" line ": " cause
+		if (!(cur_loc in case_err)) case_err[cur_loc] = cur_file ":" line ": " cause
 	} else if (header_err == "") {
-		header_err = FILENAME ":" line ": " cause
+		header_err = cur_file ":" line ": " cause
 	}
 }
 
@@ -107,6 +107,7 @@ BEGIN {
 FNR == 1 {
 	if (prev_file != "") finish_file()
 	prev_file = FILENAME
+	cur_file = FILENAME
 	reset_file()
 }
 
@@ -123,10 +124,10 @@ FNR == 1 {
 		in_case = 1
 		ncase++
 		cname = value
-		cur_id = FILENAME ":" cname
-		cur_loc = FILENAME ":" FNR
+		cur_id = cur_file ":" cname
+		cur_loc = cur_file ":" FNR
 		if (cname !~ /^[a-z0-9_-]+$/) {
-			cur_id = FILENAME ":" FNR
+			cur_id = cur_file ":" FNR
 			err(FNR, "허용하지 않는 값입니다: case " value)
 		}
 		case_id[ncase] = cur_id
@@ -251,7 +252,7 @@ function check_combined(c,   i, layer, adapter, doubles, opsmode, has_target, fn
 		if (hf_name[i] == "doubles") doubles = hf_value[i]
 		if (hf_name[i] == "ops") opsmode = hf_value[i]
 	}
-	where = FILENAME ":" (nhead ? hf_line[1] : 1) ": "
+	where = cur_file ":" (nhead ? hf_line[1] : 1) ": "
 	if (!has_target) return where "필수 필드가 없습니다: target"
 	if (layer == "") return where "필수 필드가 없습니다: layer"
 	if (!((dir == "unit" && layer == "domain") || (dir == "integration" && (layer == "app" || layer == "infra")) || (dir == "contract" && layer == "api")))
@@ -260,11 +261,11 @@ function check_combined(c,   i, layer, adapter, doubles, opsmode, has_target, fn
 	if (doubles != "" && doubles != allowed) return where "허용하지 않는 값입니다: doubles " doubles
 	if (layer == "domain" && opsmode != "") return where "이 위치에 올 수 없는 필드입니다: ops"
 	doubles = allowed
-	if (!case_has_status[c]) return FILENAME ":" case_line[c] ": 필수 필드가 없습니다: status"
+	if (!case_has_status[c]) return cur_file ":" case_line[c] ": 필수 필드가 없습니다: status"
 	# 입력 필드와 어댑터 조합
 	for (i = 1; i <= nhead + case_nf[c]; i++) {
-		if (i <= nhead) { fname = hf_name[i]; where = FILENAME ":" hf_line[i] ": " }
-		else { fname = cf_name[c, i - nhead]; where = FILENAME ":" cf_line[c, i - nhead] ": " }
+		if (i <= nhead) { fname = hf_name[i]; where = cur_file ":" hf_line[i] ": " }
+		else { fname = cf_name[c, i - nhead]; where = cur_file ":" cf_line[c, i - nhead] ": " }
 		if (fname == "arg" && adapter !~ /^(lib-func|bin-func|script-func|bin-main|script-main)$/) return where "어댑터가 쓰지 않는 입력입니다: arg"
 		if (fname == "call" && adapter !~ /^(lib-session|readme-example)$/) return where "어댑터가 쓰지 않는 입력입니다: call"
 		if (fname ~ /^caller-/ && adapter != "lib-session") return where "어댑터가 쓰지 않는 입력입니다: " fname
@@ -278,7 +279,7 @@ function check_combined(c,   i, layer, adapter, doubles, opsmode, has_target, fn
 		p = 0
 		for (i = 1; i <= nhead; i++) if (hf_name[i] == "self") p = 1
 		for (i = 1; i <= case_nf[c]; i++) if (cf_name[c, i] == "self") p = 1
-		if (!p) return FILENAME ":" case_line[c] ": 필수 필드가 없습니다: self"
+		if (!p) return cur_file ":" case_line[c] ": 필수 필드가 없습니다: self"
 	}
 	# 가상 파일 시스템 상위 경로 종류 충돌
 	delete kinds
@@ -289,7 +290,7 @@ function check_combined(c,   i, layer, adapter, doubles, opsmode, has_target, fn
 		if (tt[1] == "file" || tt[1] == "link" || tt[1] == "other") kinds[decode(tt[2])] = tt[1]
 	}
 	for (i = 1; i <= nhead + case_nf[c]; i++) {
-		if (i <= nhead) { fname = hf_name[i]; v = hf_value[i]; where = FILENAME ":" hf_line[i] ": " } else { fname = cf_name[c, i - nhead]; v = cf_value[c, i - nhead]; where = FILENAME ":" cf_line[c, i - nhead] ": " }
+		if (i <= nhead) { fname = hf_name[i]; v = hf_value[i]; where = cur_file ":" hf_line[i] ": " } else { fname = cf_name[c, i - nhead]; v = cf_value[c, i - nhead]; where = cur_file ":" cf_line[c, i - nhead] ": " }
 		if (fname != "fs") continue
 		split(v, tt, " ")
 		p = decode(tt[2])
@@ -316,15 +317,15 @@ function finish_file(   c, cause, id, tname, tt2, i, layer_v) {
 		id = case_id[c]
 		cause = ""
 		if (header_err != "") cause = header_err
-		else if ((FILENAME ":" case_line[c]) in case_err) cause = case_err[FILENAME ":" case_line[c]]
+		else if ((cur_file ":" case_line[c]) in case_err) cause = case_err[cur_file ":" case_line[c]]
 		else cause = check_combined(c)
 		if (mode == "validate") {
 			nres++
 			res_id[nres] = id
 			res_cause[nres] = cause
-			res_line[nres] = FILENAME ":" case_line[c]
+			res_line[nres] = cur_file ":" case_line[c]
 			res_name[nres] = case_name[c]
-			res_meta[nres] = FILENAME "\t" case_name[c] "\t" dir "\t" layer_v "\t" tname "\t" case_skip[c]
+			res_meta[nres] = cur_file "\t" case_name[c] "\t" dir "\t" layer_v "\t" tname "\t" case_skip[c]
 		} else if (mode == "extract" && case_name[c] == case_name_arg && !found) {
 			found = 1
 			if (cause == "") emit_case(c)
