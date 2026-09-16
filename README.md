@@ -209,7 +209,12 @@ project_path_gateway_verify
 ## 개발
 
 ```sh
-sh scripts/lint.sh   # ShellCheck, 금지 단어, 범위 괄호식, 버전 일치, 계층 규칙
-sh tests/run.sh      # /bin/sh와 (있으면) dash에서 전체 테스트
-sh tests/run.sh --shell dash tests/contract/library_get_contract_test.sh
+sh scripts/lint.sh                # ShellCheck, 금지 단어, 범위 괄호식, 버전 일치, 계층 규칙
+sh tests/run.sh                   # /bin/sh와 (있으면) dash에서 전체 사례
+sh tests/run.sh --shell dash lib-get
+sh tests/run.sh --shuffle 7       # 섞은 순서로 실행
 ```
+
+테스트 사례는 `tests/cases/` 아래 `.cases` 파일에 있고, 실행기 인자의 필터는 사례 식별자(`<사례 파일 경로>:<이름>`)의
+부분 문자열입니다. 테스트는 실제 파일 시스템을 바꾸지 않습니다. 실제 환경에서만 확인할 수 있는 동작은
+`tests/manual-checks.md`의 절차로 확인합니다.
