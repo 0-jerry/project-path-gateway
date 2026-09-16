@@ -1,0 +1,43 @@
+# 인프라 통합: 임시 파일에 쓰고 새 파일로 연결 (기능 001 cli_init_test, research R-10)
+target bin-func ppg__port_write_new
+layer infra
+fs dir /p/.tool/project-path-gateway
+
+case write-new-marker
+arg /p/.tool/project-path-gateway/.project-path-gateway
+arg ppg__domain_marker_content
+status 0
+op pid
+op write /p/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tool/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
+op link /p/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway /p/.tool/project-path-gateway/.project-path-gateway
+op remove /p/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway
+
+case write-new-target-exists
+fs file /p/.tool/project-path-gateway/.project-path-gateway
+content old
+arg /p/.tool/project-path-gateway/.project-path-gateway
+arg ppg__domain_marker_content
+status 1
+op pid
+op write /p/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tool/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
+op link /p/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway /p/.tool/project-path-gateway/.project-path-gateway
+op remove /p/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway
+
+case write-new-write-fails
+fault write /p/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway
+arg /p/.tool/project-path-gateway/.project-path-gateway
+arg ppg__domain_marker_content
+status 1
+op pid
+op write /p/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tool/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
+op remove /p/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway
+
+case write-new-pid-in-temp-name
+pid 777
+arg /p/.tool/project-path-gateway/project-path-gateway.conf
+arg ppg__domain_data_template
+status 0
+op pid
+op write /p/.tool/project-path-gateway/.ppg-tmp.777.project-path-gateway.conf #\sproject-path-gateway\s데이터\s파일\n#\s한\s줄에\sKEY=경로\s형식으로\s적습니다.\s경로는\s프로젝트\s루트(.tool/의\s상위\s디렉터리)\s기준\s상대경로입니다.\n#\s키:\s대문자로\s시작하고\s대문자·숫자·_만\s사용합니다.\s파일\s안에서\s중복될\s수\s없습니다.\n#\s경로:\s/로\s시작할\s수\s없고\s..\s세그먼트를\s쓸\s수\s없습니다.\s=\s앞뒤\s공백은\s제거되지\s않습니다.\n#\s빈\s줄과\s#으로\s시작하는\s줄은\s무시합니다.\n#\n#\s예:\n#\sSOURCES_ROOT=sources\n#\sBUILD_SCRIPT=scripts/build.sh\n
+op link /p/.tool/project-path-gateway/.ppg-tmp.777.project-path-gateway.conf /p/.tool/project-path-gateway/project-path-gateway.conf
+op remove /p/.tool/project-path-gateway/.ppg-tmp.777.project-path-gateway.conf

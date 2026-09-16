@@ -1,0 +1,34 @@
+# 인프라 통합: 이번 실행에서 만든 디렉터리만 되돌리기 (기능 001 cli_init_test, research R-10)
+target bin-func ppg__port_rollback_dirs
+layer infra
+
+case rollback-dirs-both-created
+fs dir /p/.tool/project-path-gateway
+env PPG_INFRA_CREATED_TOOL 1
+env PPG_INFRA_CREATED_TOOLDIR 1
+arg /p
+status 0
+op rmdir /p/.tool/project-path-gateway
+op rmdir /p/.tool
+
+case rollback-dirs-only-tool-dir-created
+fs dir /p/.tool/project-path-gateway
+env PPG_INFRA_CREATED_TOOL 0
+env PPG_INFRA_CREATED_TOOLDIR 1
+arg /p
+status 0
+op rmdir /p/.tool/project-path-gateway
+
+case rollback-dirs-nothing-created
+fs dir /p/.tool/project-path-gateway
+arg /p
+status 0
+
+case rollback-dirs-not-empty-kept
+fs file /p/.tool/project-path-gateway/other
+env PPG_INFRA_CREATED_TOOL 1
+env PPG_INFRA_CREATED_TOOLDIR 1
+arg /p
+status 0
+op rmdir /p/.tool/project-path-gateway
+op rmdir /p/.tool

@@ -1,0 +1,45 @@
+# 인프라 통합: 도구 디렉터리 만들기 (기능 001 cli_init_test, research R-10)
+target bin-func ppg__port_ensure_tool_dirs
+layer infra
+
+case ensure-tool-dirs-creates-both
+fs dir /p
+arg /p
+status 0
+op is-dir /p/.tool
+op mkdir /p/.tool
+op is-dir /p/.tool/project-path-gateway
+op mkdir /p/.tool/project-path-gateway
+
+case ensure-tool-dirs-creates-only-missing
+fs dir /p/.tool
+arg /p
+status 0
+op is-dir /p/.tool
+op is-dir /p/.tool/project-path-gateway
+op mkdir /p/.tool/project-path-gateway
+
+case ensure-tool-dirs-existing
+fs dir /p/.tool/project-path-gateway
+arg /p/
+status 0
+op is-dir /p/.tool
+op is-dir /p/.tool/project-path-gateway
+
+case ensure-tool-dirs-readonly-target
+fs dir /p
+fs readonly /p
+arg /p
+status 1
+op is-dir /p/.tool
+op mkdir /p/.tool
+
+case ensure-tool-dirs-second-mkdir-fails
+fs dir /p
+fault mkdir /p/.tool/project-path-gateway
+arg /p
+status 1
+op is-dir /p/.tool
+op mkdir /p/.tool
+op is-dir /p/.tool/project-path-gateway
+op mkdir /p/.tool/project-path-gateway
