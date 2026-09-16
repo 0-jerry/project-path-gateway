@@ -331,6 +331,15 @@ project_path_gateway__app_verify() (
 	}
 )
 
+# 검증 리포트 본문을 리포트 파일에 저장한다. 본문 형식은 알지 않는다. 반환: 0 성공, 1 쓰기 실패 (기능 003).
+project_path_gateway__app_write_report() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	project_path_gateway__port_write_report "$1" "$2"
+)
+
 # === 계층: 인프라 ===
 
 # 시스템 포트(project_path_gateway__sys_*)만 파일 시스템에 접근한다. 본문은 명령 하나이며 다른 내부 함수를 호출하지 않는다.

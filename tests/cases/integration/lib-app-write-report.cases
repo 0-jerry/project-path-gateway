@@ -8,9 +8,11 @@ arg /w/리포트\s파일.txt
 arg project-path-gateway:\s검증\s통과\s1건\n
 stub project_path_gateway__port_write_report 0 /w/리포트\s파일.txt project-path-gateway:\s검증\s통과\s1건\n
 status 0
+op port project_path_gateway__port_write_report /w/리포트\s파일.txt project-path-gateway:\s검증\s통과\s1건\n
 
 case app-write-report-failure
 arg report.txt
 arg a\n\nb\n
 stub project_path_gateway__port_write_report 1 report.txt a\n\nb\n
-status 0
+status 1
+op port project_path_gateway__port_write_report report.txt a\n\nb\n
