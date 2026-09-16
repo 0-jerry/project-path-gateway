@@ -68,15 +68,18 @@ ppgt_rec() {
 # 대체물 적용: 사례 doubles 값에 따라 포트 또는 시스템 대체물을 불러온다. $1: 대상 소스 파일
 ppgt_apply_doubles() {
 	case $PPGT_DOUBLES in
-	ports)
-		# shellcheck source=/dev/null
-		. "$PPGT_ROOT/tests/harness/stub.sh"
-		ppgt_stub_apply "$1"
-		;;
-	system)
-		# shellcheck source=/dev/null
-		. "$PPGT_ROOT/tests/harness/vfs.sh"
-		ppgt_vfs_apply
-		;;
+	ports) ppgt_apply_file=stub.sh ;;
+	system) ppgt_apply_file=vfs.sh ;;
+	*) return 0 ;;
+	esac
+	if [ ! -f "$PPGT_ROOT/tests/harness/$ppgt_apply_file" ]; then
+		printf 'harness: 대체물 파일이 없습니다: tests/harness/%s\n' "$ppgt_apply_file" >&2
+		return 125
+	fi
+	# shellcheck source=/dev/null
+	. "$PPGT_ROOT/tests/harness/$ppgt_apply_file"
+	case $PPGT_DOUBLES in
+	ports) ppgt_stub_apply "$1" ;;
+	*) ppgt_vfs_apply ;;
 	esac
 }
