@@ -1,0 +1,47 @@
+# 인프라 통합: 데이터 파일 원문 바이트 읽기 (기능 004 FR-020·FR-021, research R-04)
+# 끝 표지 방식으로 파일 내용을 그대로 출력한다. 끝 LF 유무와 빈 줄을 보존한다.
+target lib-func project_path_gateway__port_read_file
+layer infra
+
+case read-file-ends-with-lf
+fs file /d/f
+content a
+content b
+arg /d/f
+status 0
+out-raw a\nb\nx
+op read-file /d/f
+
+case read-file-without-trailing-lf
+fs file /d/f
+content a
+content-raw b
+arg /d/f
+status 0
+out-raw a\nbx
+op read-file /d/f
+
+case read-file-empty
+fs file /d/f
+arg /d/f
+status 0
+out-raw x
+op read-file /d/f
+
+case read-file-ends-with-blank-lines
+fs file /d/f
+content a
+content
+content
+arg /d/f
+status 0
+out-raw a\n\n\nx
+op read-file /d/f
+
+case read-file-denied
+fs file /d/f
+content a
+fs deny /d
+arg /d/f
+status 1
+op read-file /d/f
