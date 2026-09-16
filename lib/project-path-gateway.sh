@@ -442,6 +442,31 @@ project_path_gateway__port_resolve_physical() (
 	done
 )
 
+# 검증 리포트 본문을 같은 디렉터리 임시 파일(.ppg-report.<PID>.<이름>)에 쓴 뒤 제자리로 옮긴다. 대상이 디렉터리이거나
+# 디렉터리를 가리키는 링크, 이름이 빈 경로이면 반환 1. 쓰기·옮기기에 실패하면 임시 파일을 지우고 반환 1 (기능 003 research R-03).
+project_path_gateway__port_write_report() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	case $1 in
+	*/) return 1 ;;
+	*/*) dir=${1%/*} ;;
+	*) dir=. ;;
+	esac
+	if project_path_gateway__sys_is_dir "$1"; then
+		return 1
+	fi
+	pid=$(project_path_gateway__sys_pid)
+	temp="$dir/.ppg-report.$pid.${1##*/}"
+	if project_path_gateway__sys_write_text "$temp" "$2" &&
+		project_path_gateway__sys_move "$temp" "$1"; then
+		return 0
+	fi
+	project_path_gateway__sys_remove "$temp"
+	return 1
+)
+
 # 시스템 포트: 디렉터리이면 반환 0 (링크를 따라간다).
 project_path_gateway__sys_is_dir() (
 	set +e +u +f
@@ -518,6 +543,42 @@ project_path_gateway__sys_read_lines() (
 	while IFS= read -r line || [ -n "$line" ]; do
 		printf '%s\n' "$line"
 	done <"$1"
+)
+
+# 시스템 포트: 현재 셸의 프로세스 ID를 한 줄로 출력한다.
+project_path_gateway__sys_pid() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	printf '%s\n' "$$"
+)
+
+# 시스템 포트: 내용 문자열을 파일에 그대로 쓴다. 실패하면 반환 1.
+project_path_gateway__sys_write_text() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	{ printf '%s' "$2" >"$1"; } 2>/dev/null
+)
+
+# 시스템 포트: 원본을 대상 자리로 옮긴다(대상이 있으면 바꾼다). 실패하면 반환 1.
+project_path_gateway__sys_move() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	mv -f -- "$1" "$2" 2>/dev/null
+)
+
+# 시스템 포트: 파일을 지운다. 없으면 성공이다.
+project_path_gateway__sys_remove() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	rm -f -- "$1" 2>/dev/null
 )
 
 # === 계층: 인터페이스 ===
