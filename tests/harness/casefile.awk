@@ -87,10 +87,10 @@ function normalized_abs(p) {
 
 BEGIN {
 	# 작업 기록 종류별 인자 토큰 개수(contracts/doubles.md). 끝이 +이면 그 수 이상.
-	split("is-dir:1 is-file:1 is-readable:1 exists:1 is-link:1 physical-dir:1 readlink:1 read-lines:1 read-file:1 self-path:0 command-path:1 pid:0 list-prefix:2 cd:1 pwd:0 " \
-		"mkdir:1 mkdir-p:1 rmdir:1 remove:1 write:2 copy:2 link:2 move:2 chmod:2 trap:2 port:1+ returned:2 changed:1 source:1", a, " ")
+	split("is-dir:1 is-file:1 is-readable:1 is-writable:1 exists:1 is-link:1 physical-dir:1 readlink:1 read-lines:1 read-file:1 self-path:0 command-path:1 pid:0 list-prefix:2 cd:1 pwd:0 " \
+		"mkdir:1 mkdir-p:1 rmdir:1 remove:1 write:2 copy:2 copy-preserve:2 link:2 move:2 chmod:2 trap:2 port:1+ returned:2 changed:1 source:1", a, " ")
 	for (k in a) { split(a[k], opkv, ":"); op_argc[opkv[1]] = opkv[2] }
-	split("is-dir is-file is-readable exists is-link physical-dir readlink read-lines read-file self-path command-path pid list-prefix cd pwd", a, " ")
+	split("is-dir is-file is-readable is-writable exists is-link physical-dir readlink read-lines read-file self-path command-path pid list-prefix cd pwd", a, " ")
 	for (k in a) read_kind[a[k]] = 1
 	SQ = sprintf("%c", 39)
 	TAB = "\t"
@@ -103,7 +103,7 @@ BEGIN {
 	for (k in a) text_field[a[k]] = 1
 	split("lib-func lib-session bin-func bin-main script-func script-main readme-example", a, " ")
 	for (k in a) adapters[a[k]] = 1
-	split("is-dir is-file is-readable exists is-link physical-dir readlink read-lines read-file self-path command-path pid list-prefix cd pwd", a, " ")
+	split("is-dir is-file is-readable is-writable exists is-link physical-dir readlink read-lines read-file self-path command-path pid list-prefix cd pwd", a, " ")
 	for (k in a) read_ops[a[k]] = 1
 	nerr = 0
 	nres = 0
@@ -229,7 +229,7 @@ function check_tokens(name, n,   v1, ok, want) {
 	if (name == "interrupt") {
 		if (tok[1] !~ /^(INT|TERM|HUP)$/ || !(is_int(tok[2]) && tok[2] + 0 >= 1)) { err(FNR, "허용하지 않는 값입니다: interrupt " value); return 0 }
 	}
-	if (name == "fault" && tok[1] !~ /^(mkdir|mkdir-p|rmdir|remove|write|copy|link|move|chmod)$/) {
+	if (name == "fault" && tok[1] !~ /^(mkdir|mkdir-p|rmdir|remove|write|copy|copy-preserve|link|move|chmod)$/) {
 		err(FNR, "허용하지 않는 값입니다: fault " tok[1]); return 0
 	}
 	if (name == "op" && (tok[1] == "violation" || tok[1] == "unmatched-stub")) {

@@ -255,6 +255,10 @@ BEGIN {
 	} else if (op == "exists") {
 		record("exists"); arg_rec(a1)
 		r = resolve(a1, 1); st = (rerr == "" && kind[r] != "") ? 0 : 1
+	} else if (op == "is_writable") {
+		# 파일에 붙인 readonly는 이 판정에만 쓴다(기능 004 research R-08).
+		record("is-writable"); arg_rec(a1)
+		r = resolve(a1, 1); st = (rerr == "" && kind[r] != "" && !deny[r] && !ro[r]) ? 0 : 1
 	} else if (op == "is_link") {
 		record("is-link"); arg_rec(a1)
 		r = resolve(a1, 0); st = (rerr == "" && kind[r] == "link") ? 0 : 1
@@ -339,6 +343,21 @@ BEGIN {
 			r = resolve(a2, 1)
 			if (faulted("copy", a2) || !can_create(r) || kind[r] == "dir" || deny[r]) st = 1
 			else { kind[r] = "file"; val[r] = content; changed = 1 }
+		}
+	} else if (op == "copy_preserve") {
+		record("copy-preserve"); arg_rec(a1); arg_rec(a2)
+		rs = resolve(a1, 1)
+		if (!readable_file(rs)) st = 1
+		else {
+			content = val[rs]
+			srcmode = mode[rs]
+			r = resolve(a2, 1)
+			if (faulted("copy-preserve", a2) || !can_create(r) || kind[r] == "dir" || deny[r]) st = 1
+			else {
+				kind[r] = "file"; val[r] = content
+				if (srcmode != "") mode[r] = srcmode
+				changed = 1
+			}
 		}
 	} else if (op == "link") {
 		record("link"); arg_rec(a1); arg_rec(a2)

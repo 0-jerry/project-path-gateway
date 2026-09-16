@@ -5,7 +5,7 @@
 # 실제값은 대상 실행 캡처다: <접두어>.stdout, .stderr, .ops
 
 # 조회 종류 작업 기록(ops changes에서 비교하지 않음)
-PPGT_READ_KINDS='is-dir is-file is-readable exists is-link physical-dir readlink read-lines read-file self-path command-path pid list-prefix cd pwd'
+PPGT_READ_KINDS='is-dir is-file is-readable is-writable exists is-link physical-dir readlink read-lines read-file self-path command-path pid list-prefix cd pwd'
 
 # 바이트 파일을 사례 파일 이스케이프 표기 줄로 출력한다. $1: 필드 이름(out, err), $2: 파일
 ppgt_render_bytes() {

@@ -247,7 +247,7 @@ check_env_access() {
 			problem("E-4 시스템 포트 밖 $$ 또는 $0")
 		if (code ~ /^[ \t]*for[ \t]+[A-Za-z_][A-Za-z0-9_]*[ \t]+in[ \t].*[*?[]/)
 			problem("E-5 시스템 포트 밖 for 목록 글로브")
-		if (code ~ /__sys_(mkdir|mkdir_p|rmdir|remove|write_text|copy_to|link|move|chmod|trap)([ \t]|$)/) {
+		if (code ~ /__sys_(mkdir|mkdir_p|rmdir|remove|write_text|copy_to|copy_preserve|link|move|chmod|trap)([ \t]|$)/) {
 			pipe = code
 			gsub(/\|\|/, "", pipe)
 			if (pipe ~ /\|/ || code ~ /\$\(/)

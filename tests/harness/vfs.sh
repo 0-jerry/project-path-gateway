@@ -71,7 +71,7 @@ ppgt_vfs_fire() {
 # 시스템 포트 대체 본문. $1: 포트 접미사, 나머지: 포트 인자
 ppgt_vfs_port() {
 	case $1 in
-	mkdir | mkdir_p | rmdir | remove | write_text | copy_to | link | move | chmod) ppgt_vfs_interrupt ;;
+	mkdir | mkdir_p | rmdir | remove | write_text | copy_to | copy_preserve | link | move | chmod) ppgt_vfs_interrupt ;;
 	esac
 	case $1 in
 	self_path)
@@ -115,8 +115,8 @@ ppgt_vfs_apply() {
 	PPGT_VFS_CWD=$PPGT_CWD
 	ppgt_case_fs
 	ppgt_vfs_run init
-	for ppgt_vfs_name in is_dir is_file is_readable exists is_link physical_dir readlink read_lines read_file \
-		self_path command_path pid list_prefix mkdir mkdir_p rmdir remove write_text copy_to link move chmod trap; do
+	for ppgt_vfs_name in is_dir is_file is_readable is_writable exists is_link physical_dir readlink read_lines read_file \
+		self_path command_path pid list_prefix mkdir mkdir_p rmdir remove write_text copy_to copy_preserve link move chmod trap; do
 		eval "project_path_gateway__sys_$ppgt_vfs_name() { ppgt_vfs_port $ppgt_vfs_name \"\$@\"; }"
 		eval "ppg__sys_$ppgt_vfs_name() { ppgt_vfs_port $ppgt_vfs_name \"\$@\"; }"
 	done
