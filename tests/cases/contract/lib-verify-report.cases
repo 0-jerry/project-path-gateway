@@ -10,13 +10,18 @@ case verify-report-args-empty-string
 fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
 call project_path_gateway_init /t/root
 call project_path_gateway_verify \e
-status 0
+status 2
+err project-path-gateway: project_path_gateway_verify: 리포트 파일 경로가 비어 있습니다
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 2
 
 case verify-report-args-not-initialized
 fs file /out/report.txt
 content old
 call project_path_gateway_verify /out/report.txt
-status 0
+status 2
+err project-path-gateway: project_path_gateway_verify: 초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요
+op returned project_path_gateway_verify 2
 
 case verify-report-args-missing-data-file
 fs dir /t/root/.tool/project-path-gateway
@@ -24,7 +29,10 @@ fs file /out/report.txt
 content old
 call eval PROJECT_PATH_GATEWAY_ROOT=/t/root
 call project_path_gateway_verify /out/report.txt
-status 0
+status 2
+err project-path-gateway: project_path_gateway_verify: 데이터 파일을 읽을 수 없습니다: /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op returned eval 0
+op returned project_path_gateway_verify 2
 
 case verify-report-args-data-file-violation
 fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
@@ -33,4 +41,7 @@ content bad
 fs dir /t/root/a
 call eval PROJECT_PATH_GATEWAY_ROOT=/t/root
 call project_path_gateway_verify /out/report.txt
-status 0
+status 2
+err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:2: KEY=경로 형식이 아닙니다
+op returned eval 0
+op returned project_path_gateway_verify 2

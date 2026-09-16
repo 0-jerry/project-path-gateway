@@ -727,14 +727,18 @@ project_path_gateway__port_report_outside() (
 	printf 'project-path-gateway: 루트 밖: %s=%s -> %s\n' "$1" "$2" "$3" >&2
 )
 
-# 공개 함수: 등록 경로 검증 (contracts/library-api.md 5절).
+# 공개 함수: 등록 경로 검증 (contracts/library-api.md 5절, 기능 003 REPORT_FILE 선택 인자).
 project_path_gateway_verify() (
 	set +e +u +f
 	IFS=' 	''
 '
 	unset CDPATH
-	if [ "$#" -ne 0 ]; then
-		project_path_gateway__if_error project_path_gateway_verify '인자를 받지 않습니다'
+	if [ "$#" -gt 1 ]; then
+		project_path_gateway__if_error project_path_gateway_verify '인자는 0개 또는 REPORT_FILE 1개여야 합니다'
+		return 2
+	fi
+	if [ "$#" -eq 1 ] && [ -z "$1" ]; then
+		project_path_gateway__if_error project_path_gateway_verify '리포트 파일 경로가 비어 있습니다'
 		return 2
 	fi
 	if [ -z "${PROJECT_PATH_GATEWAY_ROOT+x}" ]; then
