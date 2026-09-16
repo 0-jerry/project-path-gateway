@@ -75,3 +75,282 @@ call project_path_gateway_update docs /abs
 status 2
 err project-path-gateway: project_path_gateway_update: 키 형식이 잘못되었습니다(대문자로 시작, 대문자·숫자·_만 허용): docs
 op returned project_path_gateway_update 2
+
+# 갱신 성공 (US3-1·3, FR-021·FR-022·FR-023·FR-024, 계약 3절): 대상 줄 내용만 바뀐다.
+# 새 원문은 규칙을 통과한 KEY=PATH 한 줄과 이미 검사를 통과한 기존 줄 바이트로만 이루어져 데이터 파일 규칙을 만족한다.
+case update-middle-key-in-mixed-file
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content # 경로 항목
+content
+content A_DIR=a
+content B_DIR=b
+content
+content C_DIR=c
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_update B_DIR new/b
+status 0
+op copy-preserve /t/root/.tool/project-path-gateway/project-path-gateway.conf /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\s경로\s항목\n\nA_DIR=a\nB_DIR=new/b\n\nC_DIR=c\n
+op move /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op returned project_path_gateway_update 0
+
+case update-same-path-writes-nothing
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content DOCS_DIR=docs
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_update DOCS_DIR docs
+status 0
+op returned project_path_gateway_update 0
+
+case update-last-line-without-lf-is-target
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A_DIR=a
+content-raw B_DIR=b
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_update B_DIR x
+status 0
+op copy-preserve /t/root/.tool/project-path-gateway/project-path-gateway.conf /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf A_DIR=a\nB_DIR=x
+op move /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op returned project_path_gateway_update 0
+
+case update-prefix-key-only-exact-line
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content DOC=d
+content DOCS_DIR=docs
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_update DOC e
+status 0
+op copy-preserve /t/root/.tool/project-path-gateway/project-path-gateway.conf /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf DOC=e\nDOCS_DIR=docs\n
+op move /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op returned project_path_gateway_update 0
+
+case update-last-key-of-200-entries
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content KEY_1=dir/1
+content KEY_2=dir/2
+content KEY_3=dir/3
+content KEY_4=dir/4
+content KEY_5=dir/5
+content KEY_6=dir/6
+content KEY_7=dir/7
+content KEY_8=dir/8
+content KEY_9=dir/9
+content KEY_10=dir/10
+content KEY_11=dir/11
+content KEY_12=dir/12
+content KEY_13=dir/13
+content KEY_14=dir/14
+content KEY_15=dir/15
+content KEY_16=dir/16
+content KEY_17=dir/17
+content KEY_18=dir/18
+content KEY_19=dir/19
+content KEY_20=dir/20
+content KEY_21=dir/21
+content KEY_22=dir/22
+content KEY_23=dir/23
+content KEY_24=dir/24
+content KEY_25=dir/25
+content KEY_26=dir/26
+content KEY_27=dir/27
+content KEY_28=dir/28
+content KEY_29=dir/29
+content KEY_30=dir/30
+content KEY_31=dir/31
+content KEY_32=dir/32
+content KEY_33=dir/33
+content KEY_34=dir/34
+content KEY_35=dir/35
+content KEY_36=dir/36
+content KEY_37=dir/37
+content KEY_38=dir/38
+content KEY_39=dir/39
+content KEY_40=dir/40
+content KEY_41=dir/41
+content KEY_42=dir/42
+content KEY_43=dir/43
+content KEY_44=dir/44
+content KEY_45=dir/45
+content KEY_46=dir/46
+content KEY_47=dir/47
+content KEY_48=dir/48
+content KEY_49=dir/49
+content KEY_50=dir/50
+content KEY_51=dir/51
+content KEY_52=dir/52
+content KEY_53=dir/53
+content KEY_54=dir/54
+content KEY_55=dir/55
+content KEY_56=dir/56
+content KEY_57=dir/57
+content KEY_58=dir/58
+content KEY_59=dir/59
+content KEY_60=dir/60
+content KEY_61=dir/61
+content KEY_62=dir/62
+content KEY_63=dir/63
+content KEY_64=dir/64
+content KEY_65=dir/65
+content KEY_66=dir/66
+content KEY_67=dir/67
+content KEY_68=dir/68
+content KEY_69=dir/69
+content KEY_70=dir/70
+content KEY_71=dir/71
+content KEY_72=dir/72
+content KEY_73=dir/73
+content KEY_74=dir/74
+content KEY_75=dir/75
+content KEY_76=dir/76
+content KEY_77=dir/77
+content KEY_78=dir/78
+content KEY_79=dir/79
+content KEY_80=dir/80
+content KEY_81=dir/81
+content KEY_82=dir/82
+content KEY_83=dir/83
+content KEY_84=dir/84
+content KEY_85=dir/85
+content KEY_86=dir/86
+content KEY_87=dir/87
+content KEY_88=dir/88
+content KEY_89=dir/89
+content KEY_90=dir/90
+content KEY_91=dir/91
+content KEY_92=dir/92
+content KEY_93=dir/93
+content KEY_94=dir/94
+content KEY_95=dir/95
+content KEY_96=dir/96
+content KEY_97=dir/97
+content KEY_98=dir/98
+content KEY_99=dir/99
+content KEY_100=dir/100
+content KEY_101=dir/101
+content KEY_102=dir/102
+content KEY_103=dir/103
+content KEY_104=dir/104
+content KEY_105=dir/105
+content KEY_106=dir/106
+content KEY_107=dir/107
+content KEY_108=dir/108
+content KEY_109=dir/109
+content KEY_110=dir/110
+content KEY_111=dir/111
+content KEY_112=dir/112
+content KEY_113=dir/113
+content KEY_114=dir/114
+content KEY_115=dir/115
+content KEY_116=dir/116
+content KEY_117=dir/117
+content KEY_118=dir/118
+content KEY_119=dir/119
+content KEY_120=dir/120
+content KEY_121=dir/121
+content KEY_122=dir/122
+content KEY_123=dir/123
+content KEY_124=dir/124
+content KEY_125=dir/125
+content KEY_126=dir/126
+content KEY_127=dir/127
+content KEY_128=dir/128
+content KEY_129=dir/129
+content KEY_130=dir/130
+content KEY_131=dir/131
+content KEY_132=dir/132
+content KEY_133=dir/133
+content KEY_134=dir/134
+content KEY_135=dir/135
+content KEY_136=dir/136
+content KEY_137=dir/137
+content KEY_138=dir/138
+content KEY_139=dir/139
+content KEY_140=dir/140
+content KEY_141=dir/141
+content KEY_142=dir/142
+content KEY_143=dir/143
+content KEY_144=dir/144
+content KEY_145=dir/145
+content KEY_146=dir/146
+content KEY_147=dir/147
+content KEY_148=dir/148
+content KEY_149=dir/149
+content KEY_150=dir/150
+content KEY_151=dir/151
+content KEY_152=dir/152
+content KEY_153=dir/153
+content KEY_154=dir/154
+content KEY_155=dir/155
+content KEY_156=dir/156
+content KEY_157=dir/157
+content KEY_158=dir/158
+content KEY_159=dir/159
+content KEY_160=dir/160
+content KEY_161=dir/161
+content KEY_162=dir/162
+content KEY_163=dir/163
+content KEY_164=dir/164
+content KEY_165=dir/165
+content KEY_166=dir/166
+content KEY_167=dir/167
+content KEY_168=dir/168
+content KEY_169=dir/169
+content KEY_170=dir/170
+content KEY_171=dir/171
+content KEY_172=dir/172
+content KEY_173=dir/173
+content KEY_174=dir/174
+content KEY_175=dir/175
+content KEY_176=dir/176
+content KEY_177=dir/177
+content KEY_178=dir/178
+content KEY_179=dir/179
+content KEY_180=dir/180
+content KEY_181=dir/181
+content KEY_182=dir/182
+content KEY_183=dir/183
+content KEY_184=dir/184
+content KEY_185=dir/185
+content KEY_186=dir/186
+content KEY_187=dir/187
+content KEY_188=dir/188
+content KEY_189=dir/189
+content KEY_190=dir/190
+content KEY_191=dir/191
+content KEY_192=dir/192
+content KEY_193=dir/193
+content KEY_194=dir/194
+content KEY_195=dir/195
+content KEY_196=dir/196
+content KEY_197=dir/197
+content KEY_198=dir/198
+content KEY_199=dir/199
+content KEY_200=dir/200
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_update KEY_200 moved/200
+status 0
+op copy-preserve /t/root/.tool/project-path-gateway/project-path-gateway.conf /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf KEY_1=dir/1\nKEY_2=dir/2\nKEY_3=dir/3\nKEY_4=dir/4\nKEY_5=dir/5\nKEY_6=dir/6\nKEY_7=dir/7\nKEY_8=dir/8\nKEY_9=dir/9\nKEY_10=dir/10\nKEY_11=dir/11\nKEY_12=dir/12\nKEY_13=dir/13\nKEY_14=dir/14\nKEY_15=dir/15\nKEY_16=dir/16\nKEY_17=dir/17\nKEY_18=dir/18\nKEY_19=dir/19\nKEY_20=dir/20\nKEY_21=dir/21\nKEY_22=dir/22\nKEY_23=dir/23\nKEY_24=dir/24\nKEY_25=dir/25\nKEY_26=dir/26\nKEY_27=dir/27\nKEY_28=dir/28\nKEY_29=dir/29\nKEY_30=dir/30\nKEY_31=dir/31\nKEY_32=dir/32\nKEY_33=dir/33\nKEY_34=dir/34\nKEY_35=dir/35\nKEY_36=dir/36\nKEY_37=dir/37\nKEY_38=dir/38\nKEY_39=dir/39\nKEY_40=dir/40\nKEY_41=dir/41\nKEY_42=dir/42\nKEY_43=dir/43\nKEY_44=dir/44\nKEY_45=dir/45\nKEY_46=dir/46\nKEY_47=dir/47\nKEY_48=dir/48\nKEY_49=dir/49\nKEY_50=dir/50\nKEY_51=dir/51\nKEY_52=dir/52\nKEY_53=dir/53\nKEY_54=dir/54\nKEY_55=dir/55\nKEY_56=dir/56\nKEY_57=dir/57\nKEY_58=dir/58\nKEY_59=dir/59\nKEY_60=dir/60\nKEY_61=dir/61\nKEY_62=dir/62\nKEY_63=dir/63\nKEY_64=dir/64\nKEY_65=dir/65\nKEY_66=dir/66\nKEY_67=dir/67\nKEY_68=dir/68\nKEY_69=dir/69\nKEY_70=dir/70\nKEY_71=dir/71\nKEY_72=dir/72\nKEY_73=dir/73\nKEY_74=dir/74\nKEY_75=dir/75\nKEY_76=dir/76\nKEY_77=dir/77\nKEY_78=dir/78\nKEY_79=dir/79\nKEY_80=dir/80\nKEY_81=dir/81\nKEY_82=dir/82\nKEY_83=dir/83\nKEY_84=dir/84\nKEY_85=dir/85\nKEY_86=dir/86\nKEY_87=dir/87\nKEY_88=dir/88\nKEY_89=dir/89\nKEY_90=dir/90\nKEY_91=dir/91\nKEY_92=dir/92\nKEY_93=dir/93\nKEY_94=dir/94\nKEY_95=dir/95\nKEY_96=dir/96\nKEY_97=dir/97\nKEY_98=dir/98\nKEY_99=dir/99\nKEY_100=dir/100\nKEY_101=dir/101\nKEY_102=dir/102\nKEY_103=dir/103\nKEY_104=dir/104\nKEY_105=dir/105\nKEY_106=dir/106\nKEY_107=dir/107\nKEY_108=dir/108\nKEY_109=dir/109\nKEY_110=dir/110\nKEY_111=dir/111\nKEY_112=dir/112\nKEY_113=dir/113\nKEY_114=dir/114\nKEY_115=dir/115\nKEY_116=dir/116\nKEY_117=dir/117\nKEY_118=dir/118\nKEY_119=dir/119\nKEY_120=dir/120\nKEY_121=dir/121\nKEY_122=dir/122\nKEY_123=dir/123\nKEY_124=dir/124\nKEY_125=dir/125\nKEY_126=dir/126\nKEY_127=dir/127\nKEY_128=dir/128\nKEY_129=dir/129\nKEY_130=dir/130\nKEY_131=dir/131\nKEY_132=dir/132\nKEY_133=dir/133\nKEY_134=dir/134\nKEY_135=dir/135\nKEY_136=dir/136\nKEY_137=dir/137\nKEY_138=dir/138\nKEY_139=dir/139\nKEY_140=dir/140\nKEY_141=dir/141\nKEY_142=dir/142\nKEY_143=dir/143\nKEY_144=dir/144\nKEY_145=dir/145\nKEY_146=dir/146\nKEY_147=dir/147\nKEY_148=dir/148\nKEY_149=dir/149\nKEY_150=dir/150\nKEY_151=dir/151\nKEY_152=dir/152\nKEY_153=dir/153\nKEY_154=dir/154\nKEY_155=dir/155\nKEY_156=dir/156\nKEY_157=dir/157\nKEY_158=dir/158\nKEY_159=dir/159\nKEY_160=dir/160\nKEY_161=dir/161\nKEY_162=dir/162\nKEY_163=dir/163\nKEY_164=dir/164\nKEY_165=dir/165\nKEY_166=dir/166\nKEY_167=dir/167\nKEY_168=dir/168\nKEY_169=dir/169\nKEY_170=dir/170\nKEY_171=dir/171\nKEY_172=dir/172\nKEY_173=dir/173\nKEY_174=dir/174\nKEY_175=dir/175\nKEY_176=dir/176\nKEY_177=dir/177\nKEY_178=dir/178\nKEY_179=dir/179\nKEY_180=dir/180\nKEY_181=dir/181\nKEY_182=dir/182\nKEY_183=dir/183\nKEY_184=dir/184\nKEY_185=dir/185\nKEY_186=dir/186\nKEY_187=dir/187\nKEY_188=dir/188\nKEY_189=dir/189\nKEY_190=dir/190\nKEY_191=dir/191\nKEY_192=dir/192\nKEY_193=dir/193\nKEY_194=dir/194\nKEY_195=dir/195\nKEY_196=dir/196\nKEY_197=dir/197\nKEY_198=dir/198\nKEY_199=dir/199\nKEY_200=moved/200\n
+op move /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op returned project_path_gateway_update 0
+
+# 미등록 키 거부 (US3-2, FR-013): 항목을 새로 더하지 않는다
+case update-missing-key
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_update X_DIR x
+status 2
+err project-path-gateway: project_path_gateway_update: 등록되지 않은 키입니다: X_DIR
+op returned project_path_gateway_update 2
+
+# 갱신 뒤 조회 (US3-1): call 사이 파일 상태가 이어지지 않으므로 갱신 뒤 원문을 fs로 준다
+case update-then-get-prints-new-path
+fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+content A_DIR=a
+content B_DIR=new/b
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_get B_DIR
+status 0
+out /t/root/new/b
+op returned project_path_gateway_get 0
