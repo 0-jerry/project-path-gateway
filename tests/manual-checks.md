@@ -268,3 +268,111 @@ time "$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2
 ```
 
 기대 결과: stdout `project-path-gateway: 검증 통과 200건`, 반환 0, 경과 시간 2초 이내(초과하면 기록만 남깁니다).
+
+## 10. 검증 리포트 파일 실제 쓰기
+
+기능 003(`project_path_gateway_verify [REPORT_FILE]`)의 실제 파일 쓰기를 확인합니다. root가 아닌 사용자로 실행하고, 10.1부터 순서대로 실행합니다.
+
+```sh
+root="$WORK/root"
+mkdir -p "$root/.tool/project-path-gateway" "$root/a" "$WORK/out"
+printf '%s\n' '# marker' 'format=1' >"$root/.tool/project-path-gateway/.project-path-gateway"
+printf 'A=a\nB=b\nC=c\n' >"$root/.tool/project-path-gateway/project-path-gateway.conf"
+v() { "$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" || exit 2; shift 2; project_path_gateway_verify "$@"' _ "$REPO" "$root" "$@"; }
+```
+
+### 10.1 실패 리포트와 터미널 출력 동일성
+
+```sh
+v 2>"$WORK/plain.err"; echo "plain=$?"
+v "$WORK/out/결과 리포트.txt" 2>"$WORK/report.err"; echo "report=$?"
+cmp "$WORK/plain.err" "$WORK/report.err" && cmp "$WORK/report.err" "$WORK/out/결과 리포트.txt" && echo 동일
+cat "$WORK/out/결과 리포트.txt"
+```
+
+기대 결과: `plain=1`, `report=1`, `동일`. 리포트는 `project-path-gateway: 누락: B=b`, `project-path-gateway: 누락: C=c`,
+`project-path-gateway: 검증 실패 2건` 세 줄입니다.
+
+### 10.2 통과 리포트와 덮어쓰기
+
+```sh
+: >"$root/b"; : >"$root/c"
+v "$WORK/out/결과 리포트.txt"; echo "status=$?"
+cat "$WORK/out/결과 리포트.txt"
+```
+
+기대 결과: stdout `project-path-gateway: 검증 통과 3건`, `status=0`, 리포트는 같은 한 줄만 담습니다(이전 실패 줄 없음).
+
+### 10.3 파일 링크 리포트 위치
+
+```sh
+printf 'keep\n' >"$WORK/out/target.txt"; ln -s target.txt "$WORK/out/link.txt"
+v "$WORK/out/link.txt" >/dev/null; echo "status=$?"
+[ -L "$WORK/out/link.txt" ] && echo 링크유지 || echo 링크교체
+cat "$WORK/out/target.txt"
+```
+
+기대 결과: `status=0`, `링크교체`, `keep`(링크 대상은 바뀌지 않음).
+
+### 10.4 리포트 쓰기 실패
+
+```sh
+mkdir "$WORK/locked" "$WORK/dir-target" && chmod 555 "$WORK/locked"
+ln -s "$WORK/dir-target" "$WORK/dir-link"
+for r in "$WORK/none/report.txt" "$WORK/locked/report.txt" "$WORK/dir-target" "$WORK/dir-link" "$WORK/out/"; do
+	v "$r" >/dev/null; echo "status=$?"
+done
+ls -A "$WORK/locked" "$WORK/dir-target"; [ -L "$WORK/dir-link" ] && echo 디렉터리링크유지
+find "$WORK" -name '.ppg-report.*' | wc -l
+chmod 755 "$WORK/locked"
+```
+
+기대 결과: 경로마다 stderr `project-path-gateway: project_path_gateway_verify: 리포트 파일을 쓸 수 없습니다: <경로>`와
+`status=2`(5번), `ls` 출력 없음, `디렉터리링크유지`, 임시 파일 수 `0`.
+
+### 10.5 리포트 미지정 검증의 무변경
+
+```sh
+before=$(cd "$WORK" && find . -exec ls -ld {} + | LC_ALL=C sort)
+v >/dev/null
+after=$(cd "$WORK" && find . -exec ls -ld {} + | LC_ALL=C sort)
+[ "$before" = "$after" ] && echo 무변경
+```
+
+기대 결과: `무변경`.
+
+### 10.6 서로 다른 셸 프로세스의 동시 실행
+
+```sh
+printf 'project-path-gateway: 검증 통과 3건\n' >"$WORK/expected.txt"
+i=0; while [ "$i" -lt 20 ]; do
+	v "$WORK/out/concurrent.txt" >/dev/null & p1=$!
+	v "$WORK/out/concurrent.txt" >/dev/null & p2=$!
+	wait "$p1" "$p2"
+	cmp -s "$WORK/out/concurrent.txt" "$WORK/expected.txt" || echo "불일치 $i"
+	i=$((i + 1))
+done
+find "$WORK/out" -name '.ppg-report.*' | wc -l
+```
+
+기대 결과: `불일치` 줄 없음, 임시 파일 수 `0`. `v`는 실행마다 새 셸 프로세스를 띄우므로 서로 다른 PID를 씁니다.
+
+### 10.7 신호 중단과 항목 200개 시간
+
+```sh
+big="$WORK/root200"
+mkdir -p "$big/.tool/project-path-gateway" "$big/dir"
+printf '%s\n' '# marker' 'format=1' >"$big/.tool/project-path-gateway/.project-path-gateway"
+i=0; while [ "$i" -lt 200 ]; do printf 'KEY_%s=dir/file_%s\n' "$i" "$i"; : >"$big/dir/file_$i"; i=$((i + 1)); done >"$big/.tool/project-path-gateway/project-path-gateway.conf"
+vb() { "$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" || exit 2; shift 2; project_path_gateway_verify "$@"' _ "$REPO" "$big" "$@"; }
+t0=$(date +%s); vb >/dev/null; t1=$(date +%s); vb "$WORK/out/big.txt" >/dev/null; t2=$(date +%s)
+echo "미지정 $((t1 - t0))초, 리포트 지정 $((t2 - t1))초"
+printf 'old\n' >"$WORK/out/int.txt"
+"$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" || exit 2; project_path_gateway_verify "$3"' _ "$REPO" "$big" "$WORK/out/int.txt" >/dev/null 2>&1 & p=$!
+sleep 1; kill -TERM "$p"; wait "$p"; echo "status=$?"
+head -1 "$WORK/out/int.txt"; ls -A "$WORK/out" | grep '^\.ppg-report\.' || echo 임시없음
+```
+
+기대 결과: 미지정과 리포트 지정 경과 시간 차이가 1초 이하(SC-005, 초 단위 측정, 초과하면 기록). 중단한 실행은 `status=143`이고(검증이 1초 안에 끝났으면 0), `int.txt` 첫 줄이 `old` 또는
+`project-path-gateway: 검증 통과 200건`이고, 반쯤 쓴 내용은 없습니다. 쓰기와 옮기기 사이에 중단된 경우에만 `.ppg-report.<PID>.int.txt`
+임시 파일이 남을 수 있으며 그 이름을 기록합니다.
