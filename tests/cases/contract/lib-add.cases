@@ -287,3 +287,20 @@ op write /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.
 op move /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tools/project-path-gateway/project-path-gateway.conf
 op remove /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
 op returned project_path_gateway_add 2
+
+# 기능 005 보호 사례(US1): 경로의 TAB·= 보존, CR과 LF가 함께 있으면 CR을 먼저 보고한다.
+case add-path-with-tab-and-equal
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_add TABBED a\tb=c
+status 0
+op copy-preserve /t/root/.tools/project-path-gateway/project-path-gateway.conf /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf DOCS_DIR=docs\nTABBED=a\tb=c\n
+op move /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tools/project-path-gateway/project-path-gateway.conf
+op returned project_path_gateway_add 0
+
+case edit-invalid-add-path-cr-and-lf-reports-carriage-return
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_add NEW_DIR a\r\nb
+status 2
+err project-path-gateway: project_path_gateway_add: 경로에 CR 문자를 쓸 수 없습니다
+op returned project_path_gateway_add 2

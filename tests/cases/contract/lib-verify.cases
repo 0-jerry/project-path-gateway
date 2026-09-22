@@ -630,3 +630,15 @@ status 0
 out project-path-gateway: 검증 통과 200건
 op returned project_path_gateway_init 0
 op returned project_path_gateway_verify 0
+
+# 기능 005 보호 사례(US1): 경로의 TAB이 누락 보고에 그대로 나온다.
+case verify-missing-path-with-tab-reported-verbatim
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
+content TABBED=a\tb
+call project_path_gateway_init /t/root
+call project_path_gateway_verify
+status 1
+err project-path-gateway: 누락: TABBED=a\tb
+err project-path-gateway: 검증 실패 1건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 1

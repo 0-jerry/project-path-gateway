@@ -117,3 +117,28 @@ call project_path_gateway_get APP_CONFIG
 status 2
 err project-path-gateway: project_path_gateway_get: 데이터 파일을 읽을 수 없습니다: /t/deleted/.tools/project-path-gateway/project-path-gateway.conf
 op returned project_path_gateway_get 2
+
+# 기능 005 보호 사례(US1): 리팩터링이 건드리는 레코드 경계. 경로의 TAB은 잘리지 않고, 앞부분이 같은 키는 정확히 일치하는 키만 찾는다.
+case get-path-with-tab-is-kept
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
+content TABBED=a\tb/c
+call project_path_gateway_init /t/root
+call project_path_gateway_get TABBED
+status 0
+out /t/root/a\tb/c
+op returned project_path_gateway_init 0
+op returned project_path_gateway_get 0
+
+case get-prefix-key-exact-match
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
+content DOCS_DIR=two
+content DOC=one
+call project_path_gateway_init /t/root
+call project_path_gateway_get DOC
+call project_path_gateway_get DOCS_DIR
+status 0
+out /t/root/one
+out /t/root/two
+op returned project_path_gateway_init 0
+op returned project_path_gateway_get 0
+op returned project_path_gateway_get 0
