@@ -1,10 +1,12 @@
 # 인프라 통합: 루트 표식 파일 상위 탐색 (기능 001 root_discovery_test, FR-002, research R-06)
+# 둘째 인자는 루트 기준 표식 상대경로다(기능 005 research R-05, domain_layout_marker 값).
 target lib-func project_path_gateway__port_find_root
 layer infra
 
 case find-root-start-is-root
 fs file /w/root/.tools/project-path-gateway/.project-path-gateway
 arg /w/root
+arg .tools/project-path-gateway/.project-path-gateway
 status 0
 out-raw /w/rootx
 op is-file /w/root/.tools/project-path-gateway/.project-path-gateway
@@ -13,6 +15,7 @@ case find-root-from-subdirectory
 fs file /w/root/.tools/project-path-gateway/.project-path-gateway
 fs dir /w/root/a/b
 arg /w/root/a/b
+arg .tools/project-path-gateway/.project-path-gateway
 status 0
 out-raw /w/rootx
 op is-file /w/root/a/b/.tools/project-path-gateway/.project-path-gateway
@@ -24,6 +27,7 @@ fs file /w/root/.tools/project-path-gateway/.project-path-gateway
 fs file /w/root/sub/.tools/project-path-gateway/.project-path-gateway
 fs dir /w/root/sub/x
 arg /w/root/sub/x
+arg .tools/project-path-gateway/.project-path-gateway
 status 0
 out-raw /w/root/subx
 op is-file /w/root/sub/x/.tools/project-path-gateway/.project-path-gateway
@@ -32,6 +36,7 @@ op is-file /w/root/sub/.tools/project-path-gateway/.project-path-gateway
 case find-root-inside-tool-directory
 fs file /w/root/.tools/project-path-gateway/.project-path-gateway
 arg /w/root/.tools/project-path-gateway
+arg .tools/project-path-gateway/.project-path-gateway
 status 0
 out-raw /w/rootx
 op is-file /w/root/.tools/project-path-gateway/.tools/project-path-gateway/.project-path-gateway
@@ -42,6 +47,7 @@ case find-root-tool-directory-without-marker-continues
 fs file /w/root/.tools/project-path-gateway/.project-path-gateway
 fs dir /w/root/child/.tools/project-path-gateway
 arg /w/root/child
+arg .tools/project-path-gateway/.project-path-gateway
 status 0
 out-raw /w/rootx
 op is-file /w/root/child/.tools/project-path-gateway/.project-path-gateway
@@ -51,6 +57,7 @@ case find-root-marker-directory-not-accepted
 fs file /w/root/.tools/project-path-gateway/.project-path-gateway
 fs dir /w/root/child/.tools/project-path-gateway/.project-path-gateway
 arg /w/root/child
+arg .tools/project-path-gateway/.project-path-gateway
 status 0
 out-raw /w/rootx
 op is-file /w/root/child/.tools/project-path-gateway/.project-path-gateway
@@ -60,6 +67,7 @@ case find-root-unreadable-marker-accepted
 fs file /w/root/.tools/project-path-gateway/.project-path-gateway
 fs deny /w/root/.tools/project-path-gateway/.project-path-gateway
 arg /w/root
+arg .tools/project-path-gateway/.project-path-gateway
 status 0
 out-raw /w/rootx
 op is-file /w/root/.tools/project-path-gateway/.project-path-gateway
@@ -67,6 +75,7 @@ op is-file /w/root/.tools/project-path-gateway/.project-path-gateway
 case find-root-none-up-to-slash
 fs dir /w/plain
 arg /w/plain
+arg .tools/project-path-gateway/.project-path-gateway
 status 1
 op is-file /w/plain/.tools/project-path-gateway/.project-path-gateway
 op is-file /w/.tools/project-path-gateway/.project-path-gateway
@@ -76,6 +85,7 @@ case find-root-marker-at-slash
 fs file /.tools/project-path-gateway/.project-path-gateway
 fs dir /w/a
 arg /w/a
+arg .tools/project-path-gateway/.project-path-gateway
 status 0
 out-raw /x
 op is-file /w/a/.tools/project-path-gateway/.project-path-gateway
@@ -86,6 +96,7 @@ case find-root-name-ending-with-newline
 fs file /w/nl\n/.tools/project-path-gateway/.project-path-gateway
 fs dir /w/nl\n/a
 arg /w/nl\n/a
+arg .tools/project-path-gateway/.project-path-gateway
 status 0
 out /w/nl
 out-raw x
@@ -96,6 +107,7 @@ case find-root-space-and-korean
 fs file /w/내\s프로젝트\s폴더/.tools/project-path-gateway/.project-path-gateway
 fs dir /w/내\s프로젝트\s폴더/하위\s디렉터리
 arg /w/내\s프로젝트\s폴더/하위\s디렉터리
+arg .tools/project-path-gateway/.project-path-gateway
 status 0
 out-raw /w/내 프로젝트 폴더x
 op is-file /w/내\s프로젝트\s폴더/하위\s디렉터리/.tools/project-path-gateway/.project-path-gateway

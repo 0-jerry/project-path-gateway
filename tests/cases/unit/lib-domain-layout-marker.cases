@@ -1,0 +1,7 @@
+# 도메인 단위: 도구 배치 모델 - 루트 표식 상대경로 (기능 005 research R-05, data-model 1.6)
+target lib-func project_path_gateway__domain_layout_marker
+layer domain
+
+case layout-marker-relpath
+status 0
+out-raw .tools/project-path-gateway/.project-path-gateway

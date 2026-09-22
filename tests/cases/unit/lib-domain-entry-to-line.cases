@@ -1,0 +1,21 @@
+# 도메인 단위: 항목 모델 데이터 파일 줄 만들기 (기능 005 FR-004). KEY=PATH를 끝 LF 없이 출력한다.
+target lib-func project_path_gateway__domain_entry_to_line
+layer domain
+
+case entry-to-line-simple
+arg A
+arg b
+status 0
+out-raw A=b
+
+case entry-to-line-path-with-tab-and-equal
+arg A
+arg a\tb=c
+status 0
+out-raw A=a\tb=c
+
+case entry-to-line-path-with-edge-spaces
+arg K
+arg \s한글\s
+status 0
+out-raw K= 한글 

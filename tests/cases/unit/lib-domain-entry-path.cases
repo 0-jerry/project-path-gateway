@@ -1,0 +1,18 @@
+# 도메인 단위: 항목 모델 필드 접근 - 경로 (기능 005 FR-004). 둘째 TAB 뒤 전체이며 끝 LF 없이 출력한다.
+target lib-func project_path_gateway__domain_entry_path
+layer domain
+
+case entry-path-simple
+arg 3\tA\tb
+status 0
+out-raw b
+
+case entry-path-keeps-tab-and-equal
+arg 3\tA\ta\tb=c
+status 0
+out-raw a\tb=c
+
+case entry-path-keeps-edge-spaces-and-korean
+arg 3\tA\t\s한글\s
+status 0
+out-raw  한글 

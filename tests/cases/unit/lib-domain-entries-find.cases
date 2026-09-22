@@ -1,0 +1,43 @@
+# 도메인 단위: 항목 목록 모델 찾기 (기능 005 FR-004, data-model 1.5). 키가 정확히 같은 첫 레코드를 끝 LF 없이 출력한다. 없으면 반환 1.
+target lib-func project_path_gateway__domain_entries_find
+layer domain
+
+case entries-find-first-match
+arg 1\tA\ta\n2\tB\tb\n3\tC\tc
+arg B
+status 0
+out-raw 2\tB\tb
+
+case entries-find-prefix-key-exact
+arg 1\tDOCS_DIR\ttwo\n2\tDOC\tone
+arg DOC
+status 0
+out-raw 2\tDOC\tone
+
+case entries-find-longer-key-exact
+arg 1\tDOC\tone\n2\tDOCS_DIR\ttwo
+arg DOCS_DIR
+status 0
+out-raw 2\tDOCS_DIR\ttwo
+
+case entries-find-missing
+arg 1\tA\ta\n2\tB\tb
+arg C
+status 1
+
+case entries-find-empty-list
+arg \e
+arg A
+status 1
+
+case entries-find-path-with-tab
+arg 1\tA\ta\tb=c\n2\tB\tb
+arg A
+status 0
+out-raw 1\tA\ta\tb=c
+
+case entries-find-last-without-lf
+arg 1\tA\ta\n5\tZ\tz
+arg Z
+status 0
+out-raw 5\tZ\tz

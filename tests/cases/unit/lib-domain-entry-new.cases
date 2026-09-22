@@ -1,0 +1,24 @@
+# 도메인 단위: 항목 모델 레코드 생성 (기능 005 FR-004, data-model 1.3). 레코드는 끝 LF를 포함해 출력한다.
+target lib-func project_path_gateway__domain_entry_new
+layer domain
+
+case entry-new-simple
+arg 3
+arg A
+arg b
+status 0
+out 3\tA\tb
+
+case entry-new-path-with-tab-and-equal
+arg 12
+arg DOCS_DIR
+arg a\tb=c
+status 0
+out 12\tDOCS_DIR\ta\tb=c
+
+case entry-new-path-with-edge-spaces-and-korean
+arg 1
+arg K
+arg \s한글\s
+status 0
+out 1\tK\t 한글 

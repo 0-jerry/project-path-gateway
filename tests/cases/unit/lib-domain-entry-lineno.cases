@@ -1,0 +1,13 @@
+# 도메인 단위: 항목 모델 필드 접근 - 줄 번호 (기능 005 FR-004). 끝 LF 없이 출력한다.
+target lib-func project_path_gateway__domain_entry_lineno
+layer domain
+
+case entry-lineno-simple
+arg 3\tA\tb
+status 0
+out-raw 3
+
+case entry-lineno-path-with-tab
+arg 120\tA\ta\tb
+status 0
+out-raw 120

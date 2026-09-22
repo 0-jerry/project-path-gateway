@@ -1,60 +1,52 @@
 # 도메인 단위: 등록 새 원문 조립 (기능 004 FR-020, research R-05, data-model 1.4)
-# 원문 끝에 KEY=PATH와 LF를 더한다. 원문이 LF 없이 끝나면 LF를 먼저 더한다. 출력은 끝 표지 방식.
+# 인자: 원문, 줄(KEY=PATH, 기능 005에서 domain_entry_to_line으로 만든다). 원문 끝에 줄과 LF를 더한다. 원문이 LF 없이 끝나면 LF를 먼저 더한다. 출력은 끝 표지 방식.
 target lib-func project_path_gateway__domain_append_entry
 layer domain
 
 case append-entry-empty-content
 arg \e
-arg DOCS_DIR
-arg docs
+arg DOCS_DIR=docs
 status 0
 out-raw DOCS_DIR=docs\nx
 
 case append-entry-content-ends-with-lf
 arg A=a\nB=b\n
-arg C
-arg c
+arg C=c
 status 0
 out-raw A=a\nB=b\nC=c\nx
 
 case append-entry-entry-line-without-lf
 arg A=a
-arg B
-arg b
+arg B=b
 status 0
 out-raw A=a\nB=b\nx
 
 case append-entry-comment-line-without-lf
 arg #\s주석
-arg B
-arg b
+arg B=b
 status 0
 out-raw # 주석\nB=b\nx
 
 case append-entry-comment-only
 arg #\s경로\s항목\n#\sKEY=경로\n
-arg DOCS_DIR
-arg docs
+arg DOCS_DIR=docs
 status 0
 out-raw # 경로 항목\n# KEY=경로\nDOCS_DIR=docs\nx
 
 case append-entry-ends-with-blank-lines
 arg A=a\n\n\n
-arg B
-arg b
+arg B=b
 status 0
 out-raw A=a\n\n\nB=b\nx
 
 case append-entry-special-path-bytes
 arg A=a\n
-arg K
-arg 내\s문서/a=b/\\%/-x/*
+arg K=내\s문서/a=b/\\%/-x/*
 status 0
 out-raw A=a\nK=내 문서/a=b/\\%/-x/*\nx
 
 case append-entry-crlf-comment-kept
 arg #\sc\r\n
-arg K
-arg k
+arg K=k
 status 0
 out-raw # c\r\nK=k\nx
