@@ -22,6 +22,174 @@
 
 # === 계층: 도메인 ===
 
+# --- 모델: 키 ---
+
+# 키 규칙을 만족하면 반환 0. 범위 괄호식 대신 문자 목록을 명시해 로캘과 무관하게 판정한다.
+# 라이브러리에서 키 규칙을 판정하는 곳은 이 함수뿐이다 (기능 005 FR-002).
+project_path_gateway__domain_key_is_valid() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	case $1 in
+	'' | [!ABCDEFGHIJKLMNOPQRSTUVWXYZ]* | *[!ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_]*)
+		return 1
+		;;
+	esac
+	return 0
+)
+
+# --- 모델: 경로 ---
+
+# 경로 규칙 위반 원인 코드를 출력한다. 위반이 없으면 아무것도 출력하지 않는다.
+# 순서: empty_path, absolute_path, parent_segment, carriage_return, line_feed. 경로 규칙을 판정하는 곳은 이 함수뿐이다 (기능 005 FR-003).
+project_path_gateway__domain_path_violation() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	# 다음 줄의 작은따옴표 안에는 CR 바이트(0x0D) 하나가 들어 있다. 명령 치환 없이 비교하려고 리터럴로 둔다 (기능 005 research R-04).
+	cr=''
+	nl='
+'
+	case $1 in
+	'')
+		printf 'empty_path\n'
+		return 0
+		;;
+	/*)
+		printf 'absolute_path\n'
+		return 0
+		;;
+	esac
+	case /$1/ in
+	*/../*)
+		printf 'parent_segment\n'
+		return 0
+		;;
+	esac
+	case $1 in
+	*"$cr"*) printf 'carriage_return\n' ;;
+	*"$nl"*) printf 'line_feed\n' ;;
+	esac
+	return 0
+)
+
+# --- 모델: 항목 ---
+# 항목 레코드 표현 "줄번호<TAB>키<TAB>경로"는 이 소구획의 함수만 안다 (기능 005 FR-006, research R-01).
+
+# 항목 레코드를 만들어 출력한다(끝 LF 포함).
+project_path_gateway__domain_entry_new() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	printf '%s\t%s\t%s\n' "$1" "$2" "$3"
+	return 0
+)
+
+# 등록·갱신 인자 KEY·PATH의 첫 위반 코드를 출력한다. 위반이 없으면 아무것도 출력하지 않는다 (기능 004 research R-02).
+# 순서: 키 모델, 경로 모델.
+project_path_gateway__domain_entry_violation() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	if ! project_path_gateway__domain_key_is_valid "$1"; then
+		printf 'invalid_key\n'
+		return 0
+	fi
+	project_path_gateway__domain_path_violation "$2"
+)
+
+# 데이터 파일 한 줄을 해석한다 (기능 005 data-model 1.4). $1: 줄 번호, $2: 줄.
+# 반환 0: 유효 항목(레코드 출력), 1: 규칙 위반(원인 코드 출력), 2: 빈 줄·주석(출력 없음).
+# 중복 키 검사는 파일 전체 상태가 필요하므로 seen_register로 따로 한다.
+project_path_gateway__domain_entry_parse_line() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	case $2 in
+	'' | '#'*) return 2 ;;
+	*=*) ;;
+	*)
+		printf 'no_separator\n'
+		return 1
+		;;
+	esac
+	key=${2%%=*}
+	path=${2#*=}
+	if ! project_path_gateway__domain_key_is_valid "$key"; then
+		printf 'invalid_key\n'
+		return 1
+	fi
+	violation=$(project_path_gateway__domain_path_violation "$path")
+	if [ -n "$violation" ]; then
+		printf '%s\n' "$violation"
+		return 1
+	fi
+	# entry_new와 같은 표현. 줄마다 호출 한 번을 줄이려고 여기서 바로 만든다 (기능 005 research R-06).
+	printf '%s\t%s\t%s\n' "$1" "$key" "$path"
+	return 0
+)
+
+# 줄의 첫 = 앞(키)을 출력한다. = 가 없으면 빈 출력.
+project_path_gateway__domain_entry_line_key() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	case $1 in
+	*=*) printf '%s' "${1%%=*}" ;;
+	esac
+	return 0
+)
+
+# 줄에 CR 문자가 있으면 반환 0 (CRLF 줄 끝 안내용).
+project_path_gateway__domain_entry_line_has_cr() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	# 다음 줄의 작은따옴표 안에는 CR 바이트(0x0D) 하나가 들어 있다 (기능 005 research R-04).
+	cr=''
+	case $1 in
+	*"$cr"*) return 0 ;;
+	esac
+	return 1
+)
+
+# --- 모델: 항목 목록 ---
+
+# 본 키 목록 SEEN(":KEY=줄번호:" 연결)에 레코드의 키를 등록한다.
+# 처음 본 키이면 새 목록을 출력하고 반환 0, 이미 본 키이면 처음 정의된 줄 번호를 출력하고 반환 1.
+project_path_gateway__domain_seen_register() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	tab='	'
+	lineno=${2%%"$tab"*}
+	rest=${2#*"$tab"}
+	key=${rest%%"$tab"*}
+	case $1 in
+	*":$key="*)
+		rest=${1#*":$key="}
+		printf '%s\n' "${rest%%:*}"
+		return 1
+		;;
+	esac
+	if [ -z "$1" ]; then
+		printf ':%s=%s:' "$key" "$lineno"
+	else
+		printf '%s%s=%s:' "$1" "$key" "$lineno"
+	fi
+	return 0
+)
+
+# --- 이전 함수 (기능 005 T017에서 제거) ---
+
 # 키 규칙을 만족하면 반환 0. 범위 괄호식 대신 문자 목록을 명시해 로캘과 무관하게 판정한다.
 project_path_gateway__domain_is_valid_key() (
 	set +e +u +f
@@ -47,57 +215,6 @@ project_path_gateway__domain_has_cr() (
 	*"$cr"*) return 0 ;;
 	esac
 	return 1
-)
-
-# 경로 규칙 위반 원인 코드를 출력한다. 위반이 없으면 아무것도 출력하지 않는다.
-project_path_gateway__domain_path_violation() (
-	set +e +u +f
-	IFS=' 	''
-'
-	unset CDPATH
-	case $1 in
-	'')
-		printf 'empty_path\n'
-		return 0
-		;;
-	/*)
-		printf 'absolute_path\n'
-		return 0
-		;;
-	esac
-	case /$1/ in
-	*/../*)
-		printf 'parent_segment\n'
-		return 0
-		;;
-	esac
-	if project_path_gateway__domain_has_cr "$1"; then
-		printf 'carriage_return\n'
-	fi
-	return 0
-)
-
-# 등록·갱신 인자 KEY·PATH의 첫 위반 코드를 출력한다. 위반이 없으면 아무것도 출력하지 않는다 (기능 004 research R-02).
-# 순서: 키 규칙, 경로 규칙(path_violation), 경로의 LF.
-project_path_gateway__domain_entry_violation() (
-	set +e +u +f
-	IFS=' 	''
-'
-	unset CDPATH
-	if ! project_path_gateway__domain_is_valid_key "$1"; then
-		printf 'invalid_key\n'
-		return 0
-	fi
-	violation=$(project_path_gateway__domain_path_violation "$2")
-	if [ -n "$violation" ]; then
-		printf '%s\n' "$violation"
-		return 0
-	fi
-	case $2 in
-	*'
-'*) printf 'line_feed\n' ;;
-	esac
-	return 0
 )
 
 # 등록 새 원문을 끝 표지 방식으로 출력한다 (기능 004 research R-05). 원문 끝에 KEY=PATH와 LF를 더하며,
