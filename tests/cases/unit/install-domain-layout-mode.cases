@@ -1,0 +1,23 @@
+# 도메인 단위: 설치 배치 모델 - 종류별 파일 권한 (기능 005 FR-041, research R-05)
+target script-func install.sh ppg__domain_layout_mode
+layer domain
+
+case install-layout-mode-bin
+arg bin
+status 0
+out 755
+
+case install-layout-mode-library
+arg library
+status 0
+out 644
+
+case install-layout-mode-version
+arg version
+status 0
+out 644
+
+case install-layout-mode-manifest
+arg manifest
+status 0
+out 644

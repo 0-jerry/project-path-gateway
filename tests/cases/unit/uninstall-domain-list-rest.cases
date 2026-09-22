@@ -1,0 +1,19 @@
+# 도메인 단위: 목록 순회 - 첫 줄을 뺀 나머지 (기능 005 FR-042, research R-05). 마지막 줄이면 빈 출력.
+target script-func uninstall.sh ppg__domain_list_rest
+layer domain
+
+case list-rest-of-many
+arg a\nb\nc
+status 0
+out b
+out c
+
+case list-rest-single
+arg only
+status 0
+
+case list-rest-keeps-empty-line
+arg a\n\nc
+status 0
+out
+out c

@@ -11,53 +11,101 @@
 
 # === 계층: 도메인 ===
 
+# --- 모델: 설치 배치 (기능 005 research R-05) ---
+
+# 설치하는 파일 종류와 순서. 설치 목록(manifest)은 마지막에 따로 설치한다.
+ppg__domain_layout_kinds() {
+	printf 'bin library version\n'
+}
+
+# 종류별 원본 경로(저장소 기준).
+ppg__domain_layout_source() {
+	case $1 in
+	bin) printf 'bin/project-path-gateway\n' ;;
+	library) printf 'lib/project-path-gateway.sh\n' ;;
+	version) printf 'VERSION\n' ;;
+	esac
+}
+
+# 종류별 설치 경로(PREFIX 기준).
+ppg__domain_layout_installed() {
+	case $1 in
+	bin) printf 'bin/project-path-gateway\n' ;;
+	library) printf 'share/project-path-gateway/project-path-gateway.sh\n' ;;
+	version) printf 'share/project-path-gateway/VERSION\n' ;;
+	manifest) printf 'share/project-path-gateway/install-manifest\n' ;;
+	esac
+}
+
+# 종류별 파일 권한.
+ppg__domain_layout_mode() {
+	case $1 in
+	bin) printf '755\n' ;;
+	*) printf '644\n' ;;
+	esac
+}
+
+# 설치가 만드는 디렉터리(PREFIX 기준).
+ppg__domain_layout_dirs() {
+	printf 'bin share/project-path-gateway\n'
+}
+
+# 공유 디렉터리(PREFIX 기준).
+ppg__domain_layout_share_dir() {
+	printf 'share/project-path-gateway\n'
+}
+
 # 설치 목록 내용: PREFIX 기준 상대경로, 이 목록 파일 포함.
 ppg__domain_manifest_content() {
-	printf '%s\n' \
-		bin/project-path-gateway \
-		share/project-path-gateway/project-path-gateway.sh \
-		share/project-path-gateway/VERSION \
-		share/project-path-gateway/install-manifest
+	for ppg_domain_kind in $(ppg__domain_layout_kinds) manifest; do
+		ppg__domain_layout_installed "$ppg_domain_kind"
+	done
 }
 
 # === 계층: 애플리케이션 ===
 
-# 설치 흐름. 실패하면 실패 경로를 보고 포트로 보고하고 반환 1, 성공하면 완료를 보고하고 반환 0.
+# 입력 포트: ppg__port_source_dir ppg__port_read_version ppg__port_make_dir ppg__port_install_file
+# 입력 포트: ppg__port_manifest_temp ppg__port_write_manifest ppg__port_remove
+# 출력 포트: ppg__out_failure ppg__out_done
+
+# 설치 흐름. 실패하면 실패 경로를 출력 포트로 보고하고 반환 1, 성공하면 완료를 보고하고 반환 0.
 ppg__app_install() {
 	ppg_app_prefix=$1
 	if ! ppg_app_source=$(ppg__port_source_dir); then
-		ppg__port_report_failure "${ppg_app_source%x}"
+		ppg__out_failure "${ppg_app_source%x}"
 		return 1
 	fi
 	ppg_app_source=${ppg_app_source%x}
-	if ! ppg_app_version=$(ppg__port_read_version "$ppg_app_source/VERSION"); then
-		ppg__port_report_failure "$ppg_app_source/VERSION"
+	ppg_app_version_file=$ppg_app_source/$(ppg__domain_layout_source version)
+	if ! ppg_app_version=$(ppg__port_read_version "$ppg_app_version_file"); then
+		ppg__out_failure "$ppg_app_version_file"
 		return 1
 	fi
 	ppg_app_version=${ppg_app_version%x}
 
-	ppg_app_share=$ppg_app_prefix/share/project-path-gateway
-	for ppg_app_dir in "$ppg_app_prefix/bin" "$ppg_app_share"; do
-		if ! ppg__port_make_dir "$ppg_app_dir"; then
-			ppg__port_report_failure "$ppg_app_dir"
+	for ppg_app_dir in $(ppg__domain_layout_dirs); do
+		if ! ppg__port_make_dir "$ppg_app_prefix/$ppg_app_dir"; then
+			ppg__out_failure "$ppg_app_prefix/$ppg_app_dir"
 			return 1
 		fi
 	done
 
-	ppg__app_install_one "$ppg_app_source/bin/project-path-gateway" "$ppg_app_prefix/bin/project-path-gateway" 755 || return 1
-	ppg__app_install_one "$ppg_app_source/lib/project-path-gateway.sh" "$ppg_app_share/project-path-gateway.sh" 644 || return 1
-	ppg__app_install_one "$ppg_app_source/VERSION" "$ppg_app_share/VERSION" 644 || return 1
+	for ppg_app_kind in $(ppg__domain_layout_kinds); do
+		ppg__app_install_one "$ppg_app_source/$(ppg__domain_layout_source "$ppg_app_kind")" \
+			"$ppg_app_prefix/$(ppg__domain_layout_installed "$ppg_app_kind")" "$(ppg__domain_layout_mode "$ppg_app_kind")" || return 1
+	done
 
-	ppg_app_manifest_temp=$(ppg__port_manifest_temp "$ppg_app_share")
+	ppg_app_manifest=$ppg_app_prefix/$(ppg__domain_layout_installed manifest)
+	ppg_app_manifest_temp=$(ppg__port_manifest_temp "$ppg_app_prefix/$(ppg__domain_layout_share_dir)")
 	if ! ppg__port_write_manifest "$ppg_app_manifest_temp"; then
 		ppg__port_remove "$ppg_app_manifest_temp"
-		ppg__port_report_failure "$ppg_app_share/install-manifest"
+		ppg__out_failure "$ppg_app_manifest"
 		return 1
 	fi
-	ppg__app_install_one "$ppg_app_manifest_temp" "$ppg_app_share/install-manifest" 644 || return 1
+	ppg__app_install_one "$ppg_app_manifest_temp" "$ppg_app_manifest" "$(ppg__domain_layout_mode manifest)" || return 1
 	ppg__port_remove "$ppg_app_manifest_temp"
 
-	ppg__port_report_done "$ppg_app_prefix" "$ppg_app_version"
+	ppg__out_done "$ppg_app_prefix" "$ppg_app_version"
 	return 0
 }
 
@@ -66,7 +114,7 @@ ppg__app_install_one() {
 	if ppg__port_install_file "$1" "$2" "$3"; then
 		return 0
 	fi
-	ppg__port_report_failure "$2"
+	ppg__out_failure "$2"
 	return 1
 }
 
@@ -191,13 +239,13 @@ ppg__if_usage() {
 	printf '사용법: sh install.sh [--prefix DIR]\n' >&2
 }
 
-# 설치 실패 보고 포트 구현.
-ppg__port_report_failure() {
+# 출력 포트 구현: 설치 실패 보고.
+ppg__out_failure() {
 	printf 'project-path-gateway: 설치 실패: %s\n' "$1" >&2
 }
 
-# 설치 완료 보고 포트 구현. PREFIX/bin이 PATH에 없으면 안내를 덧붙인다.
-ppg__port_report_done() {
+# 출력 포트 구현: 설치 완료 보고. PREFIX/bin이 PATH에 없으면 안내를 덧붙인다.
+ppg__out_done() {
 	printf 'project-path-gateway: 설치 완료: %s (버전 %s)\n' "$1" "$2"
 	case ":${PATH-}:" in
 	*":$1/bin:"*) ;;
@@ -205,6 +253,14 @@ ppg__port_report_done() {
 		printf 'project-path-gateway: %s가 PATH에 없습니다. 셸 설정 파일에 다음 줄을 추가하세요:\n' "$1/bin"
 		printf '  export PATH="%s/bin:$PATH"\n' "$1"
 		;;
+	esac
+}
+
+# 설치 결과 매핑: 애플리케이션 결과 코드를 종료 코드로 바꾼다 (0 → 0, 그 밖 → 1).
+ppg__if_install_result() {
+	case $1 in
+	0) return 0 ;;
+	*) return 1 ;;
 	esac
 }
 
@@ -227,10 +283,9 @@ main() {
 		esac
 	done
 	[ -n "$ppg_if_prefix" ] || ppg_if_prefix=$HOME/.local
-	if ppg__app_install "$ppg_if_prefix"; then
-		exit 0
-	fi
-	exit 1
+	ppg__app_install "$ppg_if_prefix"
+	ppg__if_install_result "$?"
+	exit "$?"
 }
 
 [ "${PPG_SOURCE_ONLY-}" = 1 ] || main "$@"

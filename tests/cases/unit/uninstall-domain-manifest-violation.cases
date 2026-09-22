@@ -1,0 +1,26 @@
+# 도메인 단위: 설치 목록 항목 위반 (기능 001 install_uninstall_test, contracts/install.md 2절, 기능 005 FR-042)
+target script-func uninstall.sh ppg__domain_manifest_violation
+layer domain
+
+case manifest-relative-ok
+arg bin/project-path-gateway
+status 0
+
+case manifest-absolute
+arg /etc/passwd
+status 0
+out absolute
+
+case manifest-parent
+arg share/../../x
+status 0
+out parent
+
+case manifest-parent-only
+arg ..
+status 0
+out parent
+
+case manifest-dotdot-in-name-ok
+arg share/a..b
+status 0

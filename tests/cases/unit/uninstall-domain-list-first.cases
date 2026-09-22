@@ -1,0 +1,23 @@
+# 도메인 단위: 목록 순회 - 첫 줄 (기능 005 FR-042, research R-05). 목록은 LF로 이은 줄이다.
+target script-func uninstall.sh ppg__domain_list_first
+layer domain
+
+case list-first-of-many
+arg a/b\nc\nd
+status 0
+out a/b
+
+case list-first-single
+arg only
+status 0
+out only
+
+case list-first-empty-line
+arg \nnext
+status 0
+out
+
+case list-first-keeps-spaces
+arg a\sb\nc
+status 0
+out a b

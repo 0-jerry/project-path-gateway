@@ -10,8 +10,22 @@
 
 # === 계층: 도메인 ===
 
+# --- 모델: 설치 배치 (기능 005 research R-05) ---
+
+# 공유 디렉터리(PREFIX 기준).
+ppg__domain_layout_share_dir() {
+	printf 'share/project-path-gateway\n'
+}
+
+# 설치 목록(PREFIX 기준).
+ppg__domain_layout_manifest() {
+	printf 'share/project-path-gateway/install-manifest\n'
+}
+
+# --- 모델: 설치 목록 ---
+
 # 설치 목록 항목 위반 원인을 출력한다: absolute(절대경로), parent(.. 세그먼트). 위반이 없으면 빈 출력.
-ppg__domain_entry_violation() {
+ppg__domain_manifest_violation() {
 	case $1 in
 	/*)
 		printf 'absolute\n'
@@ -24,46 +38,57 @@ ppg__domain_entry_violation() {
 	return 0
 }
 
+# LF로 이은 목록의 첫 줄을 출력한다.
+ppg__domain_list_first() {
+	ppg_domain_nl='
+'
+	printf '%s\n' "${1%%"$ppg_domain_nl"*}"
+}
+
+# LF로 이은 목록에서 첫 줄을 뺀 나머지를 출력한다. 마지막 줄이면 빈 출력.
+ppg__domain_list_rest() {
+	ppg_domain_nl='
+'
+	case $1 in
+	*"$ppg_domain_nl"*) printf '%s\n' "${1#*"$ppg_domain_nl"}" ;;
+	esac
+}
+
 # === 계층: 애플리케이션 ===
+
+# 입력 포트: ppg__port_manifest_exists ppg__port_read_manifest ppg__port_remove ppg__port_remove_dir
+# 출력 포트: ppg__out_no_manifest ppg__out_unsafe ppg__out_done
 
 # 제거 흐름. 반환: 0 성공, 1 설치 기록 없음·안전하지 않은 목록·목록 읽기 실패.
 # 지우기 전에 목록 전체를 검사한다. 위반 항목이 하나라도 있으면 아무것도 지우지 않는다.
 ppg__app_uninstall() {
 	ppg_app_prefix=$1
-	ppg_app_share=$ppg_app_prefix/share/project-path-gateway
-	ppg_app_manifest=$ppg_app_share/install-manifest
+	ppg_app_share=$ppg_app_prefix/$(ppg__domain_layout_share_dir)
+	ppg_app_manifest=$ppg_app_prefix/$(ppg__domain_layout_manifest)
 	if ! ppg__port_manifest_exists "$ppg_app_manifest"; then
-		ppg__port_report_no_manifest "$ppg_app_prefix"
+		ppg__out_no_manifest "$ppg_app_prefix"
 		return 1
 	fi
 	ppg_app_entries=$(ppg__port_read_manifest "$ppg_app_manifest") || return 1
-	ppg_app_nl='
-'
 	ppg_app_rest=$ppg_app_entries
 	while [ -n "$ppg_app_rest" ]; do
-		ppg_app_entry=${ppg_app_rest%%"$ppg_app_nl"*}
-		case $ppg_app_rest in
-		*"$ppg_app_nl"*) ppg_app_rest=${ppg_app_rest#*"$ppg_app_nl"} ;;
-		*) ppg_app_rest= ;;
-		esac
-		ppg_app_violation=$(ppg__domain_entry_violation "$ppg_app_entry")
+		ppg_app_entry=$(ppg__domain_list_first "$ppg_app_rest")
+		ppg_app_rest=$(ppg__domain_list_rest "$ppg_app_rest")
+		ppg_app_violation=$(ppg__domain_manifest_violation "$ppg_app_entry")
 		if [ -n "$ppg_app_violation" ]; then
-			ppg__port_report_unsafe "$ppg_app_violation" "$ppg_app_entry"
+			ppg__out_unsafe "$ppg_app_violation" "$ppg_app_entry"
 			return 1
 		fi
 	done
 	ppg_app_rest=$ppg_app_entries
 	while [ -n "$ppg_app_rest" ]; do
-		ppg_app_entry=${ppg_app_rest%%"$ppg_app_nl"*}
-		case $ppg_app_rest in
-		*"$ppg_app_nl"*) ppg_app_rest=${ppg_app_rest#*"$ppg_app_nl"} ;;
-		*) ppg_app_rest= ;;
-		esac
+		ppg_app_entry=$(ppg__domain_list_first "$ppg_app_rest")
+		ppg_app_rest=$(ppg__domain_list_rest "$ppg_app_rest")
 		[ -n "$ppg_app_entry" ] || continue
 		ppg__port_remove "$ppg_app_prefix/$ppg_app_entry"
 	done
 	ppg__port_remove_dir "$ppg_app_share"
-	ppg__port_report_done "$ppg_app_prefix"
+	ppg__out_done "$ppg_app_prefix"
 	return 0
 }
 
@@ -115,20 +140,30 @@ ppg__if_usage() {
 	printf '사용법: sh uninstall.sh [--prefix DIR]\n' >&2
 }
 
-ppg__port_report_no_manifest() {
+# 출력 포트 구현: 설치 기록 없음.
+ppg__out_no_manifest() {
 	printf 'project-path-gateway: 설치 기록이 없습니다: %s\n' "$1" >&2
 }
 
-# 안전하지 않은 설치 목록 보고 포트 구현. $1: absolute 또는 parent, $2: 항목.
-ppg__port_report_unsafe() {
+# 출력 포트 구현: 안전하지 않은 설치 목록. $1: absolute 또는 parent, $2: 항목.
+ppg__out_unsafe() {
 	case $1 in
 	absolute) printf 'project-path-gateway: 설치 목록에 절대경로가 있어 제거하지 않습니다: %s\n' "$2" >&2 ;;
 	*) printf 'project-path-gateway: 설치 목록에 .. 세그먼트가 있어 제거하지 않습니다: %s\n' "$2" >&2 ;;
 	esac
 }
 
-ppg__port_report_done() {
+# 출력 포트 구현: 제거 완료.
+ppg__out_done() {
 	printf 'project-path-gateway: 제거 완료: %s\n' "$1"
+}
+
+# 제거 결과 매핑: 애플리케이션 결과 코드를 종료 코드로 바꾼다 (0 → 0, 그 밖 → 1).
+ppg__if_uninstall_result() {
+	case $1 in
+	0) return 0 ;;
+	*) return 1 ;;
+	esac
 }
 
 main() {
@@ -150,10 +185,9 @@ main() {
 		esac
 	done
 	[ -n "$ppg_if_prefix" ] || ppg_if_prefix=$HOME/.local
-	if ppg__app_uninstall "$ppg_if_prefix"; then
-		exit 0
-	fi
-	exit 1
+	ppg__app_uninstall "$ppg_if_prefix"
+	ppg__if_uninstall_result "$?"
+	exit "$?"
 }
 
 [ "${PPG_SOURCE_ONLY-}" = 1 ] || main "$@"

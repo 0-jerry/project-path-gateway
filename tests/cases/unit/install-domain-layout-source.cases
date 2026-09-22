@@ -1,0 +1,18 @@
+# 도메인 단위: 설치 배치 모델 - 종류별 원본 경로(저장소 기준) (기능 005 FR-041, research R-05)
+target script-func install.sh ppg__domain_layout_source
+layer domain
+
+case install-layout-source-bin
+arg bin
+status 0
+out bin/project-path-gateway
+
+case install-layout-source-library
+arg library
+status 0
+out lib/project-path-gateway.sh
+
+case install-layout-source-version
+arg version
+status 0
+out VERSION

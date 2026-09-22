@@ -1,0 +1,23 @@
+# 도메인 단위: 설치 배치 모델 - 종류별 설치 경로(PREFIX 기준) (기능 005 FR-041, research R-05)
+target script-func install.sh ppg__domain_layout_installed
+layer domain
+
+case install-layout-installed-bin
+arg bin
+status 0
+out bin/project-path-gateway
+
+case install-layout-installed-library
+arg library
+status 0
+out share/project-path-gateway/project-path-gateway.sh
+
+case install-layout-installed-version
+arg version
+status 0
+out share/project-path-gateway/VERSION
+
+case install-layout-installed-manifest
+arg manifest
+status 0
+out share/project-path-gateway/install-manifest
