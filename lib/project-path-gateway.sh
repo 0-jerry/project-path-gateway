@@ -402,21 +402,26 @@ project_path_gateway__app_load_entries() (
 		seen=
 		while IFS= read -r line; do
 			lineno=$((lineno + 1))
-			code=$(project_path_gateway__domain_classify_line "$line")
-			[ "$code" = ignore ] && continue
-			key=$(project_path_gateway__domain_line_key "$line")
-			first=
-			if [ "$code" = entry ]; then
-				first=$(project_path_gateway__domain_seen_lineno "$seen" "$key")
-				if [ -z "$first" ]; then
-					seen=$(project_path_gateway__domain_seen_add "$seen" "$key" "$lineno")
-					printf '%s\t%s\t%s\n' "$lineno" "$key" "$(project_path_gateway__domain_line_path "$line")"
+			record=$(project_path_gateway__domain_entry_parse_line "$lineno" "$line")
+			status=$?
+			case $status in
+			2) continue ;;
+			0)
+				if first=$(project_path_gateway__domain_seen_register "$seen" "$record"); then
+					seen=$first
+					printf '%s\n' "$record"
 					continue
 				fi
 				code=duplicate_key
-			fi
+				;;
+			*)
+				code=$record
+				first=
+				;;
+			esac
+			key=$(project_path_gateway__domain_entry_line_key "$line")
 			has_cr=0
-			if project_path_gateway__domain_has_cr "$line"; then
+			if project_path_gateway__domain_entry_line_has_cr "$line"; then
 				has_cr=1
 			fi
 			project_path_gateway__port_report_violation "$file" "$lineno" "$code" "$key" "$first" "$has_cr"
