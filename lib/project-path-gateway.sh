@@ -12,6 +12,9 @@
 # 반환값: 0 성공, 1 검증 실패, 2 인자 오류·미초기화·루트 오류·데이터 파일 오류·미등록 키·이미 등록된 키·파일 쓰기 실패.
 #
 # 구조: 도메인 → 애플리케이션 → 인프라 → 인터페이스 네 구획으로 나눈다.
+# 도메인은 모델별 소제목(# --- 모델: ... ---)으로 나누고, 애플리케이션 구획 머리에 포트 목록(# 입력 포트:, # 출력 포트:)을 둔다.
+# 이름 규칙: 인프라는 project_path_gateway__port_*(입력 포트)·project_path_gateway__infra_*(도우미)·project_path_gateway__sys_*(시스템 포트), 인터페이스는
+# project_path_gateway__out_*(출력 포트 구현)·project_path_gateway__if_*(검사·결과 매핑). 출력 문구와 반환값은 인터페이스에서만 정한다(scripts/lint.sh 5절).
 # project_path_gateway_init 외의 모든 함수는 서브셸 본문으로 정의해 호출 셸 상태를 바꾸지 않고,
 # 본문 첫 줄에서 셸 옵션, IFS, CDPATH를 기본 상태로 되돌린다.
 # 파일 시스템 접근은 인프라 구획의 시스템 포트(project_path_gateway__sys_*)에서만 한다.

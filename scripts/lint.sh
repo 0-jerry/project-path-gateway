@@ -13,7 +13,7 @@
 # 6. 환경 접근 위치 (002 contracts/system-ports.md 3절): 시스템 포트 본문 밖의 파일 리다이렉션(E-1),
 #    파일 검사 연산자(E-2), 파일·신호 명령(E-3), $$·$0(E-4), for 목록 글로브(E-5),
 #    파이프라인·명령 치환 안의 변경 시스템 포트 호출
-# 7. 추적 대조표(tests/traceability.md)의 사례 식별자·수동 확인 절 참조
+# 7. 추적 대조표(tests/traceability.md)의 사례 식별자·lint 절 참조·수동 확인 절 참조
 # 8. lint 자체 확인: tests/lint/fixtures/*.sh 위반 예시(D-1~D-6)를 5절 검사가 모두 잡는지 확인
 
 repo_root=$(cd -P -- "$(dirname -- "$0")/.." && pwd -P) || exit 2
@@ -338,6 +338,16 @@ check_traceability() {
 			id = substr(rest, RSTART + 1, RLENGTH - 2)
 			rest = substr(rest, RSTART + RLENGTH)
 			ids++
+			# lint 절 참조: "lint <번호>절" 또는 "lint 8절 <위반 예시 이름>"(tests/lint/fixtures/<이름>.sh가 있어야 함)
+			if (id ~ /^lint [0-9]+절( [a-z0-9-]+)?$/) {
+				nw = split(id, word, " ")
+				if (nw == 3) {
+					fx = "tests/lint/fixtures/" word[3] ".sh"
+					if ((getline line < fx) <= 0) { printf "%s:%d: lint 위반 예시가 없습니다: %s\n", FILENAME, FNR, fx; count++ }
+					close(fx)
+				}
+				continue
+			}
 			k = index(id, ".cases:")
 			if (id !~ /^tests\/cases\// || k == 0) { printf "%s:%d: 사례 식별자 형식이 아닙니다: %s\n", FILENAME, FNR, id; count++; continue }
 			path = substr(id, 1, k + 5); name = substr(id, k + 7)

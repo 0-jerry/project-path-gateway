@@ -257,17 +257,41 @@ g rev-list --count HEAD
 `project-path-gateway: 누락: APP_CONFIG=config/app.json`과 `project-path-gateway: 검증 실패 1건`, `second=1`, 커밋 수 `1`.
 훅은 `/bin/sh`로 실행되므로 `dash` 확인은 훅 첫 줄을 `#!/usr/bin/env dash`로 바꿔 반복합니다.
 
-## 9. 항목 200개 검증 시간
+## 9. 항목 200개 처리 시간과 변경 전후 비교
+
+기능 005부터는 절대 시간(2초) 대신 변경 전 라이브러리와의 비교로 판정합니다(기능 005 SC-005). 변경 전 기준은 비교하려는 커밋의
+라이브러리입니다(기능 005는 `07f2122`). 두 라이브러리를 번갈아 5회씩 실행하고 중앙값을 비교합니다. 시간 측정에만 `perl`을 씁니다.
 
 ```sh
+git show 07f2122:lib/project-path-gateway.sh >"$WORK/before.sh"
 root="$WORK/root200"
 mkdir -p "$root/.tools/project-path-gateway" "$root/dir"
 printf '%s\n' '# marker' 'format=1' >"$root/.tools/project-path-gateway/.project-path-gateway"
 i=0; while [ "$i" -lt 200 ]; do printf 'KEY_%s=dir/file_%s\n' "$i" "$i"; : >"$root/dir/file_$i"; i=$((i + 1)); done >"$root/.tools/project-path-gateway/project-path-gateway.conf"
-time "$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" && project_path_gateway_verify' _ "$REPO" "$root"
+cp "$root/.tools/project-path-gateway/project-path-gateway.conf" "$WORK/conf.orig"
+now() { perl -MTime::HiRes=time -e 'printf "%.3f\n", time'; }
+run() { # $1 셸, $2 라이브러리, $3 동작
+	cp "$WORK/conf.orig" "$root/.tools/project-path-gateway/project-path-gateway.conf"
+	a=$(now)
+	"$1" -c '. "$1"; project_path_gateway_init "$2" || exit 2
+		case $3 in verify) project_path_gateway_verify ;; get) project_path_gateway_get KEY_199 ;; add) project_path_gateway_add NEW_KEY dir/new ;; esac' _ "$2" "$root" "$3" >/dev/null 2>&1
+	b=$(now); echo "$b - $a" | bc
+}
+med() { LC_ALL=C sort -n | sed -n 3p; }
+for sh in /bin/sh dash; do for op in verify get add; do
+	: >"$WORK/b"; : >"$WORK/a"
+	n=0; while [ "$n" -lt 5 ]; do run "$sh" "$WORK/before.sh" "$op" >>"$WORK/b"; run "$sh" "$REPO/lib/project-path-gateway.sh" "$op" >>"$WORK/a"; n=$((n + 1)); done
+	echo "$sh $op 변경 전 $(med <"$WORK/b") 변경 후 $(med <"$WORK/a")"
+done; done
 ```
 
-기대 결과: stdout `project-path-gateway: 검증 통과 200건`, 반환 0, 경과 시간 2초 이내(초과하면 기록만 남깁니다).
+기대 결과: 여섯 줄(두 셸 × 초기화+검증·초기화+조회·초기화+등록) 모두 변경 후 중앙값이 변경 전 이하입니다. 초기화+검증의 stdout은
+`project-path-gateway: 검증 통과 200건`, 반환 0입니다. 2초를 넘는 값은 실패로 보지 않고 기록만 남깁니다.
+
+기록 형식:
+
+| 날짜 | 기준 커밋 | 셸 | 동작 | 변경 전(초) | 변경 후(초) |
+|---|---|---|---|---|---|
 
 ## 10. 검증 리포트 파일 실제 쓰기
 

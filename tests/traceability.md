@@ -268,3 +268,34 @@
 | 004-EDGE-14 | 서로 다른 프로세스 동시 등록·갱신은 파일이 깨지지 않음 | FR-030, FR-043 | `tests/cases/integration/lib-infra-replace-data-file.cases:replace-data-file-success` | 11 |
 | 004-EDGE-15 | 등록·갱신 직후 조회·검증에 바로 반영 | FR-017, SC-001 | `tests/cases/contract/lib-add.cases:add-then-get-prints-absolute-path`, `tests/cases/contract/lib-update.cases:update-then-get-prints-new-path` | 11 |
 | 004-EDGE-16 | set -euf·바꾼 IFS에서도 결과 같고 호출 셸 상태 불변 | FR-041 | `tests/cases/contract/lib-isolation.cases:isolation-edit-options-ifs-trap-cwd-and-root-kept`, `tests/cases/contract/lib-isolation.cases:isolation-edit-caller-variables-unchanged` | - |
+
+## 5. 기능 005 수용 시나리오·경계 사례
+
+기능 005(키·경로 도메인 모델과 Clean Architecture 정리, `specs/005-key-path-model/spec.md`)의 수용 시나리오와 경계 사례 표 행이다. 출처에는 `005-`
+접두어를 붙인다. 외부 동작 보존(US1)은 계약 사례 전체와 변경 전(`07f2122`) 관찰 기대값 비교로 확인하고, 아래 행은 대표 사례만 적는다. 정적 검사로
+확인하는 행은 사례 열에 `lint <번호>절` 또는 `lint 8절 <위반 예시 이름>`(`tests/lint/fixtures/`)을 적는다.
+
+| 출처 | 요약 | 요구사항 | 사례 | 수동 확인 |
+|---|---|---|---|---|
+| 005-US1-1 | 계약 사례 전부 통과, 변경 전과 관찰 기대값 차이 0건 | FR-020, FR-023, SC-001 | `tests/cases/contract/lib-get.cases:get-prefix-key-exact-match`, `tests/cases/contract/lib-verify.cases:verify-all-entries-pass`, `tests/cases/contract/cli-init.cases:cli-init-rerun-replaces-only-library` | 9 |
+| 005-US1-2 | 위반 줄 여러 개: 보고 내용·순서·반환값 그대로 | FR-021 | `tests/cases/contract/lib-errors.cases:errors-all-violations-in-file-order`, `tests/cases/contract/lib-errors.cases:errors-duplicate-key-reports-first-line`, `tests/cases/integration/lib-app-load-entries.cases:load-entries-reports-all-violations-in-order` | - |
+| 005-US1-3 | 공백·한글·=·TAB 경로의 조회·검증·갱신 | FR-020, FR-004 | `tests/cases/contract/lib-get.cases:get-path-with-tab-is-kept`, `tests/cases/contract/lib-verify.cases:verify-missing-path-with-tab-reported-verbatim`, `tests/cases/contract/lib-update.cases:update-path-with-tab-and-equal`, `tests/cases/contract/lib-add.cases:add-path-with-tab-and-equal` | - |
+| 005-US2-1 | 경로 위반 원인은 경로 모델 한 곳에서만 | FR-003, SC-002 | `tests/cases/unit/lib-domain-path.cases:path-violation-empty`, `tests/cases/unit/lib-domain-path.cases:path-line-feed`, `tests/cases/unit/lib-domain-line.cases:classify-violation-parent-segment`, `tests/cases/unit/lib-domain-entry-violation.cases:entry-violation-path-lf` | - |
+| 005-US2-2 | 키 판정은 키 모델 한 곳, 줄·인자 판정이 호출 | FR-002, SC-002 | `tests/cases/unit/lib-domain-key.cases:key-invalid-lowercase-c`, `tests/cases/unit/lib-domain-line.cases:classify-violation-lowercase-key`, `tests/cases/unit/lib-domain-entry-violation.cases:entry-violation-key-lowercase` | - |
+| 005-US3-1 | 애플리케이션이 레코드·줄을 직접 자르지 않음 | FR-010, FR-011, SC-003 | `lint 8절 d5-app-pattern-expansion`, `lint 5절` | - |
+| 005-US3-2 | 줄 번호·키·경로는 필드 접근 함수로만 | FR-004, FR-006 | `tests/cases/unit/lib-domain-entry-lineno.cases:entry-lineno-simple`, `tests/cases/unit/lib-domain-entry-key.cases:entry-key-simple`, `tests/cases/unit/lib-domain-entry-path.cases:entry-path-keeps-tab-and-equal`, `tests/cases/unit/lib-domain-entries-find.cases:entries-find-first-match` | - |
+| 005-US4-1 | 모델 함수의 판정·경계 유형마다 단위 사례 | FR-030, SC-004 | `tests/cases/unit/lib-domain-key.cases:key-valid-a-upper-c`, `tests/cases/unit/lib-domain-path.cases:path-violation-cr-trailing`, `tests/cases/unit/lib-domain-line.cases:classify-ignore-empty`, `tests/cases/unit/lib-domain-entry-path.cases:entry-path-keeps-edge-spaces-and-korean`, `tests/cases/unit/lib-domain-seen-register.cases:seen-lineno-a` | - |
+| 005-US5-1 | 도메인이 다른 계층을 부르면 lint 실패 | FR-044, FR-045, SC-007 | `lint 8절 d1-domain-calls-app` | - |
+| 005-US5-2 | 애플리케이션이 목록 밖 포트·시스템 포트를 부르면 실패 | FR-042, FR-044, SC-007 | `lint 8절 d2-app-calls-sys`, `lint 8절 d2-app-calls-unlisted-port` | - |
+| 005-US5-3 | 인프라→바깥 계층, 인터페이스 밖 출력, 포트 목록 불일치도 실패 | FR-042, FR-044, SC-007, SC-009 | `lint 8절 d3-infra-calls-if`, `lint 8절 d4-stderr-outside-interface`, `lint 8절 d6-port-not-listed`, `lint 8절 d6-out-defined-in-infra` | - |
+| 005-US5-4 | 변경 후 네 대상 파일은 lint 통과 | FR-040, FR-043, SC-007, SC-008 | `lint 5절`, `tests/cases/unit/bin-domain-layout-kinds.cases:layout-kinds`, `tests/cases/unit/install-domain-layout-installed.cases:install-layout-installed-library`, `tests/cases/unit/uninstall-domain-list-rest.cases:list-rest-of-many` | - |
+| 005-EDGE-1 | 인자 경로에 CR과 LF가 함께 있으면 carriage_return 먼저 | FR-003 | `tests/cases/contract/lib-add.cases:edit-invalid-add-path-cr-and-lf-reports-carriage-return`, `tests/cases/contract/lib-update.cases:edit-invalid-update-path-cr-and-lf-reports-carriage-return`, `tests/cases/unit/lib-domain-path.cases:path-carriage-return-before-line-feed` | - |
+| 005-EDGE-2 | 데이터 파일 줄에는 LF가 없어 줄 판정 결과 불변 | FR-021 | `tests/cases/unit/lib-domain-line.cases:classify-violation-cr-in-path`, `tests/cases/contract/lib-errors.cases:errors-cr-in-line` | - |
+| 005-EDGE-3 | TAB 경로는 잘리지 않음 | FR-004 | `tests/cases/unit/lib-domain-entry-path.cases:entry-path-keeps-tab-and-equal`, `tests/cases/unit/lib-domain-entries-find.cases:entries-find-path-with-tab` | - |
+| 005-EDGE-4 | 첫 = 만 경계 | FR-004 | `tests/cases/unit/lib-domain-line.cases:classify-entry-equal-in-path`, `tests/cases/unit/lib-domain-line-key.cases:line-key-first-equal` | - |
+| 005-EDGE-5 | 끝 공백·/ 가 필드 접근에서 사라지지 않음 | FR-004 | `tests/cases/unit/lib-domain-entry-path.cases:entry-path-keeps-edge-spaces-and-korean`, `tests/cases/unit/lib-domain-line.cases:line-path-keeps-trailing-space` | - |
+| 005-EDGE-6 | 앞부분이 같은 키는 다른 키 | FR-004 | `tests/cases/unit/lib-domain-entries-find.cases:entries-find-prefix-key-exact`, `tests/cases/contract/lib-get.cases:get-prefix-key-exact-match` | - |
+| 005-EDGE-7 | = 없는 줄은 no_separator, 키 필드는 빈 값 | FR-004 | `tests/cases/unit/lib-domain-line.cases:classify-violation-no-equal`, `tests/cases/unit/lib-domain-line-key.cases:line-key-no-separator` | - |
+| 005-EDGE-8 | 키·경로 모두 위반이면 invalid_key 하나 | FR-005 | `tests/cases/contract/lib-add.cases:edit-invalid-add-key-and-path-both-wrong`, `tests/cases/unit/lib-domain-entry-violation.cases:entry-violation-key-and-path-both-wrong` | - |
+| 005-EDGE-9 | set -euf·바꾼 IFS에서도 결과 같음 | FR-024 | `tests/cases/contract/lib-isolation.cases:isolation-set-eu-caller-is-not-terminated`, `tests/cases/contract/lib-isolation.cases:isolation-ifs-noglob-and-cdpath-do-not-change-results` | - |
+| 005-EDGE-10 | 항목 200개 시간이 변경 전보다 늘지 않음 | SC-005 | `tests/cases/contract/lib-verify.cases:verify-two-hundred-entries`, `tests/cases/contract/lib-update.cases:update-last-key-of-200-entries` | 9 |
