@@ -1,4 +1,4 @@
-# project-path-gateway 0.2.0
+# project-path-gateway 1.0.0
 #
 # 프로젝트 경로 게이트웨이 라이브러리.
 # 호출 셸에서 이 파일을 불러온(source) 뒤 공개 함수 다섯 개를 사용한다.

@@ -64,6 +64,23 @@ project-path-gateway init [TARGET_DIR]
 - **`.tools/project-path-gateway/`는 반드시 프로젝트와 함께 커밋하세요.** `.gitignore`에 넣으면 clone한 환경에서
   라이브러리와 데이터 파일을 찾을 수 없습니다.
 
+### 1.0.0 이전 프로젝트 옮기기
+
+1.0.0부터 도구 디렉터리가 `.tool/`에서 `.tools/`로 바뀌었습니다. 1.0.0 라이브러리는 `.tool/project-path-gateway/`를 찾지 않고,
+0.x 라이브러리는 `.tools/project-path-gateway/`를 찾지 않습니다. 전역 프로그램을 1.0.0으로 다시 설치한 뒤 프로젝트마다
+도구 디렉터리를 옮기고 라이브러리를 교체합니다.
+
+```sh
+cd /path/to/my-project
+mkdir -p .tools
+git mv .tool/project-path-gateway .tools/project-path-gateway
+project-path-gateway init .
+```
+
+- `init`은 루트 표식 파일과 데이터 파일을 유지하고 라이브러리만 1.0.0으로 교체합니다.
+- `.tool/` 안에 다른 도구가 없으면 빈 `.tool/` 디렉터리를 지웁니다.
+- 스크립트나 훅이 `.tool/project-path-gateway/project-path-gateway.sh`를 직접 불러오고 있으면 `.tools/`로 고칩니다.
+
 ## 루트 표식 파일과 루트 탐색 규칙
 
 런타임 초기화(`project_path_gateway_init`)는 탐색 시작 디렉터리에서 `/`까지 상위로 올라가며,
