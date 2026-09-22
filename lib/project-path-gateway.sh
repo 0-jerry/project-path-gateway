@@ -365,6 +365,12 @@ project_path_gateway__domain_is_inside() (
 
 # === 계층: 애플리케이션 ===
 
+# 입력 포트: project_path_gateway__port_is_dir project_path_gateway__port_physical_dir project_path_gateway__port_readable_file
+# 입력 포트: project_path_gateway__port_read_lines project_path_gateway__port_find_root project_path_gateway__port_exists
+# 입력 포트: project_path_gateway__port_resolve_physical project_path_gateway__port_write_report project_path_gateway__port_read_file
+# 입력 포트: project_path_gateway__port_replace_data_file
+# 출력 포트: project_path_gateway__out_violation project_path_gateway__out_missing project_path_gateway__out_outside
+
 # 데이터 파일 절대경로를 출력한다.
 project_path_gateway__app_data_file() (
 	set +e +u +f
@@ -871,6 +877,8 @@ project_path_gateway__sys_remove() (
 )
 
 # === 계층: 인터페이스 ===
+# 공개 함수 본문은 입력 검사 → 유스케이스 호출 → 결과 매핑(if_*_result) 순서다 (기능 005 FR-043).
+# 출력 포트 구현(out_*)은 애플리케이션이 호출하는 보고 문구를 정한다.
 
 # 공통 오류 출력: project-path-gateway: FUNC: MESSAGE
 project_path_gateway__if_error() (
@@ -903,21 +911,34 @@ project_path_gateway__out_violation() (
 	printf 'project-path-gateway: %s:%s: %s\n' "$1" "$2" "$message" >&2
 )
 
-# 초기화 실패 문구를 출력한다. $1: 내부 코드, $2: 끝 표지가 붙은 상세 값.
-project_path_gateway__if_init_fail() (
+# 출력 포트 구현: 검증 누락 보고.
+project_path_gateway__out_missing() (
 	set +e +u +f
 	IFS=' 	''
 '
 	unset CDPATH
-	detail=${2%x}
-	case $1 in
-	8) project_path_gateway__if_error project_path_gateway_init "디렉터리가 아닙니다: $detail" ;;
-	5) project_path_gateway__if_error project_path_gateway_init "경로를 확인할 수 없습니다: $detail" ;;
-	6) project_path_gateway__if_error project_path_gateway_init "루트 표식 파일($(project_path_gateway__domain_layout_marker))을 찾지 못했습니다: ${detail}부터 /까지" ;;
-	4) project_path_gateway__if_error project_path_gateway_init "데이터 파일을 읽을 수 없습니다: $detail" ;;
-	3) ;;
-	*) project_path_gateway__if_error project_path_gateway_init "알 수 없는 오류입니다(코드 $1)" ;;
-	esac
+	printf 'project-path-gateway: 누락: %s=%s\n' "$1" "$2" >&2
+)
+
+# 출력 포트 구현: 검증 루트 밖 보고.
+project_path_gateway__out_outside() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	printf 'project-path-gateway: 루트 밖: %s=%s -> %s\n' "$1" "$2" "$3" >&2
+)
+
+# 미초기화이면 문구를 출력하고 반환 1. $1: 공개 함수 이름.
+project_path_gateway__if_require_init() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	if [ -z "${PROJECT_PATH_GATEWAY_ROOT+x}" ]; then
+		project_path_gateway__if_error "$1" '초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요'
+		return 1
+	fi
 	return 0
 )
 
@@ -933,9 +954,114 @@ project_path_gateway__if_data_file_fail() (
 	return 0
 )
 
+# 결과 매핑: 런타임 초기화 실패 문구를 출력하고 반환 2. $1: 내부 코드, $2: 끝 표지가 붙은 상세 값.
+project_path_gateway__if_init_result() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	detail=${2%x}
+	case $1 in
+	8) project_path_gateway__if_error project_path_gateway_init "디렉터리가 아닙니다: $detail" ;;
+	5) project_path_gateway__if_error project_path_gateway_init "경로를 확인할 수 없습니다: $detail" ;;
+	6) project_path_gateway__if_error project_path_gateway_init "루트 표식 파일($(project_path_gateway__domain_layout_marker))을 찾지 못했습니다: ${detail}부터 /까지" ;;
+	4) project_path_gateway__if_error project_path_gateway_init "데이터 파일을 읽을 수 없습니다: $detail" ;;
+	3) ;;
+	*) project_path_gateway__if_error project_path_gateway_init "알 수 없는 오류입니다(코드 $1)" ;;
+	esac
+	return 2
+)
+
+# 결과 매핑: 조회. $1: 내부 코드, $2: 결과 경로, $3: KEY, $4: 루트. 반환 0 또는 2.
+project_path_gateway__if_get_result() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	case $1 in
+	0)
+		printf '%s\n' "$2"
+		return 0
+		;;
+	7) project_path_gateway__if_error project_path_gateway_get "등록되지 않은 키입니다: $3" ;;
+	*) project_path_gateway__if_data_file_fail project_path_gateway_get "$1" "$4" ;;
+	esac
+	return 2
+)
+
+# 결과 매핑: 검증 (기능 003 research R-02, 기능 005 research R-08). $1: 내부 코드, $2: 애플리케이션의 stdout·stderr를 합친 출력,
+# $3: 루트, $4(있으면): 리포트 파일. 통과 문구는 stdout, 누락·루트 밖·실패 문구는 stderr로 내고 리포트에 같은 줄을 저장한다.
+# 반환: 0 통과, 1 검증 실패, 2 오류.
+project_path_gateway__if_verify_result() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	nl='
+'
+	case $1 in
+	0)
+		body="project-path-gateway: 검증 통과 ${2#ok }"
+		body="${body%"$nl"}건$nl"
+		printf '%s' "$body"
+		;;
+	1)
+		last=${2%"$nl"}
+		summary=${last##*"$nl"}
+		body="${last%"$summary"}project-path-gateway: 검증 실패 ${summary#fail }건$nl"
+		printf '%s' "$body" >&2
+		;;
+	*)
+		printf '%s' "$2" >&2
+		project_path_gateway__if_data_file_fail project_path_gateway_verify "$1" "$3"
+		return 2
+		;;
+	esac
+	if [ "$#" -ge 4 ] && ! project_path_gateway__app_write_report "$4" "$body"; then
+		project_path_gateway__if_error project_path_gateway_verify "리포트 파일을 쓸 수 없습니다: $4"
+		return 2
+	fi
+	[ "$1" = 0 ] && return 0
+	return 1
+)
+
+# 결과 매핑: 등록·갱신 (기능 004 contracts/library-api-add-update.md 2절). 성공이면 반환 0, 실패면 문구를 출력하고 반환 2.
+# $1: 공개 함수 이름, $2: 내부 코드, $3: 상세(위반 코드), $4: 루트, $5: KEY, $6: PATH.
+project_path_gateway__if_edit_result() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	[ "$2" = 0 ] && return 0
+	file=$(project_path_gateway__app_data_file "$4")
+	case $2 in
+	9)
+		case $3 in
+		invalid_key) message="키 형식이 잘못되었습니다(대문자로 시작, 대문자·숫자·_만 허용): $5" ;;
+		empty_path) message='경로가 비어 있습니다' ;;
+		absolute_path) message="경로는 /로 시작할 수 없습니다: $6" ;;
+		parent_segment) message="경로에 .. 세그먼트를 쓸 수 없습니다: $6" ;;
+		carriage_return) message='경로에 CR 문자를 쓸 수 없습니다' ;;
+		line_feed) message='경로에 LF 문자를 쓸 수 없습니다' ;;
+		*) message="알 수 없는 위반입니다: $3" ;;
+		esac
+		;;
+	3) return 2 ;;
+	4) message="데이터 파일을 읽을 수 없습니다: $file" ;;
+	7) message="등록되지 않은 키입니다: $5" ;;
+	10) message="이미 등록된 키입니다: $5" ;;
+	11) message="데이터 파일이 심볼릭 링크라 바꿀 수 없습니다: $file" ;;
+	12) message="데이터 파일에 쓰기 권한이 없습니다: $file" ;;
+	13) message="데이터 파일을 쓸 수 없습니다: $file" ;;
+	*) message="알 수 없는 오류입니다(코드 $2)" ;;
+	esac
+	project_path_gateway__if_error "$1" "$message"
+	return 2
+)
+
 # 공개 함수: 런타임 초기화 (contracts/library-api.md 3절).
 # 호출 셸 변수 PROJECT_PATH_GATEWAY_ROOT를 설정·해제해야 하므로 서브셸 본문을 쓰지 않는다.
-# 본문에서는 다른 변수를 만들지 않고, 명령 치환 대입은 if 조건 안에서만 수행한다.
+# 본문에서는 다른 변수를 만들지 않고, 명령 치환 대입은 if 조건 안에서만 수행한다. 매핑 결과는 함수 인자 자리에 받아 돌려준다.
 project_path_gateway_init() {
 	if [ "$#" -gt 1 ]; then
 		project_path_gateway__if_error project_path_gateway_init '인자는 0개 또는 1개여야 합니다'
@@ -956,10 +1082,11 @@ project_path_gateway_init() {
 		PROJECT_PATH_GATEWAY_ROOT=${PROJECT_PATH_GATEWAY_ROOT%x}
 		return 0
 	else
-		project_path_gateway__if_init_fail "$?" "${PROJECT_PATH_GATEWAY_ROOT-}"
-		unset PROJECT_PATH_GATEWAY_ROOT
-		return 2
+		project_path_gateway__if_init_result "$?" "${PROJECT_PATH_GATEWAY_ROOT-}"
 	fi
+	set -- "$?"
+	unset PROJECT_PATH_GATEWAY_ROOT
+	return "$1"
 }
 
 # 공개 함수: 키로 절대경로 조회 (contracts/library-api.md 4절).
@@ -972,81 +1099,9 @@ project_path_gateway_get() (
 		project_path_gateway__if_error project_path_gateway_get '인자는 KEY 1개여야 합니다'
 		return 2
 	fi
-	if [ -z "${PROJECT_PATH_GATEWAY_ROOT+x}" ]; then
-		project_path_gateway__if_error project_path_gateway_get '초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요'
-		return 2
-	fi
+	project_path_gateway__if_require_init project_path_gateway_get || return 2
 	result=$(project_path_gateway__app_lookup "$PROJECT_PATH_GATEWAY_ROOT" "$1")
-	status=$?
-	case $status in
-	0)
-		printf '%s\n' "$result"
-		return 0
-		;;
-	7) project_path_gateway__if_error project_path_gateway_get "등록되지 않은 키입니다: $1" ;;
-	*) project_path_gateway__if_data_file_fail project_path_gateway_get "$status" "$PROJECT_PATH_GATEWAY_ROOT" ;;
-	esac
-	return 2
-)
-
-# 출력 포트 구현: 검증 누락 보고.
-project_path_gateway__out_missing() (
-	set +e +u +f
-	IFS=' 	''
-'
-	unset CDPATH
-	printf 'project-path-gateway: 누락: %s=%s\n' "$1" "$2" >&2
-)
-
-# 출력 포트 구현: 검증 루트 밖 보고.
-project_path_gateway__out_outside() (
-	set +e +u +f
-	IFS=' 	''
-'
-	unset CDPATH
-	printf 'project-path-gateway: 루트 밖: %s=%s -> %s\n' "$1" "$2" "$3" >&2
-)
-
-# 리포트를 지정한 검증 (기능 003 research R-02). 항목 줄과 요약 코드를 한 번에 받아 기존과 같은 문구로 출력하고
-# 같은 줄을 리포트로 저장한다. $1: 루트, $2: 리포트 파일. 반환: 0 통과, 1 검증 실패, 2 오류.
-project_path_gateway__if_verify_report() (
-	set +e +u +f
-	IFS=' 	''
-'
-	unset CDPATH
-	nl='
-'
-	captured=$(project_path_gateway__app_verify "$1" 2>&1
-		printf 'x%s' "$?")
-	status=${captured##*x}
-	captured=${captured%x*}
-	case $status in
-	0)
-		body="project-path-gateway: 검증 통과 ${captured#ok }"
-		body="${body%"$nl"}건$nl"
-		printf '%s' "$body"
-		if ! project_path_gateway__app_write_report "$2" "$body"; then
-			project_path_gateway__if_error project_path_gateway_verify "리포트 파일을 쓸 수 없습니다: $2"
-			return 2
-		fi
-		return 0
-		;;
-	1) ;;
-	*)
-		printf '%s' "$captured" >&2
-		project_path_gateway__if_data_file_fail project_path_gateway_verify "$status" "$1"
-		return 2
-		;;
-	esac
-	last=${captured%"$nl"}
-	summary=${last##*"$nl"}
-	body="${last%"$summary"}project-path-gateway: 검증 실패 ${summary#fail }건$nl"
-	printf '%s' "$body" >&2
-	if ! project_path_gateway__app_write_report "$2" "$body"; then
-		project_path_gateway__if_error project_path_gateway_verify "리포트 파일을 쓸 수 없습니다: $2"
-		return 2
-	fi
-	return 1
+	project_path_gateway__if_get_result "$?" "$result" "$1" "$PROJECT_PATH_GATEWAY_ROOT"
 )
 
 # 공개 함수: 등록 경로 검증 (contracts/library-api.md 5절, 기능 003 REPORT_FILE 선택 인자).
@@ -1063,61 +1118,10 @@ project_path_gateway_verify() (
 		project_path_gateway__if_error project_path_gateway_verify '리포트 파일 경로가 비어 있습니다'
 		return 2
 	fi
-	if [ -z "${PROJECT_PATH_GATEWAY_ROOT+x}" ]; then
-		project_path_gateway__if_error project_path_gateway_verify '초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요'
-		return 2
-	fi
-	if [ "$#" -eq 1 ]; then
-		project_path_gateway__if_verify_report "$PROJECT_PATH_GATEWAY_ROOT" "$1"
-		return $?
-	fi
-	result=$(project_path_gateway__app_verify "$PROJECT_PATH_GATEWAY_ROOT")
-	status=$?
-	case $status in
-	0)
-		printf 'project-path-gateway: 검증 통과 %s건\n' "${result#ok }"
-		return 0
-		;;
-	1)
-		printf 'project-path-gateway: 검증 실패 %s건\n' "${result#fail }" >&2
-		return 1
-		;;
-	esac
-	project_path_gateway__if_data_file_fail project_path_gateway_verify "$status" "$PROJECT_PATH_GATEWAY_ROOT"
-	return 2
-)
-
-# 등록·갱신 실패 문구를 출력한다 (기능 004 contracts/library-api-add-update.md 2절).
-# $1: 공개 함수 이름, $2: 내부 코드, $3: 상세(위반 코드), $4: 루트, $5: KEY, $6: PATH.
-project_path_gateway__if_edit_fail() (
-	set +e +u +f
-	IFS=' 	''
-'
-	unset CDPATH
-	file=$(project_path_gateway__app_data_file "$4")
-	case $2 in
-	9)
-		case $3 in
-		invalid_key) message="키 형식이 잘못되었습니다(대문자로 시작, 대문자·숫자·_만 허용): $5" ;;
-		empty_path) message='경로가 비어 있습니다' ;;
-		absolute_path) message="경로는 /로 시작할 수 없습니다: $6" ;;
-		parent_segment) message="경로에 .. 세그먼트를 쓸 수 없습니다: $6" ;;
-		carriage_return) message='경로에 CR 문자를 쓸 수 없습니다' ;;
-		line_feed) message='경로에 LF 문자를 쓸 수 없습니다' ;;
-		*) message="알 수 없는 위반입니다: $3" ;;
-		esac
-		;;
-	3) return 0 ;;
-	4) message="데이터 파일을 읽을 수 없습니다: $file" ;;
-	7) message="등록되지 않은 키입니다: $5" ;;
-	10) message="이미 등록된 키입니다: $5" ;;
-	11) message="데이터 파일이 심볼릭 링크라 바꿀 수 없습니다: $file" ;;
-	12) message="데이터 파일에 쓰기 권한이 없습니다: $file" ;;
-	13) message="데이터 파일을 쓸 수 없습니다: $file" ;;
-	*) message="알 수 없는 오류입니다(코드 $2)" ;;
-	esac
-	project_path_gateway__if_error "$1" "$message"
-	return 0
+	project_path_gateway__if_require_init project_path_gateway_verify || return 2
+	captured=$(project_path_gateway__app_verify "$PROJECT_PATH_GATEWAY_ROOT" 2>&1
+		printf 'x%s' "$?")
+	project_path_gateway__if_verify_result "${captured##*x}" "${captured%x*}" "$PROJECT_PATH_GATEWAY_ROOT" "$@"
 )
 
 # 공개 함수: 새 경로 항목 등록 (기능 004). 키가 이미 있으면 반환 2.
@@ -1130,15 +1134,9 @@ project_path_gateway_add() (
 		project_path_gateway__if_error project_path_gateway_add '인자는 KEY와 PATH 2개여야 합니다'
 		return 2
 	fi
-	if [ -z "${PROJECT_PATH_GATEWAY_ROOT+x}" ]; then
-		project_path_gateway__if_error project_path_gateway_add '초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요'
-		return 2
-	fi
+	project_path_gateway__if_require_init project_path_gateway_add || return 2
 	detail=$(project_path_gateway__app_edit add "$PROJECT_PATH_GATEWAY_ROOT" "$1" "$2")
-	status=$?
-	[ "$status" -eq 0 ] && return 0
-	project_path_gateway__if_edit_fail project_path_gateway_add "$status" "$detail" "$PROJECT_PATH_GATEWAY_ROOT" "$1" "$2"
-	return 2
+	project_path_gateway__if_edit_result project_path_gateway_add "$?" "$detail" "$PROJECT_PATH_GATEWAY_ROOT" "$1" "$2"
 )
 
 # 공개 함수: 등록된 키의 경로 갱신 (기능 004). 키가 없으면 반환 2.
@@ -1151,13 +1149,7 @@ project_path_gateway_update() (
 		project_path_gateway__if_error project_path_gateway_update '인자는 KEY와 PATH 2개여야 합니다'
 		return 2
 	fi
-	if [ -z "${PROJECT_PATH_GATEWAY_ROOT+x}" ]; then
-		project_path_gateway__if_error project_path_gateway_update '초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요'
-		return 2
-	fi
+	project_path_gateway__if_require_init project_path_gateway_update || return 2
 	detail=$(project_path_gateway__app_edit update "$PROJECT_PATH_GATEWAY_ROOT" "$1" "$2")
-	status=$?
-	[ "$status" -eq 0 ] && return 0
-	project_path_gateway__if_edit_fail project_path_gateway_update "$status" "$detail" "$PROJECT_PATH_GATEWAY_ROOT" "$1" "$2"
-	return 2
+	project_path_gateway__if_edit_result project_path_gateway_update "$?" "$detail" "$PROJECT_PATH_GATEWAY_ROOT" "$1" "$2"
 )
