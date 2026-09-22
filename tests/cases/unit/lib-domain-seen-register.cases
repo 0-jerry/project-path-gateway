@@ -1,0 +1,52 @@
+# 도메인 단위: 항목 목록 모델 본 키 목록 등록 (기능 001 domain_line_test_seen_keys / 기능 005 FR-004, data-model 1.5)
+# 인자: 본 키 목록, 레코드. 처음 본 키: 반환 0·새 목록(끝 LF 없음). 이미 본 키: 반환 1·처음 정의된 줄 번호.
+target lib-func project_path_gateway__domain_seen_register
+layer domain
+
+case seen-add-to-empty
+arg \e
+arg 2\tAB\tx
+status 0
+out-raw :AB=2:
+
+case seen-add-second
+arg :AB=2:
+arg 5\tA\tx
+status 0
+out-raw :AB=2:A=5:
+
+case seen-lineno-empty-list
+arg \e
+arg 1\tA\tx
+status 0
+out-raw :A=1:
+
+case seen-lineno-a
+arg :AB=2:A=5:B_1=9:
+arg 12\tA\tp
+status 1
+out 5
+
+case seen-lineno-ab
+arg :AB=2:A=5:B_1=9:
+arg 12\tAB\tp
+status 1
+out 2
+
+case seen-lineno-b-1
+arg :AB=2:A=5:B_1=9:
+arg 12\tB_1\tp
+status 1
+out 9
+
+case seen-lineno-prefix-only
+arg :AB=2:A=5:B_1=9:
+arg 12\tB\tp
+status 0
+out-raw :AB=2:A=5:B_1=9:B=12:
+
+case seen-lineno-missing
+arg :AB=2:A=5:B_1=9:
+arg 12\tC\tp=q\tr
+status 0
+out-raw :AB=2:A=5:B_1=9:C=12:

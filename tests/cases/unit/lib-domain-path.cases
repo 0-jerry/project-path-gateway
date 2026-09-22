@@ -1,4 +1,4 @@
-# 도메인 단위: 경로 규칙 (기능 001 domain_path_test, FR-015)
+# 도메인 단위: 경로 모델 위반 판정 (기능 001 domain_path_test, FR-015 / 기능 005 FR-003: line_feed 흡수)
 target lib-func project_path_gateway__domain_path_violation
 layer domain
 
@@ -94,3 +94,18 @@ status 0
 case path-allowed-dot-middle
 arg a/./b
 status 0
+
+case path-line-feed
+arg a\nb
+status 0
+out line_feed
+
+case path-carriage-return-before-line-feed
+arg a\r\nb
+status 0
+out carriage_return
+
+case path-line-feed-at-end
+arg a\n
+status 0
+out line_feed

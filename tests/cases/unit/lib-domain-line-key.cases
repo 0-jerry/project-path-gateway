@@ -1,5 +1,5 @@
-# 도메인 단위: 항목 줄의 키 (기능 001 domain_line_test_line_key_and_path)
-target lib-func project_path_gateway__domain_line_key
+# 도메인 단위: 항목 모델 줄의 키 (기능 001 domain_line_test_line_key_and_path / 기능 005 FR-004)
+target lib-func project_path_gateway__domain_entry_line_key
 layer domain
 
 case line-key-leading-space-path

@@ -1,6 +1,6 @@
-# 도메인 단위: 키 규칙 (기능 001 domain_key_test, FR-014, research R-04)
+# 도메인 단위: 키 모델 판정 (기능 001 domain_key_test, FR-014, research R-04 / 기능 005 FR-002)
 # 키마다 LC_ALL=C와 LC_ALL=en_US.UTF-8 두 사례로 로캘 무관 판정을 확인한다(research D-11).
-target lib-func project_path_gateway__domain_is_valid_key
+target lib-func project_path_gateway__domain_key_is_valid
 layer domain
 
 case key-valid-a-upper-c
