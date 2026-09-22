@@ -88,6 +88,51 @@ project_path_gateway__domain_entry_new() (
 	return 0
 )
 
+# 레코드의 줄 번호를 출력한다(끝 LF 없음).
+project_path_gateway__domain_entry_lineno() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	tab='	'
+	printf '%s' "${1%%"$tab"*}"
+	return 0
+)
+
+# 레코드의 키를 출력한다(끝 LF 없음).
+project_path_gateway__domain_entry_key() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	tab='	'
+	rest=${1#*"$tab"}
+	printf '%s' "${rest%%"$tab"*}"
+	return 0
+)
+
+# 레코드의 경로를 출력한다(끝 LF 없음). 둘째 TAB 뒤 전체이므로 경로 안 TAB을 보존한다.
+project_path_gateway__domain_entry_path() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	tab='	'
+	rest=${1#*"$tab"}
+	printf '%s' "${rest#*"$tab"}"
+	return 0
+)
+
+# 데이터 파일 한 줄 KEY=PATH를 출력한다(끝 LF 없음).
+project_path_gateway__domain_entry_to_line() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	printf '%s=%s' "$1" "$2"
+	return 0
+)
+
 # 등록·갱신 인자 KEY·PATH의 첫 위반 코드를 출력한다. 위반이 없으면 아무것도 출력하지 않는다 (기능 004 research R-02).
 # 순서: 키 모델, 경로 모델.
 project_path_gateway__domain_entry_violation() (
@@ -188,10 +233,62 @@ project_path_gateway__domain_seen_register() (
 	return 0
 )
 
+# 항목 목록 RECORDS(레코드를 LF로 이은 문자열)에서 키가 정확히 KEY인 첫 레코드를 출력한다(끝 LF 없음). 없으면 반환 1.
+project_path_gateway__domain_entries_find() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	tab='	'
+	nl='
+'
+	rest=$1
+	while [ -n "$rest" ]; do
+		case $rest in
+		*"$nl"*)
+			record=${rest%%"$nl"*}
+			rest=${rest#*"$nl"}
+			;;
+		*)
+			record=$rest
+			rest=
+			;;
+		esac
+		key=${record#*"$tab"}
+		if [ "${key%%"$tab"*}" = "$2" ]; then
+			printf '%s' "$record"
+			return 0
+		fi
+	done
+	return 1
+)
+
+# --- 모델: 도구 배치 ---
+
+# 루트 표식 파일의 루트 기준 상대경로를 출력한다(끝 LF 없음).
+project_path_gateway__domain_layout_marker() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	printf '%s' .tools/project-path-gateway/.project-path-gateway
+	return 0
+)
+
+# 데이터 파일의 루트 기준 상대경로를 출력한다(끝 LF 없음).
+project_path_gateway__domain_layout_data_file() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	printf '%s' .tools/project-path-gateway/project-path-gateway.conf
+	return 0
+)
+
 # --- 기타 규칙 ---
 # 데이터 파일 원문 편집, 루트 결합, 루트 내부 판정.
 
-# 등록 새 원문을 끝 표지 방식으로 출력한다 (기능 004 research R-05). 원문 끝에 KEY=PATH와 LF를 더하며,
+# 등록 새 원문을 끝 표지 방식으로 출력한다 (기능 004 research R-05). 원문 끝에 줄(domain_entry_to_line 결과)과 LF를 더하며,
 # 원문이 LF 없이 끝나면 LF를 먼저 더한다.
 project_path_gateway__domain_append_entry() (
 	set +e +u +f
@@ -201,8 +298,8 @@ project_path_gateway__domain_append_entry() (
 	nl='
 '
 	case $1 in
-	'' | *"$nl") printf '%s%s=%s\nx' "$1" "$2" "$3" ;;
-	*) printf '%s\n%s=%s\nx' "$1" "$2" "$3" ;;
+	'' | *"$nl") printf '%s%s\nx' "$1" "$2" ;;
+	*) printf '%s\n%s\nx' "$1" "$2" ;;
 	esac
 	return 0
 )
@@ -274,7 +371,7 @@ project_path_gateway__app_data_file() (
 	IFS=' 	''
 '
 	unset CDPATH
-	project_path_gateway__domain_join "$1" .tools/project-path-gateway/project-path-gateway.conf
+	project_path_gateway__domain_join "$1" "$(project_path_gateway__domain_layout_data_file)"
 )
 
 # 데이터 파일을 읽고 검증한다. 유효한 항목마다 "줄번호<TAB>키<TAB>경로" 한 줄을 파일 순서로 출력한다.
@@ -339,7 +436,8 @@ project_path_gateway__app_init() (
 		return 5
 	fi
 	start=${start%x}
-	if ! root=$(project_path_gateway__port_find_root "$start"); then
+	marker=$(project_path_gateway__domain_layout_marker)
+	if ! root=$(project_path_gateway__port_find_root "$start" "$marker"); then
 		printf '%sx' "$start"
 		return 6
 	fi
@@ -366,17 +464,8 @@ project_path_gateway__app_lookup() (
 '
 	unset CDPATH
 	records=$(project_path_gateway__app_load_entries "$1") || return $?
-	tab=$(printf '\t')
-	printf '%s\n' "$records" | {
-		while IFS= read -r record; do
-			rest=${record#*"$tab"}
-			if [ "${rest%%"$tab"*}" = "$2" ]; then
-				project_path_gateway__domain_join "$1" "${rest#*"$tab"}"
-				return 0
-			fi
-		done
-		return 7
-	}
+	record=$(project_path_gateway__domain_entries_find "$records" "$2") || return 7
+	project_path_gateway__domain_join "$1" "$(project_path_gateway__domain_entry_path "$record")"
 )
 
 # 모든 항목의 존재(V-1)와 루트 내부 여부(V-2)를 파일 순서대로 판정한다. 실패 항목은 보고 포트로 보고하고,
@@ -387,15 +476,13 @@ project_path_gateway__app_verify() (
 '
 	unset CDPATH
 	records=$(project_path_gateway__app_load_entries "$1") || return $?
-	tab=$(printf '\t')
 	printf '%s\n' "$records" | {
 		passed=0
 		failed=0
 		while IFS= read -r record; do
 			[ -n "$record" ] || continue
-			rest=${record#*"$tab"}
-			key=${rest%%"$tab"*}
-			path=${rest#*"$tab"}
+			key=$(project_path_gateway__domain_entry_key "$record")
+			path=$(project_path_gateway__domain_entry_path "$record")
 			full=$(project_path_gateway__domain_join "$1" "$path")
 			if project_path_gateway__port_exists "$full" &&
 				physical=$(project_path_gateway__port_resolve_physical "$full"); then
@@ -434,30 +521,22 @@ project_path_gateway__app_edit() (
 		return 9
 	fi
 	records=$(project_path_gateway__app_load_entries "$2") || return $?
-	tab=$(printf '\t')
-	match=$(printf '%s\n' "$records" | {
-		while IFS= read -r record; do
-			rest=${record#*"$tab"}
-			if [ "${rest%%"$tab"*}" = "$3" ]; then
-				printf '%sx' "$record"
-				break
-			fi
-		done
-	})
-	match=${match%x}
 	file=$(project_path_gateway__app_data_file "$2")
+	line=$(project_path_gateway__domain_entry_to_line "$3" "$4")
 	case $1 in
 	add)
-		[ -z "$match" ] || return 10
+		if record=$(project_path_gateway__domain_entries_find "$records" "$3"); then
+			return 10
+		fi
 		content=$(project_path_gateway__port_read_file "$file") || return 4
-		content=$(project_path_gateway__domain_append_entry "${content%x}" "$3" "$4")
+		content=$(project_path_gateway__domain_append_entry "${content%x}" "$line")
 		;;
 	update)
-		[ -n "$match" ] || return 7
-		rest=${match#*"$tab"}
-		[ "${rest#*"$tab"}" = "$4" ] && return 0
+		record=$(project_path_gateway__domain_entries_find "$records" "$3") || return 7
+		[ "$(project_path_gateway__domain_entry_path "$record")" = "$4" ] && return 0
+		lineno=$(project_path_gateway__domain_entry_lineno "$record")
 		content=$(project_path_gateway__port_read_file "$file") || return 4
-		content=$(project_path_gateway__domain_replace_line "${content%x}" "${match%%"$tab"*}" "$3=$4") || return 13
+		content=$(project_path_gateway__domain_replace_line "${content%x}" "$lineno" "$line") || return 13
 		;;
 	*) return 13 ;;
 	esac
@@ -521,7 +600,7 @@ project_path_gateway__port_read_lines() (
 )
 
 # 물리 시작 디렉터리부터 /까지 올라가며 루트 표식 파일이 일반 파일로 있는 가장 가까운 디렉터리를
-# 끝 표지 방식으로 출력한다. 찾지 못하면 반환 1 (FR-002 4단계, research R-06).
+# 끝 표지 방식으로 출력한다. 찾지 못하면 반환 1 (FR-002 4단계, research R-06). $2: 루트 기준 표식 상대경로.
 project_path_gateway__port_find_root() (
 	set +e +u +f
 	IFS=' 	''
@@ -529,7 +608,7 @@ project_path_gateway__port_find_root() (
 	unset CDPATH
 	dir=$1
 	while :; do
-		if project_path_gateway__sys_is_file "${dir%/}/.tools/project-path-gateway/.project-path-gateway"; then
+		if project_path_gateway__sys_is_file "${dir%/}/$2"; then
 			printf '%sx' "$dir"
 			return 0
 		fi
@@ -834,7 +913,7 @@ project_path_gateway__if_init_fail() (
 	case $1 in
 	8) project_path_gateway__if_error project_path_gateway_init "디렉터리가 아닙니다: $detail" ;;
 	5) project_path_gateway__if_error project_path_gateway_init "경로를 확인할 수 없습니다: $detail" ;;
-	6) project_path_gateway__if_error project_path_gateway_init "루트 표식 파일(.tools/project-path-gateway/.project-path-gateway)을 찾지 못했습니다: ${detail}부터 /까지" ;;
+	6) project_path_gateway__if_error project_path_gateway_init "루트 표식 파일($(project_path_gateway__domain_layout_marker))을 찾지 못했습니다: ${detail}부터 /까지" ;;
 	4) project_path_gateway__if_error project_path_gateway_init "데이터 파일을 읽을 수 없습니다: $detail" ;;
 	3) ;;
 	*) project_path_gateway__if_error project_path_gateway_init "알 수 없는 오류입니다(코드 $1)" ;;
