@@ -1,5 +1,5 @@
-# 도메인 단위: 도구 디렉터리 상대경로 (기능 001 cli_domain_plan_test_names_and_paths)
-target bin-func ppg__domain_tool_relpath
+# 도메인 단위: 도구 배치 모델 - 도구 디렉터리 상대경로 (기능 001 cli_domain_plan_test_names_and_paths, 기능 005 R-05)
+target bin-func ppg__domain_layout_tool_dir
 layer domain
 
 case tool-relpath

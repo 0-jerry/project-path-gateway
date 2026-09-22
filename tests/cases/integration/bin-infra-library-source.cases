@@ -1,6 +1,8 @@
 # 인프라 통합: 설치된 라이브러리 원본 경로 (기능 001 cli_init_test_symlinked_program_finds_library_source, _missing_library_source)
+# 인자: PREFIX 기준 설치 라이브러리 상대경로 (기능 005 research R-05).
 target bin-func ppg__port_library_source
 layer infra
+arg share/project-path-gateway/project-path-gateway.sh
 
 case library-source-found
 self /opt/ppg/bin/project-path-gateway

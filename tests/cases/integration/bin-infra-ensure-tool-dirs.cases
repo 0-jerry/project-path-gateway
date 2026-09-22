@@ -1,10 +1,12 @@
 # 인프라 통합: 도구 디렉터리 만들기 (기능 001 cli_init_test, research R-10)
+# 인자: 도구 상위 디렉터리, 도구 디렉터리 (기능 005 research R-05, 애플리케이션이 배치 모델로 만든다).
 target bin-func ppg__port_ensure_tool_dirs
 layer infra
 
 case ensure-tool-dirs-creates-both
 fs dir /p
-arg /p
+arg /p/.tools
+arg /p/.tools/project-path-gateway
 status 0
 op is-dir /p/.tools
 op mkdir /p/.tools
@@ -13,7 +15,8 @@ op mkdir /p/.tools/project-path-gateway
 
 case ensure-tool-dirs-creates-only-missing
 fs dir /p/.tools
-arg /p
+arg /p/.tools
+arg /p/.tools/project-path-gateway
 status 0
 op is-dir /p/.tools
 op is-dir /p/.tools/project-path-gateway
@@ -21,7 +24,8 @@ op mkdir /p/.tools/project-path-gateway
 
 case ensure-tool-dirs-existing
 fs dir /p/.tools/project-path-gateway
-arg /p/
+arg /p/.tools
+arg /p/.tools/project-path-gateway
 status 0
 op is-dir /p/.tools
 op is-dir /p/.tools/project-path-gateway
@@ -29,7 +33,8 @@ op is-dir /p/.tools/project-path-gateway
 case ensure-tool-dirs-readonly-target
 fs dir /p
 fs readonly /p
-arg /p
+arg /p/.tools
+arg /p/.tools/project-path-gateway
 status 1
 op is-dir /p/.tools
 op mkdir /p/.tools
@@ -37,7 +42,8 @@ op mkdir /p/.tools
 case ensure-tool-dirs-second-mkdir-fails
 fs dir /p
 fault mkdir /p/.tools/project-path-gateway
-arg /p
+arg /p/.tools
+arg /p/.tools/project-path-gateway
 status 1
 op is-dir /p/.tools
 op mkdir /p/.tools

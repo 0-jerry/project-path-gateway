@@ -1,0 +1,7 @@
+# 도메인 단위: 도구 배치 모델 - 파일 종류 순서 (기능 005 FR-041, research R-05). 초기화는 이 순서로 파일을 처리한다.
+target bin-func ppg__domain_layout_kinds
+layer domain
+
+case layout-kinds
+status 0
+out marker data library

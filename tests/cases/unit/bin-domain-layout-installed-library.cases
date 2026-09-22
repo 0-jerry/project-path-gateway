@@ -1,0 +1,7 @@
+# 도메인 단위: 도구 배치 모델 - PREFIX 기준 설치 라이브러리 상대경로 (기능 005 FR-041, research R-05)
+target bin-func ppg__domain_layout_installed_library
+layer domain
+
+case layout-installed-library
+status 0
+out share/project-path-gateway/project-path-gateway.sh

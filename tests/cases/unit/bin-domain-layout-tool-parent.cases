@@ -1,0 +1,7 @@
+# 도메인 단위: 도구 배치 모델 - 도구 상위 디렉터리 이름 (기능 005 FR-041, research R-05)
+target bin-func ppg__domain_layout_tool_parent
+layer domain
+
+case layout-tool-parent
+status 0
+out .tools

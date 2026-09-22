@@ -1,5 +1,5 @@
-# 인프라 통합: 실행 파일($0) 링크 해소 디렉터리 (기능 001 cli_init_test, research R-09)
-target bin-func ppg__port_self_dir
+# 인프라 통합: 실행 파일($0) 링크 해소 디렉터리 (기능 001 cli_init_test, research R-09, 기능 005 인프라 도우미)
+target bin-func ppg__infra_self_dir
 layer infra
 
 case self-dir-path-with-slash

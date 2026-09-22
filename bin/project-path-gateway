@@ -51,17 +51,38 @@ ppg__domain_data_template() {
 		'# BUILD_SCRIPT=scripts/build.sh'
 }
 
-ppg__domain_tool_relpath() {
+# --- 모델: 도구 배치 (기능 005 research R-05) ---
+
+# 도구 상위 디렉터리 이름(프로젝트 루트 기준).
+ppg__domain_layout_tool_parent() {
+	printf '.tools\n'
+}
+
+# 도구 디렉터리 상대경로(프로젝트 루트 기준).
+ppg__domain_layout_tool_dir() {
 	printf '.tools/project-path-gateway\n'
 }
 
-ppg__domain_file_name() {
+# 초기화가 처리하는 파일 종류와 순서.
+ppg__domain_layout_kinds() {
+	printf 'marker data library\n'
+}
+
+# 파일 종류별 이름(도구 디렉터리 안).
+ppg__domain_layout_file_name() {
 	case $1 in
 	marker) printf '.project-path-gateway\n' ;;
 	data) printf 'project-path-gateway.conf\n' ;;
 	library) printf 'project-path-gateway.sh\n' ;;
 	esac
 }
+
+# 설치된 라이브러리 원본의 PREFIX 기준 상대경로.
+ppg__domain_layout_installed_library() {
+	printf 'share/project-path-gateway/project-path-gateway.sh\n'
+}
+
+# --- 기타 규칙 ---
 
 # 디렉터리와 이름을 결합한다. 디렉터리가 /이면 슬래시를 중복하지 않는다.
 ppg__domain_join() {
@@ -70,49 +91,54 @@ ppg__domain_join() {
 
 # === 계층: 애플리케이션 ===
 
+# 입력 포트: ppg__port_dir_state ppg__port_file_state ppg__port_physical_dir ppg__port_library_source
+# 입력 포트: ppg__port_ensure_tool_dirs ppg__port_rollback_dirs ppg__port_write_new ppg__port_copy_new
+# 입력 포트: ppg__port_replace ppg__port_cleanup_temp ppg__port_on_signal
+# 출력 포트: ppg__out_action ppg__out_done ppg__out_failure
+
 # 프로젝트 초기화 흐름 (contracts/cli.md 2절, research R-10).
 ppg__app_init_project() {
 	target=$1
 	if [ "$(ppg__port_dir_state "$target")" != dir ]; then
-		ppg__port_report_failure not_dir "$target"
+		ppg__out_failure not_dir "$target"
 		return 10
 	fi
-	tool_parent=$(ppg__domain_join "$target" .tools)
+	tool_parent=$(ppg__domain_join "$target" "$(ppg__domain_layout_tool_parent)")
 	if [ "$(ppg__port_dir_state "$tool_parent")" = other ]; then
-		ppg__port_report_failure tool_not_dir "$tool_parent"
+		ppg__out_failure tool_not_dir "$tool_parent"
 		return 10
 	fi
-	tool_dir=$(ppg__domain_join "$target" "$(ppg__domain_tool_relpath)")
+	tool_dir=$(ppg__domain_join "$target" "$(ppg__domain_layout_tool_dir)")
 	if [ "$(ppg__port_dir_state "$tool_dir")" = other ]; then
-		ppg__port_report_failure tool_dir_not_dir "$tool_dir"
+		ppg__out_failure tool_dir_not_dir "$tool_dir"
 		return 10
 	fi
-	for kind in marker data library; do
-		path=$(ppg__domain_join "$tool_dir" "$(ppg__domain_file_name "$kind")")
+	for kind in $(ppg__domain_layout_kinds); do
+		path=$(ppg__domain_join "$tool_dir" "$(ppg__domain_layout_file_name "$kind")")
 		if [ "$(ppg__domain_plan_action "$kind" "$(ppg__port_file_state "$path")")" = fail ]; then
-			ppg__port_report_failure not_regular "$path"
+			ppg__out_failure not_regular "$path"
 			return 10
 		fi
 	done
-	if ! library_source=$(ppg__port_library_source); then
-		ppg__port_report_failure no_library "${library_source%x}"
+	if ! library_source=$(ppg__port_library_source "$(ppg__domain_layout_installed_library)"); then
+		ppg__out_failure no_library "${library_source%x}"
 		return 11
 	fi
 	library_source=${library_source%x}
 	if ! target_physical=$(ppg__port_physical_dir "$target"); then
-		ppg__port_report_failure not_dir "$target"
+		ppg__out_failure not_dir "$target"
 		return 10
 	fi
 	target_physical=${target_physical%x}
 
-	if ! ppg__port_ensure_tool_dirs "$target"; then
-		ppg__port_report_failure write "$tool_dir"
+	if ! ppg__port_ensure_tool_dirs "$tool_parent" "$tool_dir"; then
+		ppg__out_failure write "$tool_dir"
 		ppg__app_cleanup "$target"
-		ppg__port_rollback_dirs "$target"
+		ppg__port_rollback_dirs "$tool_parent" "$tool_dir"
 		return 12
 	fi
-	for kind in marker data library; do
-		name=$(ppg__domain_file_name "$kind")
+	for kind in $(ppg__domain_layout_kinds); do
+		name=$(ppg__domain_layout_file_name "$kind")
 		path=$(ppg__domain_join "$tool_dir" "$name")
 		action=$(ppg__domain_plan_action "$kind" "$(ppg__port_file_state "$path")")
 		written=0
@@ -124,14 +150,14 @@ ppg__app_init_project() {
 		*:keep) written=1 ;;
 		esac
 		if [ "$written" -ne 1 ]; then
-			ppg__port_report_failure write "$path"
+			ppg__out_failure write "$path"
 			ppg__app_cleanup "$target"
-			ppg__port_rollback_dirs "$target"
+			ppg__port_rollback_dirs "$tool_parent" "$tool_dir"
 			return 12
 		fi
-		ppg__port_report_action "$action" "$(ppg__domain_join "$(ppg__domain_tool_relpath)" "$name")"
+		ppg__out_action "$action" "$(ppg__domain_join "$(ppg__domain_layout_tool_dir)" "$name")"
 	done
-	ppg__port_report_done "$target_physical"
+	ppg__out_done "$target_physical"
 	return 0
 }
 
@@ -142,7 +168,7 @@ ppg__app_arm_cleanup() {
 
 # 이번 실행의 임시 파일을 지운다. 종료·신호 trap과 쓰기 실패 처리에서 호출한다.
 ppg__app_cleanup() {
-	ppg__port_cleanup_temp "$(ppg__domain_join "$1" "$(ppg__domain_tool_relpath)")"
+	ppg__port_cleanup_temp "$(ppg__domain_join "$1" "$(ppg__domain_layout_tool_dir)")"
 }
 
 # === 계층: 인프라 ===
@@ -177,8 +203,8 @@ ppg__port_physical_dir() {
 	ppg__sys_physical_dir "$1"
 }
 
-# 실행 파일($0)의 심볼릭 링크를 해소한 실제 디렉터리를 끝 표지 방식으로 출력한다 (research R-09).
-ppg__port_self_dir() {
+# 실행 파일($0)의 심볼릭 링크를 해소한 실제 디렉터리를 끝 표지 방식으로 출력한다 (research R-09). 인프라 도우미.
+ppg__infra_self_dir() {
 	ppg_infra_self=$(ppg__sys_self_path) || return 1
 	ppg_infra_self=${ppg_infra_self%x}
 	case $ppg_infra_self in
@@ -208,38 +234,39 @@ ppg__port_self_dir() {
 }
 
 # 설치된 라이브러리 원본 경로를 끝 표지 방식으로 출력한다. 읽을 수 없으면 경로를 출력하고 반환 1.
+# 인자: PREFIX 기준 설치 라이브러리 상대경로. 실행 파일은 PREFIX/bin에 있다.
 ppg__port_library_source() {
-	ppg_infra_self_dir=$(ppg__port_self_dir) || {
+	ppg_infra_self_dir=$(ppg__infra_self_dir) || {
 		ppg__sys_self_path
 		return 1
 	}
-	ppg_infra_source=${ppg_infra_self_dir%x}/../share/project-path-gateway/project-path-gateway.sh
+	ppg_infra_source=${ppg_infra_self_dir%x}/../$1
 	printf '%sx' "$ppg_infra_source"
 	ppg__sys_is_file "$ppg_infra_source" && ppg__sys_is_readable "$ppg_infra_source"
 }
 
-# .tools과 도구 디렉터리 중 없는 것을 만들고, 이번 실행에서 만든 것을 상태 변수에 기록한다.
+# 도구 상위 디렉터리($1)와 도구 디렉터리($2) 중 없는 것을 만들고, 이번 실행에서 만든 것을 상태 변수에 기록한다.
 ppg__port_ensure_tool_dirs() {
 	PPG_INFRA_CREATED_TOOL=0
 	PPG_INFRA_CREATED_TOOLDIR=0
-	if ! ppg__sys_is_dir "${1%/}/.tools"; then
-		ppg__sys_mkdir "${1%/}/.tools" || return 1
+	if ! ppg__sys_is_dir "$1"; then
+		ppg__sys_mkdir "$1" || return 1
 		PPG_INFRA_CREATED_TOOL=1
 	fi
-	if ! ppg__sys_is_dir "${1%/}/.tools/project-path-gateway"; then
-		ppg__sys_mkdir "${1%/}/.tools/project-path-gateway" || return 1
+	if ! ppg__sys_is_dir "$2"; then
+		ppg__sys_mkdir "$2" || return 1
 		PPG_INFRA_CREATED_TOOLDIR=1
 	fi
 	return 0
 }
 
-# 이번 실행에서 만든 디렉터리만 도구 디렉터리 → .tools 순서로 되돌린다.
+# 이번 실행에서 만든 디렉터리만 도구 디렉터리($2) → 도구 상위 디렉터리($1) 순서로 되돌린다.
 ppg__port_rollback_dirs() {
 	if [ "${PPG_INFRA_CREATED_TOOLDIR-0}" = 1 ]; then
-		ppg__sys_rmdir "${1%/}/.tools/project-path-gateway"
+		ppg__sys_rmdir "$2"
 	fi
 	if [ "${PPG_INFRA_CREATED_TOOL-0}" = 1 ]; then
-		ppg__sys_rmdir "${1%/}/.tools"
+		ppg__sys_rmdir "$1"
 	fi
 	return 0
 }
@@ -429,8 +456,8 @@ ppg__if_usage() {
 		'TARGET_DIR을 생략하면 현재 작업 디렉터리를 프로젝트 루트로 초기화합니다.'
 }
 
-# 파일별 처리 결과 보고 포트 구현.
-ppg__port_report_action() {
+# 출력 포트 구현: 파일별 처리 결과 보고.
+ppg__out_action() {
 	case $1 in
 	create) ppg_if_label=생성 ;;
 	keep) ppg_if_label=유지 ;;
@@ -440,12 +467,12 @@ ppg__port_report_action() {
 	printf 'project-path-gateway: %s: %s\n' "$ppg_if_label" "$2"
 }
 
-ppg__port_report_done() {
+ppg__out_done() {
 	printf 'project-path-gateway: 초기화 완료: %s\n' "$1"
 }
 
-# 실패 보고 포트 구현 (contracts/cli.md 2.1절, 2.2절).
-ppg__port_report_failure() {
+# 출력 포트 구현: 실패 보고 (contracts/cli.md 2.1절, 2.2절).
+ppg__out_failure() {
 	case $1 in
 	not_dir) ppg_if_message="디렉터리가 아닙니다: $2" ;;
 	tool_not_dir) ppg_if_message=".tools이 디렉터리가 아닙니다: $2" ;;
@@ -456,6 +483,15 @@ ppg__port_report_failure() {
 	*) ppg_if_message="알 수 없는 오류입니다: $1 $2" ;;
 	esac
 	printf 'project-path-gateway: init: %s\n' "$ppg_if_message" >&2
+}
+
+# 초기화 결과 매핑: 애플리케이션 결과 코드를 종료 코드로 바꾼다 (0 → 0, 10 → 2, 그 밖 → 1).
+ppg__if_init_result() {
+	case $1 in
+	0) return 0 ;;
+	10) return 2 ;;
+	*) return 1 ;;
+	esac
 }
 
 # 종료와 중단 신호에 임시 파일 정리를 건다. dash는 신호로 끝날 때 EXIT trap을 실행하지 않으므로
@@ -486,11 +522,8 @@ main() {
 		fi
 		ppg__if_set_traps "${1-.}"
 		ppg__app_init_project "${1-.}"
-		case $? in
-		0) exit 0 ;;
-		10) exit 2 ;;
-		*) exit 1 ;;
-		esac
+		ppg__if_init_result "$?"
+		exit "$?"
 		;;
 	'')
 		ppg__if_usage >&2
