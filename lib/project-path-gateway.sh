@@ -188,34 +188,8 @@ project_path_gateway__domain_seen_register() (
 	return 0
 )
 
-# --- 이전 함수 (기능 005 T017에서 제거) ---
-
-# 키 규칙을 만족하면 반환 0. 범위 괄호식 대신 문자 목록을 명시해 로캘과 무관하게 판정한다.
-project_path_gateway__domain_is_valid_key() (
-	set +e +u +f
-	IFS=' 	''
-'
-	unset CDPATH
-	case $1 in
-	'' | [!ABCDEFGHIJKLMNOPQRSTUVWXYZ]* | *[!ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_]*)
-		return 1
-		;;
-	esac
-	return 0
-)
-
-# 줄에 CR 문자가 있으면 반환 0.
-project_path_gateway__domain_has_cr() (
-	set +e +u +f
-	IFS=' 	''
-'
-	unset CDPATH
-	cr=$(printf '\r')
-	case $1 in
-	*"$cr"*) return 0 ;;
-	esac
-	return 1
-)
+# --- 기타 규칙 ---
+# 데이터 파일 원문 편집, 루트 결합, 루트 내부 판정.
 
 # 등록 새 원문을 끝 표지 방식으로 출력한다 (기능 004 research R-05). 원문 끝에 KEY=PATH와 LF를 더하며,
 # 원문이 LF 없이 끝나면 LF를 먼저 더한다.
@@ -266,90 +240,6 @@ project_path_gateway__domain_replace_line() (
 		done_part=$done_part$current$sep
 	done
 	return 1
-)
-
-# 줄을 분류해 ignore, entry 또는 위반 원인 코드를 출력한다 (data-model 1.5).
-# 중복 키 검사는 파일 전체 상태가 필요하므로 seen 함수로 따로 한다.
-project_path_gateway__domain_classify_line() (
-	set +e +u +f
-	IFS=' 	''
-'
-	unset CDPATH
-	case $1 in
-	'' | '#'*)
-		printf 'ignore\n'
-		return 0
-		;;
-	*=*) ;;
-	*)
-		printf 'no_separator\n'
-		return 0
-		;;
-	esac
-	if ! project_path_gateway__domain_is_valid_key "${1%%=*}"; then
-		printf 'invalid_key\n'
-		return 0
-	fi
-	violation=$(project_path_gateway__domain_path_violation "${1#*=}")
-	if [ -n "$violation" ]; then
-		printf '%s\n' "$violation"
-		return 0
-	fi
-	printf 'entry\n'
-	return 0
-)
-
-# 줄의 첫 = 앞(키)을 출력한다. = 가 없으면 빈 출력.
-project_path_gateway__domain_line_key() (
-	set +e +u +f
-	IFS=' 	''
-'
-	unset CDPATH
-	case $1 in
-	*=*) printf '%s' "${1%%=*}" ;;
-	esac
-	return 0
-)
-
-# 줄의 첫 = 뒤 전체(경로)를 출력한다.
-project_path_gateway__domain_line_path() (
-	set +e +u +f
-	IFS=' 	''
-'
-	unset CDPATH
-	case $1 in
-	*=*) printf '%s' "${1#*=}" ;;
-	esac
-	return 0
-)
-
-# 본 키 목록 SEEN(":KEY=줄번호:" 연결)에 KEY를 더한 목록을 출력한다.
-project_path_gateway__domain_seen_add() (
-	set +e +u +f
-	IFS=' 	''
-'
-	unset CDPATH
-	if [ -z "$1" ]; then
-		printf ':%s=%s:' "$2" "$3"
-	else
-		printf '%s%s=%s:' "$1" "$2" "$3"
-	fi
-	return 0
-)
-
-# 본 키 목록에서 KEY가 처음 정의된 줄 번호를 출력한다. 없으면 빈 출력.
-project_path_gateway__domain_seen_lineno() (
-	set +e +u +f
-	IFS=' 	''
-'
-	unset CDPATH
-	case $1 in
-	*":$2="*)
-		rest=${1#*":$2="}
-		printf '%s\n' "${rest%%:*}"
-		;;
-	esac
-	return 0
 )
 
 # 루트와 상대경로를 결합해 출력한다. 루트가 /이면 슬래시를 중복하지 않는다.

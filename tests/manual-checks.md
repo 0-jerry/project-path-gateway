@@ -225,7 +225,7 @@ for loc in $(locale -a | grep -i 'utf-\?8' | head -3) C; do
 	LC_ALL=$loc "$SH" -c '
 		. "$1/lib/project-path-gateway.sh"
 		for k in A A_1 AÉ a A-B Ａ; do
-			if project_path_gateway__domain_is_valid_key "$k"; then r=valid; else r=invalid; fi
+			if project_path_gateway__domain_key_is_valid "$k"; then r=valid; else r=invalid; fi
 			printf "%s:%s " "$k" "$r"
 		done
 		echo
