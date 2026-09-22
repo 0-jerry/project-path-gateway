@@ -1,0 +1,10 @@
+# 도메인 단위: 설치 목록 내용 - 배치 모델의 설치 경로와 목록 파일 자신 (기능 001 install_uninstall_test, 기능 005 FR-041)
+target script-func install.sh ppg__domain_manifest_content
+layer domain
+
+case install-manifest-content
+status 0
+out bin/project-path-gateway
+out share/project-path-gateway/project-path-gateway.sh
+out share/project-path-gateway/VERSION
+out share/project-path-gateway/install-manifest

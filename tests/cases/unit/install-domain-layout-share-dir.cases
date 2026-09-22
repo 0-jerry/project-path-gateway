@@ -1,0 +1,7 @@
+# 도메인 단위: 설치 배치 모델 - 공유 디렉터리 (기능 005 FR-041, research R-05)
+target script-func install.sh ppg__domain_layout_share_dir
+layer domain
+
+case install-layout-share-dir
+status 0
+out share/project-path-gateway

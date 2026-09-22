@@ -11,3 +11,7 @@ case line-key-first-equal
 arg A=b=c
 status 0
 out-raw A
+
+case line-key-no-separator
+arg KEY
+status 0

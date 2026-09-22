@@ -1,0 +1,7 @@
+# 도메인 단위: 설치 배치 모델 - 설치가 만드는 디렉터리 (기능 005 FR-041, research R-05)
+target script-func install.sh ppg__domain_layout_dirs
+layer domain
+
+case install-layout-dirs
+status 0
+out bin share/project-path-gateway

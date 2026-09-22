@@ -1,0 +1,7 @@
+# 도메인 단위: 제거 배치 모델 - 설치 목록 (기능 005 FR-041, research R-05)
+target script-func uninstall.sh ppg__domain_layout_manifest
+layer domain
+
+case uninstall-layout-manifest
+status 0
+out share/project-path-gateway/install-manifest
