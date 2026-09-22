@@ -5,8 +5,8 @@ layer app
 
 case load-entries-valid-lines-in-file-order
 arg /r
-stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
 stub-out # 주석
 stub-out
 stub-out SRC=sources
@@ -16,31 +16,31 @@ status 0
 out 3\tSRC\tsources
 out 4\tBUILD_SCRIPT\tscripts/build.sh
 out 5\tA1\ta b/c=d
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
 
 case load-entries-no-entries
 arg /r
-stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
 stub-out # project-path-gateway 데이터 파일
 stub-out #
 status 0
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
 
 case load-entries-empty-file
 arg /r
-stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
 status 0
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
 
 case load-entries-reports-all-violations-in-order
 arg /r
-stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
 stub-out NOSEP
 stub-out lower=x
 stub-out EMPTY=
@@ -48,64 +48,64 @@ stub-out ABS=/x
 stub-out UP=a/../b
 stub-out OK=ok
 stub-out CR=x\r
-stub project_path_gateway__port_report_violation 0 /r/.tool/project-path-gateway/project-path-gateway.conf 1 no_separator \e \e 0
-stub project_path_gateway__port_report_violation 0 /r/.tool/project-path-gateway/project-path-gateway.conf 2 invalid_key lower \e 0
-stub project_path_gateway__port_report_violation 0 /r/.tool/project-path-gateway/project-path-gateway.conf 3 empty_path EMPTY \e 0
-stub project_path_gateway__port_report_violation 0 /r/.tool/project-path-gateway/project-path-gateway.conf 4 absolute_path ABS \e 0
-stub project_path_gateway__port_report_violation 0 /r/.tool/project-path-gateway/project-path-gateway.conf 5 parent_segment UP \e 0
-stub project_path_gateway__port_report_violation 0 /r/.tool/project-path-gateway/project-path-gateway.conf 7 carriage_return CR \e 1
+stub project_path_gateway__port_report_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 1 no_separator \e \e 0
+stub project_path_gateway__port_report_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 2 invalid_key lower \e 0
+stub project_path_gateway__port_report_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 3 empty_path EMPTY \e 0
+stub project_path_gateway__port_report_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 4 absolute_path ABS \e 0
+stub project_path_gateway__port_report_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 5 parent_segment UP \e 0
+stub project_path_gateway__port_report_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 7 carriage_return CR \e 1
 status 3
 out 6\tOK\tok
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_report_violation /r/.tool/project-path-gateway/project-path-gateway.conf 1 no_separator \e \e 0
-op port project_path_gateway__port_report_violation /r/.tool/project-path-gateway/project-path-gateway.conf 2 invalid_key lower \e 0
-op port project_path_gateway__port_report_violation /r/.tool/project-path-gateway/project-path-gateway.conf 3 empty_path EMPTY \e 0
-op port project_path_gateway__port_report_violation /r/.tool/project-path-gateway/project-path-gateway.conf 4 absolute_path ABS \e 0
-op port project_path_gateway__port_report_violation /r/.tool/project-path-gateway/project-path-gateway.conf 5 parent_segment UP \e 0
-op port project_path_gateway__port_report_violation /r/.tool/project-path-gateway/project-path-gateway.conf 7 carriage_return CR \e 1
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_report_violation /r/.tools/project-path-gateway/project-path-gateway.conf 1 no_separator \e \e 0
+op port project_path_gateway__port_report_violation /r/.tools/project-path-gateway/project-path-gateway.conf 2 invalid_key lower \e 0
+op port project_path_gateway__port_report_violation /r/.tools/project-path-gateway/project-path-gateway.conf 3 empty_path EMPTY \e 0
+op port project_path_gateway__port_report_violation /r/.tools/project-path-gateway/project-path-gateway.conf 4 absolute_path ABS \e 0
+op port project_path_gateway__port_report_violation /r/.tools/project-path-gateway/project-path-gateway.conf 5 parent_segment UP \e 0
+op port project_path_gateway__port_report_violation /r/.tools/project-path-gateway/project-path-gateway.conf 7 carriage_return CR \e 1
 
 case load-entries-duplicate-key-passes-first-line
 arg /r
-stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
 stub-out # 머리
 stub-out KEY=a
 stub-out OTHER=b
 stub-out KEY=c
 stub-out KEY=d
-stub project_path_gateway__port_report_violation 0 /r/.tool/project-path-gateway/project-path-gateway.conf 4 duplicate_key KEY 2 0
-stub project_path_gateway__port_report_violation 0 /r/.tool/project-path-gateway/project-path-gateway.conf 5 duplicate_key KEY 2 0
+stub project_path_gateway__port_report_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 4 duplicate_key KEY 2 0
+stub project_path_gateway__port_report_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 5 duplicate_key KEY 2 0
 status 3
 out 2\tKEY\ta
 out 3\tOTHER\tb
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_report_violation /r/.tool/project-path-gateway/project-path-gateway.conf 4 duplicate_key KEY 2 0
-op port project_path_gateway__port_report_violation /r/.tool/project-path-gateway/project-path-gateway.conf 5 duplicate_key KEY 2 0
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_report_violation /r/.tools/project-path-gateway/project-path-gateway.conf 4 duplicate_key KEY 2 0
+op port project_path_gateway__port_report_violation /r/.tools/project-path-gateway/project-path-gateway.conf 5 duplicate_key KEY 2 0
 
 case load-entries-unreadable
 arg /r
-stub project_path_gateway__port_readable_file 1 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 1 /r/.tools/project-path-gateway/project-path-gateway.conf
 status 4
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
 
 case load-entries-root-with-trailing-slash
 arg /r/
-stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
 stub-out A=a
 status 0
 out 1\tA\ta
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
 
 case load-entries-path-keeps-tab-equal-and-korean
 arg /r
-stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
 stub-out A=x\ty=z/한글 경로
 status 0
 out 1\tA\tx\ty=z/한글 경로
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf

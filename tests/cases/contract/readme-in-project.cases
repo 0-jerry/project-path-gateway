@@ -3,9 +3,9 @@
 target readme-example in-project
 layer api
 self scripts/show-config.sh
-fs file /t/my\sproject/.tool/project-path-gateway/.project-path-gateway
-fs file /t/my\sproject/.tool/project-path-gateway/project-path-gateway.sh
-fs file /t/my\sproject/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/my\sproject/.tools/project-path-gateway/.project-path-gateway
+fs file /t/my\sproject/.tools/project-path-gateway/project-path-gateway.sh
+fs file /t/my\sproject/.tools/project-path-gateway/project-path-gateway.conf
 content APP_CONFIG=config/app.json
 fs file /t/my\sproject/scripts/show-config.sh
 
@@ -14,4 +14,4 @@ fs file /t/my\sproject/config/app.json
 cwd /t/my\sproject
 status 0
 out 설정 파일: /t/my project/config/app.json
-op source /t/my\sproject/scripts/../.tool/project-path-gateway/project-path-gateway.sh
+op source /t/my\sproject/scripts/../.tools/project-path-gateway/project-path-gateway.sh

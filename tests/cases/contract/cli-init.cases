@@ -12,24 +12,24 @@ fs file /t/project/existing
 cwd /t/project
 arg init
 status 0
-out project-path-gateway: 생성: .tool/project-path-gateway/.project-path-gateway
-out project-path-gateway: 생성: .tool/project-path-gateway/project-path-gateway.conf
-out project-path-gateway: 생성: .tool/project-path-gateway/project-path-gateway.sh
+out project-path-gateway: 생성: .tools/project-path-gateway/.project-path-gateway
+out project-path-gateway: 생성: .tools/project-path-gateway/project-path-gateway.conf
+out project-path-gateway: 생성: .tools/project-path-gateway/project-path-gateway.sh
 out project-path-gateway: 초기화 완료: /t/project
 op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
 op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
 op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
-op mkdir ./.tool
-op mkdir ./.tool/project-path-gateway
-op write ./.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tool/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
-op link ./.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway ./.tool/project-path-gateway/.project-path-gateway
-op remove ./.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway
-op write ./.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\sproject-path-gateway\s데이터\s파일\n#\s한\s줄에\sKEY=경로\s형식으로\s적습니다.\s경로는\s프로젝트\s루트(.tool/의\s상위\s디렉터리)\s기준\s상대경로입니다.\n#\s키:\s대문자로\s시작하고\s대문자·숫자·_만\s사용합니다.\s파일\s안에서\s중복될\s수\s없습니다.\n#\s경로:\s/로\s시작할\s수\s없고\s..\s세그먼트를\s쓸\s수\s없습니다.\s=\s앞뒤\s공백은\s제거되지\s않습니다.\n#\s빈\s줄과\s#으로\s시작하는\s줄은\s무시합니다.\n#\n#\s예:\n#\sSOURCES_ROOT=sources\n#\sBUILD_SCRIPT=scripts/build.sh\n
-op link ./.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf ./.tool/project-path-gateway/project-path-gateway.conf
-op remove ./.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh ./.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
-op link ./.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh ./.tool/project-path-gateway/project-path-gateway.sh
-op remove ./.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op mkdir ./.tools
+op mkdir ./.tools/project-path-gateway
+op write ./.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tools/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
+op link ./.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway ./.tools/project-path-gateway/.project-path-gateway
+op remove ./.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway
+op write ./.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\sproject-path-gateway\s데이터\s파일\n#\s한\s줄에\sKEY=경로\s형식으로\s적습니다.\s경로는\s프로젝트\s루트(.tools/의\s상위\s디렉터리)\s기준\s상대경로입니다.\n#\s키:\s대문자로\s시작하고\s대문자·숫자·_만\s사용합니다.\s파일\s안에서\s중복될\s수\s없습니다.\n#\s경로:\s/로\s시작할\s수\s없고\s..\s세그먼트를\s쓸\s수\s없습니다.\s=\s앞뒤\s공백은\s제거되지\s않습니다.\n#\s빈\s줄과\s#으로\s시작하는\s줄은\s무시합니다.\n#\n#\s예:\n#\sSOURCES_ROOT=sources\n#\sBUILD_SCRIPT=scripts/build.sh\n
+op link ./.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf ./.tools/project-path-gateway/project-path-gateway.conf
+op remove ./.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh ./.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op link ./.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh ./.tools/project-path-gateway/project-path-gateway.sh
+op remove ./.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
 
 case cli-init-with-path-from-outside
 fs dir /t/project
@@ -38,24 +38,24 @@ cwd /t/cwd
 arg init
 arg /t/project
 status 0
-out project-path-gateway: 생성: .tool/project-path-gateway/.project-path-gateway
-out project-path-gateway: 생성: .tool/project-path-gateway/project-path-gateway.conf
-out project-path-gateway: 생성: .tool/project-path-gateway/project-path-gateway.sh
+out project-path-gateway: 생성: .tools/project-path-gateway/.project-path-gateway
+out project-path-gateway: 생성: .tools/project-path-gateway/project-path-gateway.conf
+out project-path-gateway: 생성: .tools/project-path-gateway/project-path-gateway.sh
 out project-path-gateway: 초기화 완료: /t/project
 op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
 op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
 op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
-op mkdir /t/project/.tool
-op mkdir /t/project/.tool/project-path-gateway
-op write /t/project/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tool/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
-op link /t/project/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway /t/project/.tool/project-path-gateway/.project-path-gateway
-op remove /t/project/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway
-op write /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\sproject-path-gateway\s데이터\s파일\n#\s한\s줄에\sKEY=경로\s형식으로\s적습니다.\s경로는\s프로젝트\s루트(.tool/의\s상위\s디렉터리)\s기준\s상대경로입니다.\n#\s키:\s대문자로\s시작하고\s대문자·숫자·_만\s사용합니다.\s파일\s안에서\s중복될\s수\s없습니다.\n#\s경로:\s/로\s시작할\s수\s없고\s..\s세그먼트를\s쓸\s수\s없습니다.\s=\s앞뒤\s공백은\s제거되지\s않습니다.\n#\s빈\s줄과\s#으로\s시작하는\s줄은\s무시합니다.\n#\n#\s예:\n#\sSOURCES_ROOT=sources\n#\sBUILD_SCRIPT=scripts/build.sh\n
-op link /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/project/.tool/project-path-gateway/project-path-gateway.conf
-op remove /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
-op link /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh /t/project/.tool/project-path-gateway/project-path-gateway.sh
-op remove /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op mkdir /t/project/.tools
+op mkdir /t/project/.tools/project-path-gateway
+op write /t/project/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tools/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
+op link /t/project/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway /t/project/.tools/project-path-gateway/.project-path-gateway
+op remove /t/project/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway
+op write /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\sproject-path-gateway\s데이터\s파일\n#\s한\s줄에\sKEY=경로\s형식으로\s적습니다.\s경로는\s프로젝트\s루트(.tools/의\s상위\s디렉터리)\s기준\s상대경로입니다.\n#\s키:\s대문자로\s시작하고\s대문자·숫자·_만\s사용합니다.\s파일\s안에서\s중복될\s수\s없습니다.\n#\s경로:\s/로\s시작할\s수\s없고\s..\s세그먼트를\s쓸\s수\s없습니다.\s=\s앞뒤\s공백은\s제거되지\s않습니다.\n#\s빈\s줄과\s#으로\s시작하는\s줄은\s무시합니다.\n#\n#\s예:\n#\sSOURCES_ROOT=sources\n#\sBUILD_SCRIPT=scripts/build.sh\n
+op link /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/project/.tools/project-path-gateway/project-path-gateway.conf
+op remove /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op link /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh /t/project/.tools/project-path-gateway/project-path-gateway.sh
+op remove /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
 
 case cli-init-relative-target-argument
 fs dir /t/rel/project
@@ -63,63 +63,63 @@ cwd /t/rel
 arg init
 arg project
 status 0
-out project-path-gateway: 생성: .tool/project-path-gateway/.project-path-gateway
-out project-path-gateway: 생성: .tool/project-path-gateway/project-path-gateway.conf
-out project-path-gateway: 생성: .tool/project-path-gateway/project-path-gateway.sh
+out project-path-gateway: 생성: .tools/project-path-gateway/.project-path-gateway
+out project-path-gateway: 생성: .tools/project-path-gateway/project-path-gateway.conf
+out project-path-gateway: 생성: .tools/project-path-gateway/project-path-gateway.sh
 out project-path-gateway: 초기화 완료: /t/rel/project
 op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
 op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
 op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
-op mkdir project/.tool
-op mkdir project/.tool/project-path-gateway
-op write project/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tool/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
-op link project/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway project/.tool/project-path-gateway/.project-path-gateway
-op remove project/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway
-op write project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\sproject-path-gateway\s데이터\s파일\n#\s한\s줄에\sKEY=경로\s형식으로\s적습니다.\s경로는\s프로젝트\s루트(.tool/의\s상위\s디렉터리)\s기준\s상대경로입니다.\n#\s키:\s대문자로\s시작하고\s대문자·숫자·_만\s사용합니다.\s파일\s안에서\s중복될\s수\s없습니다.\n#\s경로:\s/로\s시작할\s수\s없고\s..\s세그먼트를\s쓸\s수\s없습니다.\s=\s앞뒤\s공백은\s제거되지\s않습니다.\n#\s빈\s줄과\s#으로\s시작하는\s줄은\s무시합니다.\n#\n#\s예:\n#\sSOURCES_ROOT=sources\n#\sBUILD_SCRIPT=scripts/build.sh\n
-op link project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf project/.tool/project-path-gateway/project-path-gateway.conf
-op remove project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
-op link project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh project/.tool/project-path-gateway/project-path-gateway.sh
-op remove project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op mkdir project/.tools
+op mkdir project/.tools/project-path-gateway
+op write project/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tools/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
+op link project/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway project/.tools/project-path-gateway/.project-path-gateway
+op remove project/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway
+op write project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\sproject-path-gateway\s데이터\s파일\n#\s한\s줄에\sKEY=경로\s형식으로\s적습니다.\s경로는\s프로젝트\s루트(.tools/의\s상위\s디렉터리)\s기준\s상대경로입니다.\n#\s키:\s대문자로\s시작하고\s대문자·숫자·_만\s사용합니다.\s파일\s안에서\s중복될\s수\s없습니다.\n#\s경로:\s/로\s시작할\s수\s없고\s..\s세그먼트를\s쓸\s수\s없습니다.\s=\s앞뒤\s공백은\s제거되지\s않습니다.\n#\s빈\s줄과\s#으로\s시작하는\s줄은\s무시합니다.\n#\n#\s예:\n#\sSOURCES_ROOT=sources\n#\sBUILD_SCRIPT=scripts/build.sh\n
+op link project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf project/.tools/project-path-gateway/project-path-gateway.conf
+op remove project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op link project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh project/.tools/project-path-gateway/project-path-gateway.sh
+op remove project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
 
 case cli-init-rerun-replaces-only-library
-fs file /t/project/.tool/project-path-gateway/.project-path-gateway
+fs file /t/project/.tools/project-path-gateway/.project-path-gateway
 content marker
-fs file /t/project/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/project/.tools/project-path-gateway/project-path-gateway.conf
 content APP_CONFIG=config/app.json
-fs file /t/project/.tool/project-path-gateway/project-path-gateway.sh
+fs file /t/project/.tools/project-path-gateway/project-path-gateway.sh
 content # project-path-gateway 0.0.1
 arg init
 arg /t/project
 status 0
-out project-path-gateway: 유지: .tool/project-path-gateway/.project-path-gateway
-out project-path-gateway: 유지: .tool/project-path-gateway/project-path-gateway.conf
-out project-path-gateway: 교체: .tool/project-path-gateway/project-path-gateway.sh
+out project-path-gateway: 유지: .tools/project-path-gateway/.project-path-gateway
+out project-path-gateway: 유지: .tools/project-path-gateway/project-path-gateway.conf
+out project-path-gateway: 교체: .tools/project-path-gateway/project-path-gateway.sh
 out project-path-gateway: 초기화 완료: /t/project
 op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
 op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
 op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
-op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
-op move /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh /t/project/.tool/project-path-gateway/project-path-gateway.sh
+op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op move /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh /t/project/.tools/project-path-gateway/project-path-gateway.sh
 
 case cli-init-recreates-deleted-data-file
-fs file /t/project/.tool/project-path-gateway/.project-path-gateway
-fs file /t/project/.tool/project-path-gateway/project-path-gateway.sh
+fs file /t/project/.tools/project-path-gateway/.project-path-gateway
+fs file /t/project/.tools/project-path-gateway/project-path-gateway.sh
 arg init
 arg /t/project
 status 0
-out project-path-gateway: 유지: .tool/project-path-gateway/.project-path-gateway
-out project-path-gateway: 생성: .tool/project-path-gateway/project-path-gateway.conf
-out project-path-gateway: 교체: .tool/project-path-gateway/project-path-gateway.sh
+out project-path-gateway: 유지: .tools/project-path-gateway/.project-path-gateway
+out project-path-gateway: 생성: .tools/project-path-gateway/project-path-gateway.conf
+out project-path-gateway: 교체: .tools/project-path-gateway/project-path-gateway.sh
 out project-path-gateway: 초기화 완료: /t/project
 op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
 op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
 op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
-op write /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\sproject-path-gateway\s데이터\s파일\n#\s한\s줄에\sKEY=경로\s형식으로\s적습니다.\s경로는\s프로젝트\s루트(.tool/의\s상위\s디렉터리)\s기준\s상대경로입니다.\n#\s키:\s대문자로\s시작하고\s대문자·숫자·_만\s사용합니다.\s파일\s안에서\s중복될\s수\s없습니다.\n#\s경로:\s/로\s시작할\s수\s없고\s..\s세그먼트를\s쓸\s수\s없습니다.\s=\s앞뒤\s공백은\s제거되지\s않습니다.\n#\s빈\s줄과\s#으로\s시작하는\s줄은\s무시합니다.\n#\n#\s예:\n#\sSOURCES_ROOT=sources\n#\sBUILD_SCRIPT=scripts/build.sh\n
-op link /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/project/.tool/project-path-gateway/project-path-gateway.conf
-op remove /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
-op move /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh /t/project/.tool/project-path-gateway/project-path-gateway.sh
+op write /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\sproject-path-gateway\s데이터\s파일\n#\s한\s줄에\sKEY=경로\s형식으로\s적습니다.\s경로는\s프로젝트\s루트(.tools/의\s상위\s디렉터리)\s기준\s상대경로입니다.\n#\s키:\s대문자로\s시작하고\s대문자·숫자·_만\s사용합니다.\s파일\s안에서\s중복될\s수\s없습니다.\n#\s경로:\s/로\s시작할\s수\s없고\s..\s세그먼트를\s쓸\s수\s없습니다.\s=\s앞뒤\s공백은\s제거되지\s않습니다.\n#\s빈\s줄과\s#으로\s시작하는\s줄은\s무시합니다.\n#\n#\s예:\n#\sSOURCES_ROOT=sources\n#\sBUILD_SCRIPT=scripts/build.sh\n
+op link /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/project/.tools/project-path-gateway/project-path-gateway.conf
+op remove /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op move /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh /t/project/.tools/project-path-gateway/project-path-gateway.sh
 
 case cli-init-no-machine-specific-values-recorded
 env HOME /home/tester
@@ -129,100 +129,100 @@ fs dir /home/tester/project
 arg init
 arg /home/tester/project
 status 0
-out project-path-gateway: 생성: .tool/project-path-gateway/.project-path-gateway
-out project-path-gateway: 생성: .tool/project-path-gateway/project-path-gateway.conf
-out project-path-gateway: 생성: .tool/project-path-gateway/project-path-gateway.sh
+out project-path-gateway: 생성: .tools/project-path-gateway/.project-path-gateway
+out project-path-gateway: 생성: .tools/project-path-gateway/project-path-gateway.conf
+out project-path-gateway: 생성: .tools/project-path-gateway/project-path-gateway.sh
 out project-path-gateway: 초기화 완료: /home/tester/project
 op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
 op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
 op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
-op mkdir /home/tester/project/.tool
-op mkdir /home/tester/project/.tool/project-path-gateway
-op write /home/tester/project/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tool/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
-op link /home/tester/project/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway /home/tester/project/.tool/project-path-gateway/.project-path-gateway
-op remove /home/tester/project/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway
-op write /home/tester/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\sproject-path-gateway\s데이터\s파일\n#\s한\s줄에\sKEY=경로\s형식으로\s적습니다.\s경로는\s프로젝트\s루트(.tool/의\s상위\s디렉터리)\s기준\s상대경로입니다.\n#\s키:\s대문자로\s시작하고\s대문자·숫자·_만\s사용합니다.\s파일\s안에서\s중복될\s수\s없습니다.\n#\s경로:\s/로\s시작할\s수\s없고\s..\s세그먼트를\s쓸\s수\s없습니다.\s=\s앞뒤\s공백은\s제거되지\s않습니다.\n#\s빈\s줄과\s#으로\s시작하는\s줄은\s무시합니다.\n#\n#\s예:\n#\sSOURCES_ROOT=sources\n#\sBUILD_SCRIPT=scripts/build.sh\n
-op link /home/tester/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /home/tester/project/.tool/project-path-gateway/project-path-gateway.conf
-op remove /home/tester/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh /home/tester/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
-op link /home/tester/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh /home/tester/project/.tool/project-path-gateway/project-path-gateway.sh
-op remove /home/tester/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op mkdir /home/tester/project/.tools
+op mkdir /home/tester/project/.tools/project-path-gateway
+op write /home/tester/project/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tools/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
+op link /home/tester/project/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway /home/tester/project/.tools/project-path-gateway/.project-path-gateway
+op remove /home/tester/project/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway
+op write /home/tester/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\sproject-path-gateway\s데이터\s파일\n#\s한\s줄에\sKEY=경로\s형식으로\s적습니다.\s경로는\s프로젝트\s루트(.tools/의\s상위\s디렉터리)\s기준\s상대경로입니다.\n#\s키:\s대문자로\s시작하고\s대문자·숫자·_만\s사용합니다.\s파일\s안에서\s중복될\s수\s없습니다.\n#\s경로:\s/로\s시작할\s수\s없고\s..\s세그먼트를\s쓸\s수\s없습니다.\s=\s앞뒤\s공백은\s제거되지\s않습니다.\n#\s빈\s줄과\s#으로\s시작하는\s줄은\s무시합니다.\n#\n#\s예:\n#\sSOURCES_ROOT=sources\n#\sBUILD_SCRIPT=scripts/build.sh\n
+op link /home/tester/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /home/tester/project/.tools/project-path-gateway/project-path-gateway.conf
+op remove /home/tester/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh /home/tester/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op link /home/tester/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh /home/tester/project/.tools/project-path-gateway/project-path-gateway.sh
+op remove /home/tester/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
 
 case cli-init-other-tool-entries-untouched
-fs file /t/project/.tool/other/config
+fs file /t/project/.tools/other/config
 content other
-fs file /t/project/.tool/top-file
+fs file /t/project/.tools/top-file
 content top
 arg init
 arg /t/project
 status 0
-out project-path-gateway: 생성: .tool/project-path-gateway/.project-path-gateway
-out project-path-gateway: 생성: .tool/project-path-gateway/project-path-gateway.conf
-out project-path-gateway: 생성: .tool/project-path-gateway/project-path-gateway.sh
+out project-path-gateway: 생성: .tools/project-path-gateway/.project-path-gateway
+out project-path-gateway: 생성: .tools/project-path-gateway/project-path-gateway.conf
+out project-path-gateway: 생성: .tools/project-path-gateway/project-path-gateway.sh
 out project-path-gateway: 초기화 완료: /t/project
 op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
 op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
 op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
-op mkdir /t/project/.tool/project-path-gateway
-op write /t/project/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tool/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
-op link /t/project/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway /t/project/.tool/project-path-gateway/.project-path-gateway
-op remove /t/project/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway
-op write /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\sproject-path-gateway\s데이터\s파일\n#\s한\s줄에\sKEY=경로\s형식으로\s적습니다.\s경로는\s프로젝트\s루트(.tool/의\s상위\s디렉터리)\s기준\s상대경로입니다.\n#\s키:\s대문자로\s시작하고\s대문자·숫자·_만\s사용합니다.\s파일\s안에서\s중복될\s수\s없습니다.\n#\s경로:\s/로\s시작할\s수\s없고\s..\s세그먼트를\s쓸\s수\s없습니다.\s=\s앞뒤\s공백은\s제거되지\s않습니다.\n#\s빈\s줄과\s#으로\s시작하는\s줄은\s무시합니다.\n#\n#\s예:\n#\sSOURCES_ROOT=sources\n#\sBUILD_SCRIPT=scripts/build.sh\n
-op link /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/project/.tool/project-path-gateway/project-path-gateway.conf
-op remove /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
-op link /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh /t/project/.tool/project-path-gateway/project-path-gateway.sh
-op remove /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op mkdir /t/project/.tools/project-path-gateway
+op write /t/project/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tools/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
+op link /t/project/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway /t/project/.tools/project-path-gateway/.project-path-gateway
+op remove /t/project/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway
+op write /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\sproject-path-gateway\s데이터\s파일\n#\s한\s줄에\sKEY=경로\s형식으로\s적습니다.\s경로는\s프로젝트\s루트(.tools/의\s상위\s디렉터리)\s기준\s상대경로입니다.\n#\s키:\s대문자로\s시작하고\s대문자·숫자·_만\s사용합니다.\s파일\s안에서\s중복될\s수\s없습니다.\n#\s경로:\s/로\s시작할\s수\s없고\s..\s세그먼트를\s쓸\s수\s없습니다.\s=\s앞뒤\s공백은\s제거되지\s않습니다.\n#\s빈\s줄과\s#으로\s시작하는\s줄은\s무시합니다.\n#\n#\s예:\n#\sSOURCES_ROOT=sources\n#\sBUILD_SCRIPT=scripts/build.sh\n
+op link /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/project/.tools/project-path-gateway/project-path-gateway.conf
+op remove /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op link /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh /t/project/.tools/project-path-gateway/project-path-gateway.sh
+op remove /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
 
 case cli-init-write-failure-keeps-existing-files
-fs file /t/project/.tool/project-path-gateway/.project-path-gateway
-fs file /t/project/.tool/project-path-gateway/project-path-gateway.conf
-fs readonly /t/project/.tool/project-path-gateway
+fs file /t/project/.tools/project-path-gateway/.project-path-gateway
+fs file /t/project/.tools/project-path-gateway/project-path-gateway.conf
+fs readonly /t/project/.tools/project-path-gateway
 arg init
 arg /t/project
 status 1
-out project-path-gateway: 유지: .tool/project-path-gateway/.project-path-gateway
-out project-path-gateway: 유지: .tool/project-path-gateway/project-path-gateway.conf
-err project-path-gateway: init: 파일을 쓰지 못했습니다: /t/project/.tool/project-path-gateway/project-path-gateway.sh
+out project-path-gateway: 유지: .tools/project-path-gateway/.project-path-gateway
+out project-path-gateway: 유지: .tools/project-path-gateway/project-path-gateway.conf
+err project-path-gateway: init: 파일을 쓰지 못했습니다: /t/project/.tools/project-path-gateway/project-path-gateway.sh
 op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
 op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
 op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
-op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
-op remove /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op remove /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
 
 case cli-init-write-failure-with-space-and-korean-path
-fs file /t/내\s프로젝트\s폴더/.tool/project-path-gateway/.project-path-gateway
-fs file /t/내\s프로젝트\s폴더/.tool/project-path-gateway/project-path-gateway.conf
-fs readonly /t/내\s프로젝트\s폴더/.tool/project-path-gateway
+fs file /t/내\s프로젝트\s폴더/.tools/project-path-gateway/.project-path-gateway
+fs file /t/내\s프로젝트\s폴더/.tools/project-path-gateway/project-path-gateway.conf
+fs readonly /t/내\s프로젝트\s폴더/.tools/project-path-gateway
 arg init
 arg /t/내\s프로젝트\s폴더
 status 1
-out project-path-gateway: 유지: .tool/project-path-gateway/.project-path-gateway
-out project-path-gateway: 유지: .tool/project-path-gateway/project-path-gateway.conf
-err project-path-gateway: init: 파일을 쓰지 못했습니다: /t/내 프로젝트 폴더/.tool/project-path-gateway/project-path-gateway.sh
+out project-path-gateway: 유지: .tools/project-path-gateway/.project-path-gateway
+out project-path-gateway: 유지: .tools/project-path-gateway/project-path-gateway.conf
+err project-path-gateway: init: 파일을 쓰지 못했습니다: /t/내 프로젝트 폴더/.tools/project-path-gateway/project-path-gateway.sh
 op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
 op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
 op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
-op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh /t/내\s프로젝트\s폴더/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
-op remove /t/내\s프로젝트\s폴더/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh /t/내\s프로젝트\s폴더/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op remove /t/내\s프로젝트\s폴더/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
 
 case cli-init-marker-write-failure-rolls-back-created-dirs
 fs dir /t/project
-fault link /t/project/.tool/project-path-gateway/.project-path-gateway
+fault link /t/project/.tools/project-path-gateway/.project-path-gateway
 arg init
 arg /t/project
 status 1
-err project-path-gateway: init: 파일을 쓰지 못했습니다: /t/project/.tool/project-path-gateway/.project-path-gateway
+err project-path-gateway: init: 파일을 쓰지 못했습니다: /t/project/.tools/project-path-gateway/.project-path-gateway
 op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
 op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
 op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
-op mkdir /t/project/.tool
-op mkdir /t/project/.tool/project-path-gateway
-op write /t/project/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tool/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
-op link /t/project/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway /t/project/.tool/project-path-gateway/.project-path-gateway
-op remove /t/project/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway
-op rmdir /t/project/.tool/project-path-gateway
-op rmdir /t/project/.tool
+op mkdir /t/project/.tools
+op mkdir /t/project/.tools/project-path-gateway
+op write /t/project/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tools/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
+op link /t/project/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway /t/project/.tools/project-path-gateway/.project-path-gateway
+op remove /t/project/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway
+op rmdir /t/project/.tools/project-path-gateway
+op rmdir /t/project/.tools
 
 case cli-init-missing-library-source
 self /t/prefix2/bin/project-path-gateway
@@ -243,21 +243,21 @@ fs dir /t/project
 arg init
 arg /t/project
 status 0
-out project-path-gateway: 생성: .tool/project-path-gateway/.project-path-gateway
-out project-path-gateway: 생성: .tool/project-path-gateway/project-path-gateway.conf
-out project-path-gateway: 생성: .tool/project-path-gateway/project-path-gateway.sh
+out project-path-gateway: 생성: .tools/project-path-gateway/.project-path-gateway
+out project-path-gateway: 생성: .tools/project-path-gateway/project-path-gateway.conf
+out project-path-gateway: 생성: .tools/project-path-gateway/project-path-gateway.sh
 out project-path-gateway: 초기화 완료: /t/project
 op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
 op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
 op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
-op mkdir /t/project/.tool
-op mkdir /t/project/.tool/project-path-gateway
-op write /t/project/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tool/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
-op link /t/project/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway /t/project/.tool/project-path-gateway/.project-path-gateway
-op remove /t/project/.tool/project-path-gateway/.ppg-tmp.4242..project-path-gateway
-op write /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\sproject-path-gateway\s데이터\s파일\n#\s한\s줄에\sKEY=경로\s형식으로\s적습니다.\s경로는\s프로젝트\s루트(.tool/의\s상위\s디렉터리)\s기준\s상대경로입니다.\n#\s키:\s대문자로\s시작하고\s대문자·숫자·_만\s사용합니다.\s파일\s안에서\s중복될\s수\s없습니다.\n#\s경로:\s/로\s시작할\s수\s없고\s..\s세그먼트를\s쓸\s수\s없습니다.\s=\s앞뒤\s공백은\s제거되지\s않습니다.\n#\s빈\s줄과\s#으로\s시작하는\s줄은\s무시합니다.\n#\n#\s예:\n#\sSOURCES_ROOT=sources\n#\sBUILD_SCRIPT=scripts/build.sh\n
-op link /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/project/.tool/project-path-gateway/project-path-gateway.conf
-op remove /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
-op link /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh /t/project/.tool/project-path-gateway/project-path-gateway.sh
-op remove /t/project/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op mkdir /t/project/.tools
+op mkdir /t/project/.tools/project-path-gateway
+op write /t/project/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tools/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
+op link /t/project/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway /t/project/.tools/project-path-gateway/.project-path-gateway
+op remove /t/project/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway
+op write /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\sproject-path-gateway\s데이터\s파일\n#\s한\s줄에\sKEY=경로\s형식으로\s적습니다.\s경로는\s프로젝트\s루트(.tools/의\s상위\s디렉터리)\s기준\s상대경로입니다.\n#\s키:\s대문자로\s시작하고\s대문자·숫자·_만\s사용합니다.\s파일\s안에서\s중복될\s수\s없습니다.\n#\s경로:\s/로\s시작할\s수\s없고\s..\s세그먼트를\s쓸\s수\s없습니다.\s=\s앞뒤\s공백은\s제거되지\s않습니다.\n#\s빈\s줄과\s#으로\s시작하는\s줄은\s무시합니다.\n#\n#\s예:\n#\sSOURCES_ROOT=sources\n#\sBUILD_SCRIPT=scripts/build.sh\n
+op link /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/project/.tools/project-path-gateway/project-path-gateway.conf
+op remove /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op link /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh /t/project/.tools/project-path-gateway/project-path-gateway.sh
+op remove /t/project/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh

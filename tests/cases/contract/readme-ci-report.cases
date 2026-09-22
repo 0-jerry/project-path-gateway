@@ -2,9 +2,9 @@
 target readme-example ci-report
 layer api
 self scripts/check-paths.sh
-fs file /t/my\sproject/.tool/project-path-gateway/.project-path-gateway
-fs file /t/my\sproject/.tool/project-path-gateway/project-path-gateway.sh
-fs file /t/my\sproject/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/my\sproject/.tools/project-path-gateway/.project-path-gateway
+fs file /t/my\sproject/.tools/project-path-gateway/project-path-gateway.sh
+fs file /t/my\sproject/.tools/project-path-gateway/project-path-gateway.conf
 content APP_CONFIG=config/app.json
 content DOCS=docs
 
@@ -14,7 +14,7 @@ fs dir /t/my\sproject/docs
 cwd /t/my\sproject
 status 0
 out project-path-gateway: 검증 통과 2건
-op source ./.tool/project-path-gateway/project-path-gateway.sh
+op source ./.tools/project-path-gateway/project-path-gateway.sh
 op write ./.ppg-report.4242.path-report.txt project-path-gateway:\s검증\s통과\s2건\n
 op move ./.ppg-report.4242.path-report.txt path-report.txt
 
@@ -24,6 +24,6 @@ status 1
 err project-path-gateway: 누락: APP_CONFIG=config/app.json
 err project-path-gateway: 누락: DOCS=docs
 err project-path-gateway: 검증 실패 2건
-op source ./.tool/project-path-gateway/project-path-gateway.sh
+op source ./.tools/project-path-gateway/project-path-gateway.sh
 op write ./.ppg-report.4242.path-report.txt project-path-gateway:\s누락:\sAPP_CONFIG=config/app.json\nproject-path-gateway:\s누락:\sDOCS=docs\nproject-path-gateway:\s검증\s실패\s2건\n
 op move ./.ppg-report.4242.path-report.txt path-report.txt

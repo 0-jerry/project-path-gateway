@@ -5,8 +5,8 @@ target lib-session project_path_gateway
 layer api
 
 case relocation-clone-to-other-path-without-global-program
-fs file /t/clone/복제\s위치/.tool/project-path-gateway/.project-path-gateway
-fs file /t/clone/복제\s위치/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/clone/복제\s위치/.tools/project-path-gateway/.project-path-gateway
+fs file /t/clone/복제\s위치/.tools/project-path-gateway/project-path-gateway.conf
 content APP_CONFIG=config/app.json
 fs file /t/clone/복제\s위치/config/app.json
 cwd /t/clone/복제\s위치
@@ -21,8 +21,8 @@ op returned project_path_gateway_get 0
 op returned project_path_gateway_verify 0
 
 case relocation-moved-project-needs-no-reinit
-fs file /t/moved/.tool/project-path-gateway/.project-path-gateway
-fs file /t/moved/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/moved/.tools/project-path-gateway/.project-path-gateway
+fs file /t/moved/.tools/project-path-gateway/project-path-gateway.conf
 content APP_CONFIG=config/app.json
 fs file /t/moved/config/app.json
 cwd /t/moved
@@ -37,8 +37,8 @@ op returned project_path_gateway_get 0
 op returned project_path_gateway_verify 0
 
 case relocation-initialized-project-works-after-uninstall
-fs file /t/project/.tool/project-path-gateway/.project-path-gateway
-fs file /t/project/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/project/.tools/project-path-gateway/.project-path-gateway
+fs file /t/project/.tools/project-path-gateway/project-path-gateway.conf
 content APP_CONFIG=config/app.json
 fs file /t/project/config/app.json
 fs dir /t/prefix

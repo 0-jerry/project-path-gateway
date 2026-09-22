@@ -4,4 +4,4 @@ layer domain
 
 case tool-relpath
 status 0
-out .tool/project-path-gateway
+out .tools/project-path-gateway

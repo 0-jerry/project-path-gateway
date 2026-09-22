@@ -3,8 +3,8 @@
 # 뒤이은 조회·검증은 바뀐 원문을 fs로 주고 caller-var PROJECT_PATH_GATEWAY_ROOT로 루트를 준 별도 사례로 확인한다.
 target lib-session project_path_gateway
 layer api
-fs file /t/root/.tool/project-path-gateway/.project-path-gateway
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/.project-path-gateway
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content DOCS_DIR=docs
 
 # 인자·초기화·인자 규칙 (계약 2절 1~8행, FR-002·FR-003·FR-010·FR-015): 데이터 파일을 읽거나 쓰지 않는다
@@ -79,77 +79,77 @@ op returned project_path_gateway_add 2
 # 등록 성공 (US1-1~4, FR-020·FR-023·FR-024, 계약 3절): 출력 없음, 반환 0, 모드 보존 복사 → 새 원문 쓰기 → 교체.
 # 새 원문은 규칙을 통과한 KEY·PATH 한 줄과, 이미 검사를 통과한 기존 줄 바이트로만 이루어져 데이터 파일 규칙을 만족한다.
 case add-to-comment-only-file
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content # 경로 항목
 content # KEY=경로
 caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
 call project_path_gateway_add DOCS_DIR docs
 status 0
-op copy-preserve /t/root/.tool/project-path-gateway/project-path-gateway.conf /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op write /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\s경로\s항목\n#\sKEY=경로\nDOCS_DIR=docs\n
-op move /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op copy-preserve /t/root/.tools/project-path-gateway/project-path-gateway.conf /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\s경로\s항목\n#\sKEY=경로\nDOCS_DIR=docs\n
+op move /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tools/project-path-gateway/project-path-gateway.conf
 op returned project_path_gateway_add 0
 
 case add-after-two-entries
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A_DIR=a
 content B_DIR=b
 caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
 call project_path_gateway_add C_DIR c
 status 0
-op copy-preserve /t/root/.tool/project-path-gateway/project-path-gateway.conf /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op write /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf A_DIR=a\nB_DIR=b\nC_DIR=c\n
-op move /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op copy-preserve /t/root/.tools/project-path-gateway/project-path-gateway.conf /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf A_DIR=a\nB_DIR=b\nC_DIR=c\n
+op move /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tools/project-path-gateway/project-path-gateway.conf
 op returned project_path_gateway_add 0
 
 case add-path-with-space-korean-equal
 caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
 call project_path_gateway_add NOTE_DIR 내\s문서/a=b
 status 0
-op copy-preserve /t/root/.tool/project-path-gateway/project-path-gateway.conf /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op write /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf DOCS_DIR=docs\nNOTE_DIR=내\s문서/a=b\n
-op move /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op copy-preserve /t/root/.tools/project-path-gateway/project-path-gateway.conf /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf DOCS_DIR=docs\nNOTE_DIR=내\s문서/a=b\n
+op move /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tools/project-path-gateway/project-path-gateway.conf
 op returned project_path_gateway_add 0
 
 case add-path-that-does-not-exist
 caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
 call project_path_gateway_add MISSING_DIR not/yet/created
 status 0
-op copy-preserve /t/root/.tool/project-path-gateway/project-path-gateway.conf /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op write /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf DOCS_DIR=docs\nMISSING_DIR=not/yet/created\n
-op move /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op copy-preserve /t/root/.tools/project-path-gateway/project-path-gateway.conf /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf DOCS_DIR=docs\nMISSING_DIR=not/yet/created\n
+op move /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tools/project-path-gateway/project-path-gateway.conf
 op returned project_path_gateway_add 0
 
 case add-last-line-without-lf
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content-raw A_DIR=a
 caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
 call project_path_gateway_add B_DIR b
 status 0
-op copy-preserve /t/root/.tool/project-path-gateway/project-path-gateway.conf /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op write /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf A_DIR=a\nB_DIR=b\n
-op move /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op copy-preserve /t/root/.tools/project-path-gateway/project-path-gateway.conf /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf A_DIR=a\nB_DIR=b\n
+op move /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tools/project-path-gateway/project-path-gateway.conf
 op returned project_path_gateway_add 0
 
 case add-to-empty-data-file
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
 call project_path_gateway_add B_DIR b
 status 0
-op copy-preserve /t/root/.tool/project-path-gateway/project-path-gateway.conf /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op write /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf B_DIR=b\n
-op move /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op copy-preserve /t/root/.tools/project-path-gateway/project-path-gateway.conf /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf B_DIR=b\n
+op move /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tools/project-path-gateway/project-path-gateway.conf
 op returned project_path_gateway_add 0
 
 case add-key-present-only-in-comment
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content # DOCS_DIR=old
 caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
 call project_path_gateway_add DOCS_DIR docs
 status 0
-op copy-preserve /t/root/.tool/project-path-gateway/project-path-gateway.conf /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op write /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\sDOCS_DIR=old\nDOCS_DIR=docs\n
-op move /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op copy-preserve /t/root/.tools/project-path-gateway/project-path-gateway.conf /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\sDOCS_DIR=old\nDOCS_DIR=docs\n
+op move /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tools/project-path-gateway/project-path-gateway.conf
 op returned project_path_gateway_add 0
 
 case add-after-init-in-same-session
@@ -157,14 +157,14 @@ call project_path_gateway_init /t/root
 call project_path_gateway_add NEW_DIR new
 status 0
 op returned project_path_gateway_init 0
-op copy-preserve /t/root/.tool/project-path-gateway/project-path-gateway.conf /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op write /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf DOCS_DIR=docs\nNEW_DIR=new\n
-op move /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tool/project-path-gateway/project-path-gateway.conf
+op copy-preserve /t/root/.tools/project-path-gateway/project-path-gateway.conf /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf DOCS_DIR=docs\nNEW_DIR=new\n
+op move /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tools/project-path-gateway/project-path-gateway.conf
 op returned project_path_gateway_add 0
 
 # 등록 뒤 조회·검증 (SC-001, SC-004, FR-014): call 사이 파일 상태가 이어지지 않으므로 등록 뒤 원문을 fs로 준다.
 case add-then-get-prints-absolute-path
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content DOCS_DIR=docs
 content NEW_DIR=new
 caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
@@ -175,7 +175,7 @@ op returned project_path_gateway_get 0
 
 case add-then-verify-reports-missing
 fs dir /t/root/docs
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content DOCS_DIR=docs
 content NEW_DIR=not/yet/created
 caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
@@ -202,88 +202,88 @@ op returned project_path_gateway_add 2
 
 # 데이터 파일 오류 (US4-3·4, FR-011): 기능 001과 같은 보고, 반환 2, 변경 없음
 case edit-invalid-add-data-file-violation
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content DOCS_DIR=docs
 content bad line
 caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
 call project_path_gateway_add NEW_DIR new
 status 2
-err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:2: KEY=경로 형식이 아닙니다
+err project-path-gateway: /t/root/.tools/project-path-gateway/project-path-gateway.conf:2: KEY=경로 형식이 아닙니다
 op returned project_path_gateway_add 2
 
 case edit-invalid-add-data-file-missing
-fs file /t/other/.tool/project-path-gateway/.project-path-gateway
+fs file /t/other/.tools/project-path-gateway/.project-path-gateway
 caller-var PROJECT_PATH_GATEWAY_ROOT /t/other
 call project_path_gateway_add NEW_DIR new
 status 2
-err project-path-gateway: project_path_gateway_add: 데이터 파일을 읽을 수 없습니다: /t/other/.tool/project-path-gateway/project-path-gateway.conf
+err project-path-gateway: project_path_gateway_add: 데이터 파일을 읽을 수 없습니다: /t/other/.tools/project-path-gateway/project-path-gateway.conf
 op returned project_path_gateway_add 2
 
 case edit-invalid-add-data-file-is-directory
-fs file /t/other/.tool/project-path-gateway/.project-path-gateway
-fs dir /t/other/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/other/.tools/project-path-gateway/.project-path-gateway
+fs dir /t/other/.tools/project-path-gateway/project-path-gateway.conf
 caller-var PROJECT_PATH_GATEWAY_ROOT /t/other
 call project_path_gateway_add NEW_DIR new
 status 2
-err project-path-gateway: project_path_gateway_add: 데이터 파일을 읽을 수 없습니다: /t/other/.tool/project-path-gateway/project-path-gateway.conf
+err project-path-gateway: project_path_gateway_add: 데이터 파일을 읽을 수 없습니다: /t/other/.tools/project-path-gateway/project-path-gateway.conf
 op returned project_path_gateway_add 2
 
 case edit-invalid-add-tool-directory-denied
-fs deny /t/root/.tool/project-path-gateway
+fs deny /t/root/.tools/project-path-gateway
 caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
 call project_path_gateway_add NEW_DIR new
 status 2
-err project-path-gateway: project_path_gateway_add: 데이터 파일을 읽을 수 없습니다: /t/root/.tool/project-path-gateway/project-path-gateway.conf
+err project-path-gateway: project_path_gateway_add: 데이터 파일을 읽을 수 없습니다: /t/root/.tools/project-path-gateway/project-path-gateway.conf
 op returned project_path_gateway_add 2
 
 # 쓰기 실패 (US4, FR-030~FR-034, SC-005): 데이터 파일은 그대로, 임시 파일은 지운다
 case edit-write-fails-add-data-file-is-link
 fs file /t/root/real.conf
 content DOCS_DIR=docs
-fs link /t/root/.tool/project-path-gateway/project-path-gateway.conf ../../real.conf
+fs link /t/root/.tools/project-path-gateway/project-path-gateway.conf ../../real.conf
 caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
 call project_path_gateway_add NEW_DIR new
 status 2
-err project-path-gateway: project_path_gateway_add: 데이터 파일이 심볼릭 링크라 바꿀 수 없습니다: /t/root/.tool/project-path-gateway/project-path-gateway.conf
+err project-path-gateway: project_path_gateway_add: 데이터 파일이 심볼릭 링크라 바꿀 수 없습니다: /t/root/.tools/project-path-gateway/project-path-gateway.conf
 op returned project_path_gateway_add 2
 
 case edit-write-fails-add-data-file-readonly
-fs readonly /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs readonly /t/root/.tools/project-path-gateway/project-path-gateway.conf
 caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
 call project_path_gateway_add NEW_DIR new
 status 2
-err project-path-gateway: project_path_gateway_add: 데이터 파일에 쓰기 권한이 없습니다: /t/root/.tool/project-path-gateway/project-path-gateway.conf
+err project-path-gateway: project_path_gateway_add: 데이터 파일에 쓰기 권한이 없습니다: /t/root/.tools/project-path-gateway/project-path-gateway.conf
 op returned project_path_gateway_add 2
 
 case edit-write-fails-add-tool-directory-readonly
-fs readonly /t/root/.tool/project-path-gateway
+fs readonly /t/root/.tools/project-path-gateway
 caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
 call project_path_gateway_add NEW_DIR new
 status 2
-err project-path-gateway: project_path_gateway_add: 데이터 파일을 쓸 수 없습니다: /t/root/.tool/project-path-gateway/project-path-gateway.conf
-op copy-preserve /t/root/.tool/project-path-gateway/project-path-gateway.conf /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op remove /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+err project-path-gateway: project_path_gateway_add: 데이터 파일을 쓸 수 없습니다: /t/root/.tools/project-path-gateway/project-path-gateway.conf
+op copy-preserve /t/root/.tools/project-path-gateway/project-path-gateway.conf /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op remove /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
 op returned project_path_gateway_add 2
 
 case edit-write-fails-add-write-fault
-fault write /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+fault write /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
 caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
 call project_path_gateway_add NEW_DIR new
 status 2
-err project-path-gateway: project_path_gateway_add: 데이터 파일을 쓸 수 없습니다: /t/root/.tool/project-path-gateway/project-path-gateway.conf
-op copy-preserve /t/root/.tool/project-path-gateway/project-path-gateway.conf /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op write /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf DOCS_DIR=docs\nNEW_DIR=new\n
-op remove /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+err project-path-gateway: project_path_gateway_add: 데이터 파일을 쓸 수 없습니다: /t/root/.tools/project-path-gateway/project-path-gateway.conf
+op copy-preserve /t/root/.tools/project-path-gateway/project-path-gateway.conf /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf DOCS_DIR=docs\nNEW_DIR=new\n
+op remove /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
 op returned project_path_gateway_add 2
 
 case edit-write-fails-add-move-fault
-fault move /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fault move /t/root/.tools/project-path-gateway/project-path-gateway.conf
 caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
 call project_path_gateway_add NEW_DIR new
 status 2
-err project-path-gateway: project_path_gateway_add: 데이터 파일을 쓸 수 없습니다: /t/root/.tool/project-path-gateway/project-path-gateway.conf
-op copy-preserve /t/root/.tool/project-path-gateway/project-path-gateway.conf /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op write /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf DOCS_DIR=docs\nNEW_DIR=new\n
-op move /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tool/project-path-gateway/project-path-gateway.conf
-op remove /t/root/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+err project-path-gateway: project_path_gateway_add: 데이터 파일을 쓸 수 없습니다: /t/root/.tools/project-path-gateway/project-path-gateway.conf
+op copy-preserve /t/root/.tools/project-path-gateway/project-path-gateway.conf /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf DOCS_DIR=docs\nNEW_DIR=new\n
+op move /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/root/.tools/project-path-gateway/project-path-gateway.conf
+op remove /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
 op returned project_path_gateway_add 2

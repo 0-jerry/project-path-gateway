@@ -3,8 +3,8 @@
 # test_library_source_has_no_exit_word는 scripts/lint.sh 금지 단어 검사로 대체한다(tests/traceability.md).
 target lib-session project_path_gateway
 layer api
-fs file /t/루트\sroot/.tool/project-path-gateway/.project-path-gateway
-fs file /t/루트\sroot/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/루트\sroot/.tools/project-path-gateway/.project-path-gateway
+fs file /t/루트\sroot/.tools/project-path-gateway/project-path-gateway.conf
 content A=a b/*
 content MISSING=nope
 fs dir /t/루트\sroot/a\sb/*
@@ -268,15 +268,15 @@ out add=2
 out update=2
 out /t/루트 root/a b/*
 op returned project_path_gateway_init 0
-op copy-preserve /t/루트\sroot/.tool/project-path-gateway/project-path-gateway.conf /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op write /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf A=a\sb/*\nMISSING=nope\nNEW_DIR=new\n
-op move /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/루트\sroot/.tool/project-path-gateway/project-path-gateway.conf
+op copy-preserve /t/루트\sroot/.tools/project-path-gateway/project-path-gateway.conf /t/루트\sroot/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/루트\sroot/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf A=a\sb/*\nMISSING=nope\nNEW_DIR=new\n
+op move /t/루트\sroot/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/루트\sroot/.tools/project-path-gateway/project-path-gateway.conf
 op returned project_path_gateway_add 0
 op returned eval 0
 op returned project_path_gateway_update 0
-op copy-preserve /t/루트\sroot/.tool/project-path-gateway/project-path-gateway.conf /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op write /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf A=a\sb/*\nMISSING=moved\n
-op move /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/루트\sroot/.tool/project-path-gateway/project-path-gateway.conf
+op copy-preserve /t/루트\sroot/.tools/project-path-gateway/project-path-gateway.conf /t/루트\sroot/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/루트\sroot/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf A=a\sb/*\nMISSING=moved\n
+op move /t/루트\sroot/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/루트\sroot/.tools/project-path-gateway/project-path-gateway.conf
 op returned project_path_gateway_update 0
 op returned eval 0
 op returned project_path_gateway_get 0
@@ -305,14 +305,14 @@ out keep-filekeep-contentkeep-recordskeep-matchkeep-tabkeep-restkeep-detailkeep-
 err project-path-gateway: project_path_gateway_add: 이미 등록된 키입니다: A
 err project-path-gateway: project_path_gateway_update: 키 형식이 잘못되었습니다(대문자로 시작, 대문자·숫자·_만 허용): bad
 op returned project_path_gateway_init 0
-op copy-preserve /t/루트\sroot/.tool/project-path-gateway/project-path-gateway.conf /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op write /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf A=a\sb/*\nMISSING=nope\nNEW_DIR=new\n
-op move /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/루트\sroot/.tool/project-path-gateway/project-path-gateway.conf
+op copy-preserve /t/루트\sroot/.tools/project-path-gateway/project-path-gateway.conf /t/루트\sroot/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/루트\sroot/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf A=a\sb/*\nMISSING=nope\nNEW_DIR=new\n
+op move /t/루트\sroot/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/루트\sroot/.tools/project-path-gateway/project-path-gateway.conf
 op returned project_path_gateway_add 0
 op returned project_path_gateway_add 2
-op copy-preserve /t/루트\sroot/.tool/project-path-gateway/project-path-gateway.conf /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
-op write /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf A=a\sb/*\nMISSING=moved\n
-op move /t/루트\sroot/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/루트\sroot/.tool/project-path-gateway/project-path-gateway.conf
+op copy-preserve /t/루트\sroot/.tools/project-path-gateway/project-path-gateway.conf /t/루트\sroot/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/루트\sroot/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf A=a\sb/*\nMISSING=moved\n
+op move /t/루트\sroot/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/루트\sroot/.tools/project-path-gateway/project-path-gateway.conf
 op returned project_path_gateway_update 0
 op returned project_path_gateway_update 2
 op returned eval 0

@@ -43,7 +43,7 @@ project-path-gateway init [TARGET_DIR]
 
 ```text
 <루트>/
-└── .tool/
+└── .tools/
     └── project-path-gateway/
         ├── .project-path-gateway        # 루트 표식 파일
         ├── project-path-gateway.conf    # 데이터 파일
@@ -58,16 +58,16 @@ project-path-gateway init [TARGET_DIR]
 
 - 파일마다 `생성`, `유지`, `교체` 중 무엇을 했는지 출력하고, 마지막 줄에 `초기화 완료: <루트 물리 경로>`를 출력합니다.
 - 어떤 파일에도 루트 절대경로, 사용자 이름, 날짜를 기록하지 않습니다. clone 위치가 달라도 그대로 동작합니다.
-- `.tool/` 안의 다른 도구 항목은 건드리지 않습니다. Git 저장소인지는 확인하지 않습니다.
-- 대상이 디렉터리가 아니거나 `.tool`·도구 디렉터리·세 파일 중 형태가 맞지 않는 것이 있으면 아무 파일도 만들지 않고
+- `.tools/` 안의 다른 도구 항목은 건드리지 않습니다. Git 저장소인지는 확인하지 않습니다.
+- 대상이 디렉터리가 아니거나 `.tools`·도구 디렉터리·세 파일 중 형태가 맞지 않는 것이 있으면 아무 파일도 만들지 않고
   반환 2로 끝납니다. 쓰기 중 실패하면 반환 1이며, 처리 중이던 파일은 이전 상태로 남습니다.
-- **`.tool/project-path-gateway/`는 반드시 프로젝트와 함께 커밋하세요.** `.gitignore`에 넣으면 clone한 환경에서
+- **`.tools/project-path-gateway/`는 반드시 프로젝트와 함께 커밋하세요.** `.gitignore`에 넣으면 clone한 환경에서
   라이브러리와 데이터 파일을 찾을 수 없습니다.
 
 ## 루트 표식 파일과 루트 탐색 규칙
 
 런타임 초기화(`project_path_gateway_init`)는 탐색 시작 디렉터리에서 `/`까지 상위로 올라가며,
-`<디렉터리>/.tool/project-path-gateway/.project-path-gateway`가 일반 파일로 있는 **가장 가까운** 디렉터리를 루트로 삼습니다.
+`<디렉터리>/.tools/project-path-gateway/.project-path-gateway`가 일반 파일로 있는 **가장 가까운** 디렉터리를 루트로 삼습니다.
 
 - 탐색 시작 디렉터리는 인자가 없으면 현재 작업 디렉터리, 있으면 그 인자(절대경로)입니다.
 - 시작 디렉터리와 루트는 심볼릭 링크를 해소한 물리 경로로 계산합니다.
@@ -78,7 +78,7 @@ project-path-gateway init [TARGET_DIR]
 
 ## 데이터 파일 규칙
 
-`<루트>/.tool/project-path-gateway/project-path-gateway.conf`
+`<루트>/.tools/project-path-gateway/project-path-gateway.conf`
 
 ```text
 # 주석
@@ -102,7 +102,7 @@ BUILD_SCRIPT=scripts/build.sh
 라이브러리를 불러온(source) 뒤 스크립트마다 한 번 초기화합니다.
 
 ```sh
-. ./.tool/project-path-gateway/project-path-gateway.sh
+. ./.tools/project-path-gateway/project-path-gateway.sh
 project_path_gateway_init                      # 인자 생략: 현재 작업 디렉터리에서 탐색 (프로젝트 안에서 실행할 때)
 project_path_gateway_init /abs/path/in/project # 경로 전달: 그 디렉터리에서 탐색 (프로젝트 밖에서 실행할 때)
 ```
@@ -209,7 +209,7 @@ project_path_gateway_init /abs/path/in/project # 경로 전달: 그 디렉터리
 # scripts/show-config.sh
 set -eu
 script_dir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
-. "$script_dir/../.tool/project-path-gateway/project-path-gateway.sh"
+. "$script_dir/../.tools/project-path-gateway/project-path-gateway.sh"
 
 project_path_gateway_init
 app_config=$(project_path_gateway_get APP_CONFIG)
@@ -230,7 +230,7 @@ cd /path/to/my-project && sh scripts/show-config.sh
 # 사용법: sh deploy.sh /path/to/my-project
 set -eu
 project_dir=${1:?프로젝트 절대경로를 인자로 주세요}
-. "$project_dir/.tool/project-path-gateway/project-path-gateway.sh"
+. "$project_dir/.tools/project-path-gateway/project-path-gateway.sh"
 
 project_path_gateway_init "$project_dir"
 project_path_gateway_get APP_CONFIG
@@ -246,7 +246,7 @@ Git은 훅을 실행하기 전에 작업 디렉터리를 작업 트리 루트로
 #!/bin/sh
 # .git/hooks/pre-commit (실행 권한 필요: chmod +x .git/hooks/pre-commit)
 set -eu
-. ./.tool/project-path-gateway/project-path-gateway.sh
+. ./.tools/project-path-gateway/project-path-gateway.sh
 project_path_gateway_init
 project_path_gateway_verify
 ```
@@ -261,7 +261,7 @@ project_path_gateway_verify
 #!/bin/sh
 # scripts/check-paths.sh (CI에서 저장소 루트를 작업 디렉터리로 실행)
 set -eu
-. ./.tool/project-path-gateway/project-path-gateway.sh
+. ./.tools/project-path-gateway/project-path-gateway.sh
 project_path_gateway_init
 project_path_gateway_verify path-report.txt
 ```
@@ -276,7 +276,7 @@ project_path_gateway_verify path-report.txt
 #!/bin/sh
 # scripts/register-paths.sh (저장소 루트를 작업 디렉터리로 실행)
 set -eu
-. ./.tool/project-path-gateway/project-path-gateway.sh
+. ./.tools/project-path-gateway/project-path-gateway.sh
 project_path_gateway_init
 
 register_path() {

@@ -10,7 +10,7 @@
 
 | 출처 | 요약 | 요구사항 | 사례 | 수동 확인 |
 |---|---|---|---|---|
-| US0-1 | 초기화 명령이 도구 디렉터리에 세 파일 생성, 루트에는 `.tool/`만 생김 | FR-080, FR-086, FR-087 | `tests/cases/contract/cli-init.cases:cli-init-without-argument`, `tests/cases/contract/cli.cases:cli-init-output-format-first-run`, `tests/cases/integration/bin-app-init-project.cases:init-project-new-project` | 3 |
+| US0-1 | 초기화 명령이 도구 디렉터리에 세 파일 생성, 루트에는 `.tools/`만 생김 | FR-080, FR-086, FR-087 | `tests/cases/contract/cli-init.cases:cli-init-without-argument`, `tests/cases/contract/cli.cases:cli-init-output-format-first-run`, `tests/cases/integration/bin-app-init-project.cases:init-project-new-project` | 3 |
 | US0-2 | 전역 프로그램 없이 다른 경로에 clone한 뒤 조회 성공 | FR-082, FR-021 | `tests/cases/contract/lib-relocation.cases:relocation-clone-to-other-path-without-global-program` | 6 |
 | US0-3 | 프로젝트를 이동해도 재초기화 없이 새 위치 기준 동작 | FR-082 | `tests/cases/contract/lib-relocation.cases:relocation-moved-project-needs-no-reinit` | 6 |
 | US0-4 | 프로젝트 밖에서 경로 인자로 초기화, 현재 디렉터리에는 파일 없음 | FR-080 | `tests/cases/contract/cli-init.cases:cli-init-with-path-from-outside` | 3 |
@@ -19,8 +19,8 @@
 | US0-7 | 재실행 시 라이브러리만 교체, 표식·데이터 파일 유지 | FR-085, FR-087 | `tests/cases/contract/cli-init.cases:cli-init-rerun-replaces-only-library`, `tests/cases/contract/cli.cases:cli-init-output-format-rerun`, `tests/cases/integration/bin-app-init-project.cases:init-project-rerun-keeps-data-and-replaces-library` | 3 |
 | US0-8 | 데이터 파일만 삭제된 프로젝트 재초기화 시 빈 데이터 파일 생성, 런타임 초기화 성공 | FR-085, FR-086 | `tests/cases/contract/cli-init.cases:cli-init-recreates-deleted-data-file`, `tests/cases/integration/bin-app-init-project.cases:init-project-data-file-deleted-is-recreated`, `tests/cases/contract/lib-errors.cases:errors-zero-entries-init-succeeds` | - |
 | US0-9 | 생성 파일에 루트 절대경로 등 기계별 값 없음 | FR-081 | `tests/cases/contract/cli-init.cases:cli-init-no-machine-specific-values-recorded`, `tests/cases/unit/bin-domain-data-template.cases:data-template-bytes`, `tests/cases/unit/bin-domain-marker-content.cases:marker-content-bytes` | 3 |
-| US0-10 | 다른 도구가 있는 `.tool/`에서 초기화해도 다른 항목 불변 | FR-080, FR-087 | `tests/cases/contract/cli-init.cases:cli-init-other-tool-entries-untouched` | - |
-| US0-11 | 루트의 `.tool`이 일반 파일이면 오류, 생성·변경 없음 | FR-084 | `tests/cases/contract/cli.cases:cli-init-tool-is-regular-file`, `tests/cases/integration/bin-app-init-project.cases:init-project-tool-parent-not-dir` | - |
+| US0-10 | 다른 도구가 있는 `.tools/`에서 초기화해도 다른 항목 불변 | FR-080, FR-087 | `tests/cases/contract/cli-init.cases:cli-init-other-tool-entries-untouched` | - |
+| US0-11 | 루트의 `.tools`이 일반 파일이면 오류, 생성·변경 없음 | FR-084 | `tests/cases/contract/cli.cases:cli-init-tool-is-regular-file`, `tests/cases/integration/bin-app-init-project.cases:init-project-tool-parent-not-dir` | - |
 | US1-1 | 루트에서 인자 없이 초기화 후 조회하면 절대경로 한 줄, 반환 0 | FR-002, FR-003, FR-021, FR-042 | `tests/cases/contract/lib-init.cases:init-without-argument-at-root`, `tests/cases/contract/lib-get.cases:get-success-prints-absolute-path` | - |
 | US1-2 | 초기화 후 작업 디렉터리를 바꿔도 같은 조회 결과 | FR-007 | `tests/cases/contract/lib-init.cases:init-working-directory-change-after-init` | - |
 | US1-3 | 심볼릭 링크 인자로 초기화하면 물리 경로 기준 출력 | FR-002 | `tests/cases/contract/lib-init.cases:init-symlink-start-uses-physical-root`, `tests/cases/integration/lib-infra-physical-dir.cases:physical-dir-symlink-start` | 1 |

@@ -2,12 +2,12 @@
 # 리포트를 지정한 검증은 리포트 쓰기 작업(op write, op move)만 변경 기록으로 남긴다.
 target lib-session project_path_gateway
 layer api
-fs file /t/root/.tool/project-path-gateway/.project-path-gateway
+fs file /t/root/.tools/project-path-gateway/.project-path-gateway
 fs dir /out
 
 # 인자 규칙과 기존 반환 2 조건 (FR-005, FR-022)
 case verify-report-args-empty-string
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 call project_path_gateway_init /t/root
 call project_path_gateway_verify \e
 status 2
@@ -24,25 +24,25 @@ err project-path-gateway: project_path_gateway_verify: 초기화되지 않았습
 op returned project_path_gateway_verify 2
 
 case verify-report-args-missing-data-file
-fs dir /t/root/.tool/project-path-gateway
+fs dir /t/root/.tools/project-path-gateway
 fs file /out/report.txt
 content old
 call eval PROJECT_PATH_GATEWAY_ROOT=/t/root
 call project_path_gateway_verify /out/report.txt
 status 2
-err project-path-gateway: project_path_gateway_verify: 데이터 파일을 읽을 수 없습니다: /t/root/.tool/project-path-gateway/project-path-gateway.conf
+err project-path-gateway: project_path_gateway_verify: 데이터 파일을 읽을 수 없습니다: /t/root/.tools/project-path-gateway/project-path-gateway.conf
 op returned eval 0
 op returned project_path_gateway_verify 2
 
 case verify-report-args-data-file-violation
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 content bad
 fs dir /t/root/a
 call eval PROJECT_PATH_GATEWAY_ROOT=/t/root
 call project_path_gateway_verify /out/report.txt
 status 2
-err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:2: KEY=경로 형식이 아닙니다
+err project-path-gateway: /t/root/.tools/project-path-gateway/project-path-gateway.conf:2: KEY=경로 형식이 아닙니다
 op returned eval 0
 op returned project_path_gateway_verify 2
 
@@ -50,7 +50,7 @@ op returned project_path_gateway_verify 2
 # 짝 확인(SC-002): 각 사례는 같은 세션에서 리포트 미지정 검증 뒤 리포트 지정 검증을 호출해, 두 호출의 출력·반환이 같은지 한 사례로 본다.
 # 짝(SC-002): 이 사례 안의 리포트 미지정 호출
 case verify-report-fail-missing-two-of-three
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 content B=b
 content C=c/d
@@ -73,7 +73,7 @@ op returned project_path_gateway_verify 1
 
 # 짝(SC-002): 이 사례 안의 리포트 미지정 호출
 case verify-report-fail-broken-link-and-outside-link
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content BROKEN=broken
 content OUT=out
 fs link /t/root/broken nowhere
@@ -97,7 +97,7 @@ op returned project_path_gateway_verify 1
 
 # 짝(SC-002): 이 사례 안의 리포트 미지정 호출
 case verify-report-fail-overwrites-previous-report
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 fs file /out/report.txt
 content 이전 리포트
@@ -117,7 +117,7 @@ op returned project_path_gateway_verify 1
 
 # 짝(SC-002): 이 사례 안의 리포트 미지정 호출
 case verify-report-fail-report-path-with-space-and-korean
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 fs dir /out/결과\s폴더
 call project_path_gateway_init /t/root
@@ -137,7 +137,7 @@ op returned project_path_gateway_verify 1
 # 짝(SC-002): 이 사례 안의 리포트 미지정 호출
 case verify-report-fail-relative-report-path
 cwd /out
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 call project_path_gateway_init /t/root
 call project_path_gateway_verify
@@ -155,7 +155,7 @@ op returned project_path_gateway_verify 1
 
 # 짝(SC-002): 이 사례 안의 리포트 미지정 호출
 case verify-report-fail-report-file-is-link-to-file
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 fs file /out/keep.txt
 content 링크 대상
@@ -176,7 +176,7 @@ op returned project_path_gateway_verify 1
 
 # 짝(SC-002): 이 사례 안의 리포트 미지정 호출
 case verify-report-fail-key-and-path-with-space-equal-korean
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content SP_KEY=a b=c/한글 경로
 call project_path_gateway_init /t/root
 call project_path_gateway_verify
@@ -194,7 +194,7 @@ op returned project_path_gateway_verify 1
 
 # 짝(SC-002): 이 사례 안의 리포트 미지정 호출
 case verify-report-fail-report-at-registered-path
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content REPORT=report.txt
 call project_path_gateway_init /t/root
 call project_path_gateway_verify
@@ -212,7 +212,7 @@ op returned project_path_gateway_verify 1
 
 # 짝(SC-002): 이 사례 안의 리포트 미지정 호출
 case verify-report-fail-two-hundred-missing
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content KEY_0=missing/file_0
 content KEY_1=missing/file_1
 content KEY_2=missing/file_2
@@ -828,7 +828,7 @@ op returned project_path_gateway_verify 1
 # US2: 통과 리포트 (FR-011, FR-014, SC-002)
 # 짝(SC-002): 이 사례 안의 리포트 미지정 호출
 case verify-report-pass-three-entries
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 content B=b/c
 content C=c
@@ -849,7 +849,7 @@ op returned project_path_gateway_verify 0
 
 # 짝(SC-002): 이 사례 안의 리포트 미지정 호출
 case verify-report-pass-zero-entries
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content # 항목 없음
 call project_path_gateway_init /t/root
 call project_path_gateway_verify
@@ -864,7 +864,7 @@ op move /out/.ppg-report.4242.report.txt /out/report.txt
 op returned project_path_gateway_verify 0
 
 case verify-report-pass-overwrites-previous-failure-report
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 fs dir /t/root/a
 fs file /out/report.txt
@@ -882,7 +882,7 @@ op returned project_path_gateway_verify 0
 # US3: 리포트 쓰기 실패 (FR-021, FR-023, FR-024, SC-004). 검증 출력은 그대로, 오류 줄 추가, 반환 2, 임시 파일 정리
 
 case verify-report-write-fails-pass-parent-missing
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 fs dir /t/root/a
 call project_path_gateway_init /t/root
@@ -896,7 +896,7 @@ op remove /out/none/.ppg-report.4242.report.txt
 op returned project_path_gateway_verify 2
 
 case verify-report-write-fails-pass-readonly-directory
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 fs dir /t/root/a
 fs readonly /out
@@ -911,7 +911,7 @@ op remove /out/.ppg-report.4242.report.txt
 op returned project_path_gateway_verify 2
 
 case verify-report-write-fails-pass-target-is-directory
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 fs dir /t/root/a
 fs dir /out/report.txt
@@ -924,7 +924,7 @@ op returned project_path_gateway_init 0
 op returned project_path_gateway_verify 2
 
 case verify-report-write-fails-pass-target-is-link-to-directory
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 fs dir /t/root/a
 fs dir /out/sub
@@ -938,7 +938,7 @@ op returned project_path_gateway_init 0
 op returned project_path_gateway_verify 2
 
 case verify-report-write-fails-pass-empty-name
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 fs dir /t/root/a
 call project_path_gateway_init /t/root
@@ -950,7 +950,7 @@ op returned project_path_gateway_init 0
 op returned project_path_gateway_verify 2
 
 case verify-report-write-fails-fail-parent-missing
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 call project_path_gateway_init /t/root
 call project_path_gateway_verify /out/none/report.txt
@@ -964,7 +964,7 @@ op remove /out/none/.ppg-report.4242.report.txt
 op returned project_path_gateway_verify 2
 
 case verify-report-write-fails-fail-readonly-directory
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 fs readonly /out
 call project_path_gateway_init /t/root
@@ -979,7 +979,7 @@ op remove /out/.ppg-report.4242.report.txt
 op returned project_path_gateway_verify 2
 
 case verify-report-write-fails-fail-target-is-directory
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 fs dir /out/report.txt
 call project_path_gateway_init /t/root
@@ -992,7 +992,7 @@ op returned project_path_gateway_init 0
 op returned project_path_gateway_verify 2
 
 case verify-report-write-fails-fail-target-is-link-to-directory
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 fs dir /out/sub
 fs link /out/report.txt sub
@@ -1006,7 +1006,7 @@ op returned project_path_gateway_init 0
 op returned project_path_gateway_verify 2
 
 case verify-report-write-fails-fail-empty-name
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 call project_path_gateway_init /t/root
 call project_path_gateway_verify /out/
@@ -1020,7 +1020,7 @@ op returned project_path_gateway_verify 2
 # 격리: 리포트 쓰기 성공·실패 모두 호출 셸 옵션·IFS·trap·작업 디렉터리를 바꾸지 않는다 (FR-030)
 case verify-report-write-fails-isolation-set-eu
 caller-set -eu
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 fs dir /t/root/a
 fs readonly /out/locked
@@ -1044,7 +1044,7 @@ caller-ifs /
 caller-set -f
 caller-trap USR1 echo\st
 cwd /out
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 call project_path_gateway_init /t/root
 call project_path_gateway_verify report.txt

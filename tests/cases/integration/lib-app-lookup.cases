@@ -7,92 +7,92 @@ layer app
 case lookup-registered-key
 arg /r
 arg BUILD
-stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
 stub-out A=a
 stub-out BUILD=scripts/build.sh
 status 0
 out /r/scripts/build.sh
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
 
 case lookup-first-entry-when-prefix-keys
 arg /r
 arg AB
-stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
 stub-out A=a
 stub-out ABC=c
 stub-out AB=b
 status 0
 out /r/b
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
 
 case lookup-path-kept-as-written
 arg /r
 arg K
-stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
 stub-out K=a//b/./c/ d
 status 0
 out /r/a//b/./c/ d
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
 
 case lookup-unregistered-key
 arg /r
 arg MISSING
-stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
 stub-out A=a
 status 7
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
 
 case lookup-no-entries
 arg /r
 arg A
-stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
 status 7
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
 
 case lookup-violation-in-data-file
 arg /r
 arg A
-stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
 stub-out A=a
 stub-out B=/abs
-stub project_path_gateway__port_report_violation 0 /r/.tool/project-path-gateway/project-path-gateway.conf 2 absolute_path B \e 0
+stub project_path_gateway__port_report_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 2 absolute_path B \e 0
 status 3
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_report_violation /r/.tool/project-path-gateway/project-path-gateway.conf 2 absolute_path B \e 0
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_report_violation /r/.tools/project-path-gateway/project-path-gateway.conf 2 absolute_path B \e 0
 
 case lookup-unreadable-data-file
 arg /r
 arg A
-stub project_path_gateway__port_readable_file 1 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 1 /r/.tools/project-path-gateway/project-path-gateway.conf
 status 4
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
 
 case lookup-after-data-file-changed-reads-new-content
 arg /r
 arg A
-stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
 stub-out A=changed
 status 0
 out /r/changed
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
 
 case lookup-after-root-deleted-reads-again
 arg /r
 arg A
-stub project_path_gateway__port_readable_file 1 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 1 /r/.tools/project-path-gateway/project-path-gateway.conf
 status 4
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf

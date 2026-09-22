@@ -5,8 +5,8 @@ layer app
 
 case verify-all-pass
 arg /r
-stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
 stub-out A=a
 stub-out B=b/c
 stub project_path_gateway__port_exists 0 /r/a
@@ -17,8 +17,8 @@ stub project_path_gateway__port_resolve_physical 0 /r/b/c
 stub-out-raw /r/b/cx
 status 0
 out ok 2
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
 op port project_path_gateway__port_exists /r/a
 op port project_path_gateway__port_resolve_physical /r/a
 op port project_path_gateway__port_exists /r/b/c
@@ -26,18 +26,18 @@ op port project_path_gateway__port_resolve_physical /r/b/c
 
 case verify-no-entries
 arg /r
-stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
 stub-out # 주석
 status 0
 out ok 0
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
 
 case verify-missing-and-outside-in-file-order
 arg /r
-stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
 stub-out MISS=m
 stub-out OUT=link
 stub-out OK=ok
@@ -56,8 +56,8 @@ stub project_path_gateway__port_resolve_physical 1 /r/b
 stub project_path_gateway__port_report_missing 0 BROKEN b
 status 1
 out fail 3
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
 op port project_path_gateway__port_exists /r/m
 op port project_path_gateway__port_report_missing MISS m
 op port project_path_gateway__port_exists /r/link
@@ -71,8 +71,8 @@ op port project_path_gateway__port_report_missing BROKEN b
 
 case verify-root-itself-and-similar-prefix
 arg /r
-stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
 stub-out SELF=.
 stub-out SIB=x
 stub project_path_gateway__port_exists 0 /r/.
@@ -84,8 +84,8 @@ stub-out-raw /r2/xx
 stub project_path_gateway__port_report_outside 0 SIB x /r2/x
 status 1
 out fail 1
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
 op port project_path_gateway__port_exists /r/.
 op port project_path_gateway__port_resolve_physical /r/.
 op port project_path_gateway__port_exists /r/x
@@ -94,17 +94,17 @@ op port project_path_gateway__port_report_outside SIB x /r2/x
 
 case verify-violation-in-data-file
 arg /r
-stub project_path_gateway__port_readable_file 0 /r/.tool/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
 stub-out A=..
-stub project_path_gateway__port_report_violation 0 /r/.tool/project-path-gateway/project-path-gateway.conf 1 parent_segment A \e 0
+stub project_path_gateway__port_report_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 1 parent_segment A \e 0
 status 3
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tool/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_report_violation /r/.tool/project-path-gateway/project-path-gateway.conf 1 parent_segment A \e 0
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_report_violation /r/.tools/project-path-gateway/project-path-gateway.conf 1 parent_segment A \e 0
 
 case verify-unreadable-data-file
 arg /r
-stub project_path_gateway__port_readable_file 1 /r/.tool/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 1 /r/.tools/project-path-gateway/project-path-gateway.conf
 status 4
-op port project_path_gateway__port_readable_file /r/.tool/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf

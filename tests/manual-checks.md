@@ -114,31 +114,31 @@ chmod 755 "$WORK/locked"
 PPG="$WORK/prefix/bin/project-path-gateway"
 mkdir -p "$WORK/project"
 "$PPG" init "$WORK/project"
-ls -A "$WORK/project/.tool/project-path-gateway"
-printf 'APP_CONFIG=config/app.json\n' >>"$WORK/project/.tool/project-path-gateway/project-path-gateway.conf"
-ls -i "$WORK/project/.tool/project-path-gateway/project-path-gateway.conf"
+ls -A "$WORK/project/.tools/project-path-gateway"
+printf 'APP_CONFIG=config/app.json\n' >>"$WORK/project/.tools/project-path-gateway/project-path-gateway.conf"
+ls -i "$WORK/project/.tools/project-path-gateway/project-path-gateway.conf"
 "$PPG" init "$WORK/project"
-ls -i "$WORK/project/.tool/project-path-gateway/project-path-gateway.conf"
-grep -r -F -e "$WORK" -e "$HOME" "$WORK/project/.tool" || echo no-machine-values
+ls -i "$WORK/project/.tools/project-path-gateway/project-path-gateway.conf"
+grep -r -F -e "$WORK" -e "$HOME" "$WORK/project/.tools" || echo no-machine-values
 ```
 
 기대 결과:
 
 - 첫 실행 stdout `생성:` 세 줄과 `초기화 완료: <WORK>/project`, 도구 디렉터리에 세 파일만 있음(임시 파일 없음).
-- 재실행 stdout `유지:` 두 줄, `교체: .tool/project-path-gateway/project-path-gateway.sh`, 데이터 파일 inode가 같음.
+- 재실행 stdout `유지:` 두 줄, `교체: .tools/project-path-gateway/project-path-gateway.sh`, 데이터 파일 inode가 같음.
 - `no-machine-values` 출력.
 
 쓰기 실패(root가 아닌 사용자):
 
 ```sh
-rm "$WORK/project/.tool/project-path-gateway/project-path-gateway.sh"
-chmod 555 "$WORK/project/.tool/project-path-gateway"
+rm "$WORK/project/.tools/project-path-gateway/project-path-gateway.sh"
+chmod 555 "$WORK/project/.tools/project-path-gateway"
 "$PPG" init "$WORK/project"; echo "status=$?"
-chmod 755 "$WORK/project/.tool/project-path-gateway"
-ls -A "$WORK/project/.tool/project-path-gateway"
+chmod 755 "$WORK/project/.tools/project-path-gateway"
+ls -A "$WORK/project/.tools/project-path-gateway"
 ```
 
-기대 결과: stderr `project-path-gateway: init: 파일을 쓰지 못했습니다: <WORK>/project/.tool/project-path-gateway/project-path-gateway.sh`,
+기대 결과: stderr `project-path-gateway: init: 파일을 쓰지 못했습니다: <WORK>/project/.tools/project-path-gateway/project-path-gateway.sh`,
 `status=1`, 표식·데이터 파일 유지, `.ppg-tmp.` 파일 없음. 공백·한글 경로(`"$WORK/내 프로젝트 폴더"`)로 한 번 더 반복합니다.
 
 ## 4. 신호에 따른 임시 파일 정리
@@ -147,14 +147,14 @@ ls -A "$WORK/project/.tool/project-path-gateway"
 
 ```sh
 target="$WORK/공백 있는 대상"
-mkdir -p "$target/.tool/project-path-gateway"
+mkdir -p "$target/.tools/project-path-gateway"
 for sig in TERM INT exit; do
-	rm -f "$target/.tool/project-path-gateway/".ppg-tmp.*
+	rm -f "$target/.tools/project-path-gateway/".ppg-tmp.*
 	"$SH" -c '
 		PPG_SOURCE_ONLY=1
 		. "$1"
 		ppg__if_set_traps "$2"
-		tool="$2/.tool/project-path-gateway"
+		tool="$2/.tools/project-path-gateway"
 		: >"$tool/.ppg-tmp.$$.x"
 		: >"$tool/.ppg-tmp.1.x"
 		case $3 in
@@ -163,7 +163,7 @@ for sig in TERM INT exit; do
 		esac
 		sleep 2
 	' _ "$REPO/bin/project-path-gateway" "$target" "$sig"
-	printf '%s status=%s left=%s\n' "$sig" "$?" "$(ls -A "$target/.tool/project-path-gateway" | tr '\n' ' ')"
+	printf '%s status=%s left=%s\n' "$sig" "$?" "$(ls -A "$target/.tools/project-path-gateway" | tr '\n' ' ')"
 done
 ```
 
@@ -183,16 +183,16 @@ root가 아닌 사용자로 실행합니다.
 
 ```sh
 root="$WORK/root"
-mkdir -p "$root/.tool/project-path-gateway" "$root/locked"
-printf '%s\n' '# marker' 'format=1' >"$root/.tool/project-path-gateway/.project-path-gateway"
-printf 'LOCKED=locked/file\n' >"$root/.tool/project-path-gateway/project-path-gateway.conf"
+mkdir -p "$root/.tools/project-path-gateway" "$root/locked"
+printf '%s\n' '# marker' 'format=1' >"$root/.tools/project-path-gateway/.project-path-gateway"
+printf 'LOCKED=locked/file\n' >"$root/.tools/project-path-gateway/project-path-gateway.conf"
 : >"$root/locked/file"
 chmod 000 "$root/locked"
 "$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" && project_path_gateway_verify' _ "$REPO" "$root"; echo "status=$?"
 chmod 755 "$root/locked"
-chmod 000 "$root/.tool/project-path-gateway/.project-path-gateway"
+chmod 000 "$root/.tools/project-path-gateway/.project-path-gateway"
 "$SH" -c '. "$1/lib/project-path-gateway.sh"; cd "$2" && project_path_gateway_init && printf "%s\n" "$PROJECT_PATH_GATEWAY_ROOT"' _ "$REPO" "$root"
-chmod 644 "$root/.tool/project-path-gateway/.project-path-gateway"
+chmod 644 "$root/.tools/project-path-gateway/.project-path-gateway"
 ```
 
 기대 결과: stderr `project-path-gateway: 누락: LOCKED=locked/file`, `project-path-gateway: 검증 실패 1건`, `status=1`.
@@ -204,14 +204,14 @@ chmod 644 "$root/.tool/project-path-gateway/.project-path-gateway"
 "$SH" install.sh --prefix "$WORK/prefix" >/dev/null
 mkdir -p "$WORK/origin/config" && : >"$WORK/origin/config/app.json"
 "$WORK/prefix/bin/project-path-gateway" init "$WORK/origin" >/dev/null
-printf 'APP_CONFIG=config/app.json\n' >>"$WORK/origin/.tool/project-path-gateway/project-path-gateway.conf"
+printf 'APP_CONFIG=config/app.json\n' >>"$WORK/origin/.tools/project-path-gateway/project-path-gateway.conf"
 git -C "$WORK/origin" init -q && git -C "$WORK/origin" add -A &&
 	git -C "$WORK/origin" -c user.name=tester -c user.email=tester@example.invalid -c commit.gpgsign=false commit -q -m init
 git clone -q "$WORK/origin" "$WORK/clone/복제 위치"
 mv "$WORK/origin" "$WORK/moved"
 "$SH" uninstall.sh --prefix "$WORK/prefix" >/dev/null
 for p in "$WORK/clone/복제 위치" "$WORK/moved"; do
-	(cd "$p" && "$SH" -c '. ./.tool/project-path-gateway/project-path-gateway.sh && project_path_gateway_init && project_path_gateway_get APP_CONFIG && project_path_gateway_verify')
+	(cd "$p" && "$SH" -c '. ./.tools/project-path-gateway/project-path-gateway.sh && project_path_gateway_init && project_path_gateway_get APP_CONFIG && project_path_gateway_verify')
 done
 ```
 
@@ -243,7 +243,7 @@ mkdir -p "$repo/config" && : >"$repo/config/app.json"
 git init -q "$repo"
 "$SH" install.sh --prefix "$WORK/prefix" >/dev/null
 "$WORK/prefix/bin/project-path-gateway" init "$repo" >/dev/null
-printf 'APP_CONFIG=config/app.json\n' >>"$repo/.tool/project-path-gateway/project-path-gateway.conf"
+printf 'APP_CONFIG=config/app.json\n' >>"$repo/.tools/project-path-gateway/project-path-gateway.conf"
 awk '$0 == "<!-- example: pre-commit -->" { f = 1; next } f == 1 && $0 == "```sh" { f = 2; next } f == 2 && $0 == "```" { exit } f == 2' README.md >"$repo/.git/hooks/pre-commit"
 chmod 755 "$repo/.git/hooks/pre-commit"
 g() { git -C "$repo" -c core.hooksPath=.git/hooks -c commit.gpgsign=false -c user.name=tester -c user.email=tester@example.invalid "$@"; }
@@ -261,9 +261,9 @@ g rev-list --count HEAD
 
 ```sh
 root="$WORK/root200"
-mkdir -p "$root/.tool/project-path-gateway" "$root/dir"
-printf '%s\n' '# marker' 'format=1' >"$root/.tool/project-path-gateway/.project-path-gateway"
-i=0; while [ "$i" -lt 200 ]; do printf 'KEY_%s=dir/file_%s\n' "$i" "$i"; : >"$root/dir/file_$i"; i=$((i + 1)); done >"$root/.tool/project-path-gateway/project-path-gateway.conf"
+mkdir -p "$root/.tools/project-path-gateway" "$root/dir"
+printf '%s\n' '# marker' 'format=1' >"$root/.tools/project-path-gateway/.project-path-gateway"
+i=0; while [ "$i" -lt 200 ]; do printf 'KEY_%s=dir/file_%s\n' "$i" "$i"; : >"$root/dir/file_$i"; i=$((i + 1)); done >"$root/.tools/project-path-gateway/project-path-gateway.conf"
 time "$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" && project_path_gateway_verify' _ "$REPO" "$root"
 ```
 
@@ -275,9 +275,9 @@ time "$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2
 
 ```sh
 root="$WORK/root"
-mkdir -p "$root/.tool/project-path-gateway" "$root/a" "$WORK/out"
-printf '%s\n' '# marker' 'format=1' >"$root/.tool/project-path-gateway/.project-path-gateway"
-printf 'A=a\nB=b\nC=c\n' >"$root/.tool/project-path-gateway/project-path-gateway.conf"
+mkdir -p "$root/.tools/project-path-gateway" "$root/a" "$WORK/out"
+printf '%s\n' '# marker' 'format=1' >"$root/.tools/project-path-gateway/.project-path-gateway"
+printf 'A=a\nB=b\nC=c\n' >"$root/.tools/project-path-gateway/project-path-gateway.conf"
 v() { "$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" || exit 2; shift 2; project_path_gateway_verify "$@"' _ "$REPO" "$root" "$@"; }
 ```
 
@@ -361,9 +361,9 @@ find "$WORK/out" -name '.ppg-report.*' | wc -l
 
 ```sh
 big="$WORK/root200"
-mkdir -p "$big/.tool/project-path-gateway" "$big/dir"
-printf '%s\n' '# marker' 'format=1' >"$big/.tool/project-path-gateway/.project-path-gateway"
-i=0; while [ "$i" -lt 200 ]; do printf 'KEY_%s=dir/file_%s\n' "$i" "$i"; : >"$big/dir/file_$i"; i=$((i + 1)); done >"$big/.tool/project-path-gateway/project-path-gateway.conf"
+mkdir -p "$big/.tools/project-path-gateway" "$big/dir"
+printf '%s\n' '# marker' 'format=1' >"$big/.tools/project-path-gateway/.project-path-gateway"
+i=0; while [ "$i" -lt 200 ]; do printf 'KEY_%s=dir/file_%s\n' "$i" "$i"; : >"$big/dir/file_$i"; i=$((i + 1)); done >"$big/.tools/project-path-gateway/project-path-gateway.conf"
 vb() { "$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" || exit 2; shift 2; project_path_gateway_verify "$@"' _ "$REPO" "$big" "$@"; }
 t0=$(date +%s); vb >/dev/null; t1=$(date +%s); vb "$WORK/out/big.txt" >/dev/null; t2=$(date +%s)
 echo "미지정 $((t1 - t0))초, 리포트 지정 $((t2 - t1))초"
@@ -384,7 +384,7 @@ head -1 "$WORK/out/int.txt"; ls -A "$WORK/out" | grep '^\.ppg-report\.' || echo 
 
 ```sh
 root="$WORK/root"
-tool="$root/.tool/project-path-gateway"
+tool="$root/.tools/project-path-gateway"
 conf="$tool/project-path-gateway.conf"
 mkdir -p "$tool" "$root/docs"
 printf '%s\n' '# marker' 'format=1' >"$tool/.project-path-gateway"

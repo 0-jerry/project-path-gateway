@@ -2,10 +2,10 @@
 # 검증은 변경 작업을 하지 않는다: ops changes 기대에 변경 기록이 없다.
 target lib-session project_path_gateway
 layer api
-fs file /t/root/.tool/project-path-gateway/.project-path-gateway
+fs file /t/root/.tools/project-path-gateway/.project-path-gateway
 
 case verify-argument-is-rejected
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 call project_path_gateway_init /t/root
 call project_path_gateway_verify extra more
 status 2
@@ -20,27 +20,27 @@ err project-path-gateway: project_path_gateway_verify: 초기화되지 않았습
 op returned project_path_gateway_verify 2
 
 case verify-data-file-errors-skip-entry-checks
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content MISSING=nope
 content bad
 call eval PROJECT_PATH_GATEWAY_ROOT=/t/root
 call project_path_gateway_verify
 status 2
-err project-path-gateway: /t/root/.tool/project-path-gateway/project-path-gateway.conf:2: KEY=경로 형식이 아닙니다
+err project-path-gateway: /t/root/.tools/project-path-gateway/project-path-gateway.conf:2: KEY=경로 형식이 아닙니다
 op returned eval 0
 op returned project_path_gateway_verify 2
 
 case verify-missing-data-file-skips-entry-checks
-fs dir /t/root/.tool/project-path-gateway
+fs dir /t/root/.tools/project-path-gateway
 call eval PROJECT_PATH_GATEWAY_ROOT=/t/root
 call project_path_gateway_verify
 status 2
-err project-path-gateway: project_path_gateway_verify: 데이터 파일을 읽을 수 없습니다: /t/root/.tool/project-path-gateway/project-path-gateway.conf
+err project-path-gateway: project_path_gateway_verify: 데이터 파일을 읽을 수 없습니다: /t/root/.tools/project-path-gateway/project-path-gateway.conf
 op returned eval 0
 op returned project_path_gateway_verify 2
 
 case verify-all-entries-pass
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 content B=b/c
 fs dir /t/root/a
@@ -53,7 +53,7 @@ op returned project_path_gateway_init 0
 op returned project_path_gateway_verify 0
 
 case verify-zero-entries-pass
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content # 항목 없음
 call project_path_gateway_init /t/root
 call project_path_gateway_verify
@@ -63,7 +63,7 @@ op returned project_path_gateway_init 0
 op returned project_path_gateway_verify 0
 
 case verify-missing-entries-reported-in-order
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content B=gone_b
 content KEEP=keep
 content A=gone a
@@ -78,7 +78,7 @@ op returned project_path_gateway_init 0
 op returned project_path_gateway_verify 1
 
 case verify-link-to-outside-directory
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content OUT=link
 fs dir /t/outside
 fs link /t/root/link /t/outside
@@ -91,7 +91,7 @@ op returned project_path_gateway_init 0
 op returned project_path_gateway_verify 1
 
 case verify-link-to-outside-file-with-relative-target
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content OUT=d/link
 fs file /t/outside/f
 fs link /t/root/d/link ../../outside/f
@@ -104,7 +104,7 @@ op returned project_path_gateway_init 0
 op returned project_path_gateway_verify 1
 
 case verify-broken-link-is-missing
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content BROKEN=link
 fs link /t/root/link /t/root/nope
 call project_path_gateway_init /t/root
@@ -116,7 +116,7 @@ op returned project_path_gateway_init 0
 op returned project_path_gateway_verify 1
 
 case verify-cyclic-link-is-missing
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content LOOP=a
 fs link /t/root/a b
 fs link /t/root/b a
@@ -129,7 +129,7 @@ op returned project_path_gateway_init 0
 op returned project_path_gateway_verify 1
 
 case verify-permission-denied-is-missing
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content LOCKED=locked/file
 fs file /t/root/locked/file
 fs deny /t/root/locked
@@ -142,7 +142,7 @@ op returned project_path_gateway_init 0
 op returned project_path_gateway_verify 1
 
 case verify-sibling-with-root-prefix-is-outside
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content SIB=sib
 fs dir /t/root2/x
 fs link /t/root/sib /t/root2/x
@@ -155,7 +155,7 @@ op returned project_path_gateway_init 0
 op returned project_path_gateway_verify 1
 
 case verify-file-link-chain-inside-root-passes
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content CHAIN=l1
 fs file /t/root/real/target
 fs link /t/root/l3 real/target
@@ -169,7 +169,7 @@ op returned project_path_gateway_init 0
 op returned project_path_gateway_verify 0
 
 case verify-directory-link-and-trailing-slash-pass
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content DIRLINK=dl
 content TRAIL=dir/
 content DOT=./dir/./f
@@ -183,7 +183,7 @@ op returned project_path_gateway_init 0
 op returned project_path_gateway_verify 0
 
 case verify-missing-entry-is-not-checked-for-outside
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content BROKEN_OUT=link
 fs link /t/root/link /nonexistent/ppg/target
 call project_path_gateway_init /t/root
@@ -195,7 +195,7 @@ op returned project_path_gateway_init 0
 op returned project_path_gateway_verify 1
 
 case verify-paths-with-space-and-korean
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content SPACE=a b/한글 파일
 fs file /t/root/a\sb/한글\s파일
 call project_path_gateway_init /t/root
@@ -206,7 +206,7 @@ op returned project_path_gateway_init 0
 op returned project_path_gateway_verify 0
 
 case verify-twice-does-not-change-filesystem
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content A=a
 content MISSING=nope
 fs dir /t/root/a
@@ -223,7 +223,7 @@ op returned project_path_gateway_verify 1
 op returned project_path_gateway_verify 1
 
 case verify-two-hundred-entries
-fs file /t/root/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
 content KEY_0=dir/file_0
 content KEY_1=dir/file_1
 content KEY_2=dir/file_2

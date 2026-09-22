@@ -4,5 +4,5 @@ layer domain
 
 case marker-content-bytes
 status 0
-out # project-path-gateway 루트 표식 파일입니다. 이 파일을 담은 .tool/ 디렉터리의 상위 디렉터리가 프로젝트 루트입니다.
+out # project-path-gateway 루트 표식 파일입니다. 이 파일을 담은 .tools/ 디렉터리의 상위 디렉터리가 프로젝트 루트입니다.
 out format=1

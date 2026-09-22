@@ -33,7 +33,7 @@ ppg__domain_plan_action() {
 # 루트 표식 파일 내용 (contracts/files.md 2절).
 ppg__domain_marker_content() {
 	printf '%s\n' \
-		'# project-path-gateway 루트 표식 파일입니다. 이 파일을 담은 .tool/ 디렉터리의 상위 디렉터리가 프로젝트 루트입니다.' \
+		'# project-path-gateway 루트 표식 파일입니다. 이 파일을 담은 .tools/ 디렉터리의 상위 디렉터리가 프로젝트 루트입니다.' \
 		'format=1'
 }
 
@@ -41,7 +41,7 @@ ppg__domain_marker_content() {
 ppg__domain_data_template() {
 	printf '%s\n' \
 		'# project-path-gateway 데이터 파일' \
-		'# 한 줄에 KEY=경로 형식으로 적습니다. 경로는 프로젝트 루트(.tool/의 상위 디렉터리) 기준 상대경로입니다.' \
+		'# 한 줄에 KEY=경로 형식으로 적습니다. 경로는 프로젝트 루트(.tools/의 상위 디렉터리) 기준 상대경로입니다.' \
 		'# 키: 대문자로 시작하고 대문자·숫자·_만 사용합니다. 파일 안에서 중복될 수 없습니다.' \
 		'# 경로: /로 시작할 수 없고 .. 세그먼트를 쓸 수 없습니다. = 앞뒤 공백은 제거되지 않습니다.' \
 		'# 빈 줄과 #으로 시작하는 줄은 무시합니다.' \
@@ -52,7 +52,7 @@ ppg__domain_data_template() {
 }
 
 ppg__domain_tool_relpath() {
-	printf '.tool/project-path-gateway\n'
+	printf '.tools/project-path-gateway\n'
 }
 
 ppg__domain_file_name() {
@@ -77,7 +77,7 @@ ppg__app_init_project() {
 		ppg__port_report_failure not_dir "$target"
 		return 10
 	fi
-	tool_parent=$(ppg__domain_join "$target" .tool)
+	tool_parent=$(ppg__domain_join "$target" .tools)
 	if [ "$(ppg__port_dir_state "$tool_parent")" = other ]; then
 		ppg__port_report_failure tool_not_dir "$tool_parent"
 		return 10
@@ -218,28 +218,28 @@ ppg__port_library_source() {
 	ppg__sys_is_file "$ppg_infra_source" && ppg__sys_is_readable "$ppg_infra_source"
 }
 
-# .tool과 도구 디렉터리 중 없는 것을 만들고, 이번 실행에서 만든 것을 상태 변수에 기록한다.
+# .tools과 도구 디렉터리 중 없는 것을 만들고, 이번 실행에서 만든 것을 상태 변수에 기록한다.
 ppg__port_ensure_tool_dirs() {
 	PPG_INFRA_CREATED_TOOL=0
 	PPG_INFRA_CREATED_TOOLDIR=0
-	if ! ppg__sys_is_dir "${1%/}/.tool"; then
-		ppg__sys_mkdir "${1%/}/.tool" || return 1
+	if ! ppg__sys_is_dir "${1%/}/.tools"; then
+		ppg__sys_mkdir "${1%/}/.tools" || return 1
 		PPG_INFRA_CREATED_TOOL=1
 	fi
-	if ! ppg__sys_is_dir "${1%/}/.tool/project-path-gateway"; then
-		ppg__sys_mkdir "${1%/}/.tool/project-path-gateway" || return 1
+	if ! ppg__sys_is_dir "${1%/}/.tools/project-path-gateway"; then
+		ppg__sys_mkdir "${1%/}/.tools/project-path-gateway" || return 1
 		PPG_INFRA_CREATED_TOOLDIR=1
 	fi
 	return 0
 }
 
-# 이번 실행에서 만든 디렉터리만 도구 디렉터리 → .tool 순서로 되돌린다.
+# 이번 실행에서 만든 디렉터리만 도구 디렉터리 → .tools 순서로 되돌린다.
 ppg__port_rollback_dirs() {
 	if [ "${PPG_INFRA_CREATED_TOOLDIR-0}" = 1 ]; then
-		ppg__sys_rmdir "${1%/}/.tool/project-path-gateway"
+		ppg__sys_rmdir "${1%/}/.tools/project-path-gateway"
 	fi
 	if [ "${PPG_INFRA_CREATED_TOOL-0}" = 1 ]; then
-		ppg__sys_rmdir "${1%/}/.tool"
+		ppg__sys_rmdir "${1%/}/.tools"
 	fi
 	return 0
 }
@@ -422,7 +422,7 @@ ppg__sys_trap() {
 ppg__if_usage() {
 	printf '%s\n' \
 		'사용법:' \
-		'  project-path-gateway init [TARGET_DIR]   프로젝트에 .tool/project-path-gateway/를 만들고 라이브러리를 설치·교체합니다' \
+		'  project-path-gateway init [TARGET_DIR]   프로젝트에 .tools/project-path-gateway/를 만들고 라이브러리를 설치·교체합니다' \
 		'  project-path-gateway --help | -h          이 도움말을 출력합니다' \
 		'  project-path-gateway --version            버전을 출력합니다' \
 		'' \
@@ -448,7 +448,7 @@ ppg__port_report_done() {
 ppg__port_report_failure() {
 	case $1 in
 	not_dir) ppg_if_message="디렉터리가 아닙니다: $2" ;;
-	tool_not_dir) ppg_if_message=".tool이 디렉터리가 아닙니다: $2" ;;
+	tool_not_dir) ppg_if_message=".tools이 디렉터리가 아닙니다: $2" ;;
 	tool_dir_not_dir) ppg_if_message="도구 디렉터리가 디렉터리가 아닙니다: $2" ;;
 	not_regular) ppg_if_message="일반 파일이 아닙니다: $2" ;;
 	no_library) ppg_if_message="라이브러리 원본을 찾지 못했습니다: $2. 설치 스크립트를 다시 실행하세요" ;;

@@ -3,9 +3,9 @@
 target readme-example pre-commit
 layer api
 self .git/hooks/pre-commit
-fs file /t/my\sproject/.tool/project-path-gateway/.project-path-gateway
-fs file /t/my\sproject/.tool/project-path-gateway/project-path-gateway.sh
-fs file /t/my\sproject/.tool/project-path-gateway/project-path-gateway.conf
+fs file /t/my\sproject/.tools/project-path-gateway/.project-path-gateway
+fs file /t/my\sproject/.tools/project-path-gateway/project-path-gateway.sh
+fs file /t/my\sproject/.tools/project-path-gateway/project-path-gateway.conf
 content APP_CONFIG=config/app.json
 fs file /t/my\sproject/.git/hooks/pre-commit
 
@@ -14,11 +14,11 @@ fs file /t/my\sproject/config/app.json
 cwd /t/my\sproject
 status 0
 out project-path-gateway: 검증 통과 1건
-op source ./.tool/project-path-gateway/project-path-gateway.sh
+op source ./.tools/project-path-gateway/project-path-gateway.sh
 
 case readme-pre-commit-fails-when-path-missing
 cwd /t/my\sproject
 status 1
 err project-path-gateway: 누락: APP_CONFIG=config/app.json
 err project-path-gateway: 검증 실패 1건
-op source ./.tool/project-path-gateway/project-path-gateway.sh
+op source ./.tools/project-path-gateway/project-path-gateway.sh

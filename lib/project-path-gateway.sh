@@ -267,7 +267,7 @@ project_path_gateway__app_data_file() (
 	IFS=' 	''
 '
 	unset CDPATH
-	project_path_gateway__domain_join "$1" .tool/project-path-gateway/project-path-gateway.conf
+	project_path_gateway__domain_join "$1" .tools/project-path-gateway/project-path-gateway.conf
 )
 
 # 데이터 파일을 읽고 검증한다. 유효한 항목마다 "줄번호<TAB>키<TAB>경로" 한 줄을 파일 순서로 출력한다.
@@ -517,7 +517,7 @@ project_path_gateway__port_find_root() (
 	unset CDPATH
 	dir=$1
 	while :; do
-		if project_path_gateway__sys_is_file "${dir%/}/.tool/project-path-gateway/.project-path-gateway"; then
+		if project_path_gateway__sys_is_file "${dir%/}/.tools/project-path-gateway/.project-path-gateway"; then
 			printf '%sx' "$dir"
 			return 0
 		fi
@@ -822,7 +822,7 @@ project_path_gateway__if_init_fail() (
 	case $1 in
 	8) project_path_gateway__if_error project_path_gateway_init "디렉터리가 아닙니다: $detail" ;;
 	5) project_path_gateway__if_error project_path_gateway_init "경로를 확인할 수 없습니다: $detail" ;;
-	6) project_path_gateway__if_error project_path_gateway_init "루트 표식 파일(.tool/project-path-gateway/.project-path-gateway)을 찾지 못했습니다: ${detail}부터 /까지" ;;
+	6) project_path_gateway__if_error project_path_gateway_init "루트 표식 파일(.tools/project-path-gateway/.project-path-gateway)을 찾지 못했습니다: ${detail}부터 /까지" ;;
 	4) project_path_gateway__if_error project_path_gateway_init "데이터 파일을 읽을 수 없습니다: $detail" ;;
 	3) ;;
 	*) project_path_gateway__if_error project_path_gateway_init "알 수 없는 오류입니다(코드 $1)" ;;

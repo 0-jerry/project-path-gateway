@@ -4,12 +4,12 @@ layer domain
 
 case bin-join-space
 arg /a\sb
-arg .tool
+arg .tools
 status 0
-out /a b/.tool
+out /a b/.tools
 
 case bin-join-root
 arg /
-arg .tool
+arg .tools
 status 0
-out /.tool
+out /.tools

@@ -1,34 +1,34 @@
 # 인프라 통합: 원본을 임시 파일에 복사한 뒤 기존 파일 교체 (기능 001 cli_init_test, research R-10)
 target bin-func ppg__port_replace
 layer infra
-fs file /p/.tool/project-path-gateway/project-path-gateway.sh
+fs file /p/.tools/project-path-gateway/project-path-gateway.sh
 content OLD
 fs file /opt/share/lib.sh
 content NEW
 
 case replace-library
-arg /p/.tool/project-path-gateway/project-path-gateway.sh
+arg /p/.tools/project-path-gateway/project-path-gateway.sh
 arg /opt/share/lib.sh
 status 0
 op pid
-op copy /opt/share/lib.sh /p/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
-op move /p/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh /p/.tool/project-path-gateway/project-path-gateway.sh
+op copy /opt/share/lib.sh /p/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op move /p/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh /p/.tools/project-path-gateway/project-path-gateway.sh
 
 case replace-copy-fails
-fault copy /p/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
-arg /p/.tool/project-path-gateway/project-path-gateway.sh
+fault copy /p/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+arg /p/.tools/project-path-gateway/project-path-gateway.sh
 arg /opt/share/lib.sh
 status 1
 op pid
-op copy /opt/share/lib.sh /p/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
-op remove /p/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op copy /opt/share/lib.sh /p/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op remove /p/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
 
 case replace-move-fails
-fault move /p/.tool/project-path-gateway/project-path-gateway.sh
-arg /p/.tool/project-path-gateway/project-path-gateway.sh
+fault move /p/.tools/project-path-gateway/project-path-gateway.sh
+arg /p/.tools/project-path-gateway/project-path-gateway.sh
 arg /opt/share/lib.sh
 status 1
 op pid
-op copy /opt/share/lib.sh /p/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
-op move /p/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh /p/.tool/project-path-gateway/project-path-gateway.sh
-op remove /p/.tool/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op copy /opt/share/lib.sh /p/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op move /p/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh /p/.tools/project-path-gateway/project-path-gateway.sh
+op remove /p/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh

@@ -3,7 +3,7 @@
 #
 # 사용법: sh uninstall.sh [--prefix DIR]
 #
-# 설치 목록(install-manifest)에 적힌 파일만 지운다. 프로젝트 안 .tool/project-path-gateway/는 건드리지 않는다.
+# 설치 목록(install-manifest)에 적힌 파일만 지운다. 프로젝트 안 .tools/project-path-gateway/는 건드리지 않는다.
 #
 # 구조: 도메인 → 애플리케이션 → 인프라 → 인터페이스 네 구획으로 나눈다.
 # 파일 시스템 접근은 인프라 구획의 시스템 포트(ppg__sys_*)에서만 한다.
