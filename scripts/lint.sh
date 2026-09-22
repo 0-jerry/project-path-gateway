@@ -7,12 +7,14 @@
 # 2. 라이브러리의 금지 단어 git, exit (대소문자 무시, 단어 경계, 주석 포함)
 # 3. 라이브러리·전역 프로그램의 범위 괄호식 [A-Z], [a-z], [0-9]
 # 4. 버전 일치 (VERSION 파일, 라이브러리 첫 줄, 전역 프로그램 PPG_VERSION)
-# 5. 계층 호출 규칙, 함수 이름·본문 형식, 구획 소유 변수 (plan.md "계층 호출 규칙")
+# 5. 계층 규칙 D-1~D-6과 L-0: 계층 호출, 포트 목록, 출력 문구 위치, 애플리케이션 문자열 조작,
+#    함수 이름·본문 형식, 구획 소유 변수 (기능 005 contracts/lint-rules.md)
 #    대상: 라이브러리, 전역 프로그램, 설치·제거 스크립트. 시스템 포트(__sys_*)는 인프라 구획 전용
 # 6. 환경 접근 위치 (002 contracts/system-ports.md 3절): 시스템 포트 본문 밖의 파일 리다이렉션(E-1),
 #    파일 검사 연산자(E-2), 파일·신호 명령(E-3), $$·$0(E-4), for 목록 글로브(E-5),
 #    파이프라인·명령 치환 안의 변경 시스템 포트 호출
 # 7. 추적 대조표(tests/traceability.md)의 사례 식별자·수동 확인 절 참조
+# 8. lint 자체 확인: tests/lint/fixtures/*.sh 위반 예시(D-1~D-6)를 5절 검사가 모두 잡는지 확인
 
 repo_root=$(cd -P -- "$(dirname -- "$0")/.." && pwd -P) || exit 2
 cd "$repo_root" || exit 2
@@ -74,9 +76,11 @@ else
 	fi
 fi
 
-# 5. 계층 규칙
+# 5. 계층 규칙 (기능 005 contracts/lint-rules.md 1절). 위반 한 건마다 "<파일>:<줄>: [<ID>] <설명>: <이름 또는 내용>"을 쓴다.
+#    D-1 도메인 → 다른 계층, D-2 애플리케이션 → 금지 대상·목록 밖 포트, D-3 인프라 → 바깥 계층,
+#    D-4 인터페이스 밖 출력 문구, D-5 애플리케이션 문자열 조작, D-6 포트 목록 불일치, L-0 그 밖의 기존 규칙
 check_layers() {
-	# $1: 파일, $2: 내부 함수 접두어(lib: project_path_gateway__, bin: ppg__), $3: lib 또는 bin
+	# $1: 파일, $2: 내부 함수 접두어(lib: project_path_gateway__, 그 밖: ppg__), $3: lib, bin, script
 	LC_ALL=C awk -v file="$1" -v pre="$2" -v kind="$3" '
 	function layer_of(name,   rest) {
 		rest = substr(name, length(pre) + 1)
@@ -96,18 +100,34 @@ check_layers() {
 		if (line == "# === 계층: 인터페이스 ===") return 4
 		return 0
 	}
-	function problem(msg) {
-		print msg > "/dev/stderr"
+	function problem(line, id, msg) {
+		print file ":" line ": [" id "] " msg > "/dev/stderr"
 		count++
+	}
+	# 포트 목록 줄(# 입력 포트: ..., # 출력 포트: ...)의 이름을 모은다 (contracts/ports.md 1절).
+	function collect_ports(line, want,   n, i, tok) {
+		if (sec != 2) { problem(FNR, "D-6", "포트 목록은 애플리케이션 구획에만 둔다: " line); return }
+		n = split(line, tok, /[ \t]+/)
+		if (n < 4) { problem(FNR, "D-6", "포트 목록 형식 오류: " line); return }
+		for (i = 4; i <= n; i++) {
+			if (index(tok[i], pre) != 1 || layer_of(tok[i]) != want || tok[i] !~ /^[A-Za-z0-9_]+$/) {
+				problem(FNR, "D-6", "포트 목록 형식 오류: " tok[i])
+				continue
+			}
+			listed[tok[i]] = 1
+			listline[tok[i]] = FNR
+		}
 	}
 	BEGIN { count = 0; sec = 0; nsec = split("도메인 애플리케이션 인프라 인터페이스", secname, " ") }
 	NR == FNR {
 		s = section_of($0)
 		if (s) { sec = s; next }
+		if ($0 ~ /^# 입력 포트:/) { collect_ports($0, "port"); next }
+		if ($0 ~ /^# 출력 포트:/) { collect_ports($0, "out"); next }
 		if (match($0, /^[A-Za-z_][A-Za-z0-9_]*\(\)/)) {
 			name = substr($0, 1, RLENGTH - 2)
 			if (name in defsec && defsec[name] != sec)
-				problem(file ":" FNR ": 같은 이름이 두 구획에서 정의됨: " name)
+				problem(FNR, "L-0", "같은 이름이 두 구획에서 정의됨: " name)
 			defsec[name] = sec
 			defline[name] = FNR
 			body = substr($0, RLENGTH + 1)
@@ -122,32 +142,53 @@ check_layers() {
 		if (s) { sec = s; next }
 		line = $0
 		if (line ~ /^[ \t]*#/) next
-		defname = ""
 		if (match(line, /^[A-Za-z_][A-Za-z0-9_]*\(\)/)) {
-			defname = substr(line, 1, RLENGTH - 2)
+			curfn = substr(line, 1, RLENGTH - 2)
 			line = substr(line, RLENGTH + 1)
-			curfn = defname
+		}
+		if (sec >= 1 && sec <= 3) {
+			if ($0 ~ /(^|[^0-9])1?>&2/) problem(FNR, "D-4", "인터페이스 구획 밖에서 표준 오류로 출력: " curfn)
+			if ($0 ~ /project-path-gateway:/) problem(FNR, "D-4", "인터페이스 구획 밖에 출력 문구: " curfn)
+		}
+		if (sec == 2) {
+			tmp = $0
+			while (match(tmp, /\$\{[A-Za-z_][A-Za-z0-9_]*(#|%)/)) {
+				rest = substr(tmp, RSTART + RLENGTH)
+				expr = substr(tmp, RSTART, RLENGTH)
+				tmp = rest
+				if (expr ~ /%$/ && rest ~ /^x\}/) continue
+				problem(FNR, "D-5", "애플리케이션 구획의 문자열 조작: " expr)
+			}
 		}
 		while (match(line, pre "[a-z0-9_]+")) {
 			call = substr(line, RSTART, RLENGTH)
 			line = substr(line, RSTART + RLENGTH)
 			if (sec == 0) continue
-			cl = layer_of(call)
-			ok = 0
-			if (cl == "domain") ok = 1
-			else if (sec == 2 && (cl == "app" || cl == "port" || cl == "out")) ok = 1
-			else if (sec == 3 && (cl == "infra" || cl == "port" || cl == "sys") && defsec[call] == 3) ok = 1
-			if (cl == "sys" && sec != 3) ok = 0
-			if (index(curfn, pre) == 1 && layer_of(curfn) == "sys" && call != curfn) {
-				problem(file ":" FNR ": 시스템 포트 본문에서 내부 함수 호출: " call)
+			if (!(call in defsec)) {
+				problem(FNR, "L-0", "정의되지 않은 함수 호출: " call)
 				continue
 			}
-			else if (sec == 4 && (cl == "app" || ((cl == "if" || cl == "port" || cl == "out") && defsec[call] == 4))) ok = 1
-			if (sec == 1 && cl != "domain") ok = 0
-			if (!(call in defsec)) {
-				problem(file ":" FNR ": 정의되지 않은 함수 호출: " call)
-			} else if (!ok) {
-				problem(file ":" FNR ": " secname[sec] " → " call)
+			cl = layer_of(call)
+			if (index(curfn, pre) == 1 && layer_of(curfn) == "sys" && call != curfn) {
+				problem(FNR, "D-3", "시스템 포트 본문에서 내부 함수 호출: " call)
+				continue
+			}
+			if (cl == "domain") continue
+			if (sec == 1) {
+				problem(FNR, "D-1", "도메인 → " call)
+			} else if (sec == 2) {
+				if (cl == "app") continue
+				if ((cl == "port" || cl == "out") && (call in listed)) continue
+				if (cl == "port" || cl == "out") problem(FNR, "D-2", "애플리케이션 → 포트 목록에 없는 포트: " call)
+				else problem(FNR, "D-2", "애플리케이션 → " call)
+			} else if (sec == 3) {
+				if ((cl == "infra" || cl == "port" || cl == "sys") && defsec[call] == 3) continue
+				if (cl == "app" || cl == "if" || cl == "out") problem(FNR, "D-3", "인프라 → " call)
+				else problem(FNR, "L-0", "인프라 → " call)
+			} else if (sec == 4) {
+				if (cl == "app") continue
+				if ((cl == "if" || cl == "out") && defsec[call] == 4) continue
+				problem(FNR, "L-0", "인터페이스 → " call)
 			}
 		}
 		if (kind == "bin") {
@@ -155,43 +196,46 @@ check_layers() {
 			while (match(tmp, /PPG_(INFRA|IF)_[A-Z0-9_]*/)) {
 				v = substr(tmp, RSTART, RLENGTH)
 				tmp = substr(tmp, RSTART + RLENGTH)
-				if (v ~ /^PPG_INFRA_/ && sec != 3) problem(file ":" FNR ": 인프라 소유 변수를 구획 밖에서 참조: " v)
-				if (v ~ /^PPG_IF_/ && sec != 4) problem(file ":" FNR ": 인터페이스 소유 변수를 구획 밖에서 참조: " v)
+				if (v ~ /^PPG_INFRA_/ && sec != 3) problem(FNR, "L-0", "인프라 소유 변수를 구획 밖에서 참조: " v)
+				if (v ~ /^PPG_IF_/ && sec != 4) problem(FNR, "L-0", "인터페이스 소유 변수를 구획 밖에서 참조: " v)
 			}
 		}
 	}
 	END {
+		for (name in listed)
+			if (!(name in defsec)) problem(listline[name], "D-6", "포트 목록의 이름이 정의되지 않음: " name)
 		for (name in defsec) {
 			s = defsec[name]
-			where = file ":" defline[name]
+			where = defline[name]
 			if (kind == "lib") {
 				if (index(name, "project_path_gateway_") != 1) {
-					problem(where ": 함수 이름은 project_path_gateway_로 시작해야 함: " name)
+					problem(where, "L-0", "함수 이름은 project_path_gateway_로 시작해야 함: " name)
 					continue
 				}
 				if (index(name, pre) != 1) {
 					if (name != "project_path_gateway_init" && name != "project_path_gateway_get" && name != "project_path_gateway_verify" &&
 						name != "project_path_gateway_add" && name != "project_path_gateway_update")
-						problem(where ": 공개 함수는 init, get, verify, add, update 다섯 개만 허용: " name)
+						problem(where, "L-0", "공개 함수는 init, get, verify, add, update 다섯 개만 허용: " name)
 					else if (s != 4)
-						problem(where ": 공개 함수는 인터페이스 구획에 있어야 함: " name)
+						problem(where, "L-0", "공개 함수는 인터페이스 구획에 있어야 함: " name)
 				}
 				if (name != "project_path_gateway_init" && defbody[name] != "(")
-					problem(where ": 서브셸 본문 name() ( ... )으로 정의해야 함: " name)
+					problem(where, "L-0", "서브셸 본문 name() ( ... )으로 정의해야 함: " name)
 			} else if (index(name, pre) != 1) {
-				if (name != "main") problem(where ": 함수 이름은 " pre "로 시작해야 함: " name)
+				if (name != "main") problem(where, "L-0", "함수 이름은 " pre "로 시작해야 함: " name)
 				continue
 			}
 			if (index(name, pre) != 1) continue
 			l = layer_of(name)
-			if (l == "domain" && s != 1) problem(where ": 도메인 함수가 도메인 구획 밖에 있음: " name)
-			if (l == "app" && s != 2) problem(where ": 애플리케이션 함수가 애플리케이션 구획 밖에 있음: " name)
-			if (l == "infra" && s != 3) problem(where ": 인프라 함수가 인프라 구획 밖에 있음: " name)
-			if (l == "if" && s != 4) problem(where ": 인터페이스 함수가 인터페이스 구획 밖에 있음: " name)
-			if (l == "port" && s != 3 && s != 4) problem(where ": 포트는 인프라 또는 인터페이스 구획에서만 정의: " name)
-			if (l == "out" && s != 4) problem(where ": 출력 포트는 인터페이스 구획에서만 정의: " name)
-			if (l == "sys" && s != 3) problem(where ": 시스템 포트가 인프라 구획 밖에 있음: " name)
-			if (l == "unknown") problem(where ": 계층 접두어가 없는 내부 함수: " name)
+			if (l == "domain" && s != 1) problem(where, "L-0", "도메인 함수가 도메인 구획 밖에 있음: " name)
+			if (l == "app" && s != 2) problem(where, "L-0", "애플리케이션 함수가 애플리케이션 구획 밖에 있음: " name)
+			if (l == "infra" && s != 3) problem(where, "L-0", "인프라 함수가 인프라 구획 밖에 있음: " name)
+			if (l == "if" && s != 4) problem(where, "L-0", "인터페이스 함수가 인터페이스 구획 밖에 있음: " name)
+			if (l == "port" && s != 3) problem(where, "D-6", "입력 포트는 인프라 구획에서만 정의: " name)
+			if (l == "out" && s != 4) problem(where, "D-6", "출력 포트는 인터페이스 구획에서만 정의: " name)
+			if ((l == "port" || l == "out") && !(name in listed)) problem(where, "D-6", "포트 목록에 없는 포트: " name)
+			if (l == "sys" && s != 3) problem(where, "L-0", "시스템 포트가 인프라 구획 밖에 있음: " name)
+			if (l == "unknown") problem(where, "L-0", "계층 접두어가 없는 내부 함수: " name)
 		}
 		exit (count > 0)
 	}
@@ -324,6 +368,34 @@ check_traceability() {
 if [ -f tests/traceability.md ]; then
 	check_traceability >&2 || report "tests/traceability.md: 추적 대조표 참조 오류가 있습니다"
 fi
+
+# 8. lint 자체 확인 (기능 005 contracts/lint-rules.md 2절): tests/lint/fixtures/*.sh 위반 예시마다 5절 검사가 실패하고
+#    머리 주석 "# lint-fixture: kind=<lib|bin|script> expect=<ID>"의 규칙 ID를 보고해야 한다.
+lint_tmp=$(mktemp "${TMPDIR:-/tmp}/ppg-lint.XXXXXX") || exit 2
+for f in tests/lint/fixtures/*.sh; do
+	[ -f "$f" ] || continue
+	fixture_kind=$(sed -n 's/^# lint-fixture: kind=\([a-z]*\) expect=.*$/\1/p' "$f")
+	fixture_expect=$(sed -n 's/^# lint-fixture: kind=[a-z]* expect=\([A-Z0-9-]*\)$/\1/p' "$f")
+	case $fixture_kind in
+	lib) fixture_pre=project_path_gateway__ ;;
+	bin | script) fixture_pre=ppg__ ;;
+	*)
+		report "$f: lint 자체 확인 실패: 머리 주석 형식 오류"
+		continue
+		;;
+	esac
+	if [ -z "$fixture_expect" ]; then
+		report "$f: lint 자체 확인 실패: 머리 주석 형식 오류"
+		continue
+	fi
+	if check_layers "$f" "$fixture_pre" "$fixture_kind" 2>"$lint_tmp"; then
+		report "lint 자체 확인 실패: $f (위반을 찾지 못함)"
+	elif ! grep -F -q "[$fixture_expect]" "$lint_tmp"; then
+		cat "$lint_tmp" >&2
+		report "lint 자체 확인 실패: $f ([$fixture_expect] 보고 없음)"
+	fi
+done
+rm -f "$lint_tmp"
 
 if [ "$problems" -gt 0 ]; then
 	printf 'lint: 위반 %s건\n' "$problems" >&2
