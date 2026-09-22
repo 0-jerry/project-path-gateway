@@ -1,6 +1,7 @@
 # 포트 대체물 (specs/002-dry-run-unit-tests/contracts/doubles.md 3절)
 #
-# 대상 파일을 불러온 뒤 ppgt_stub_apply <대상 파일>을 호출하면, 그 파일에 정의된 __port_* 함수를 모두 대체 함수로 바꾼다.
+# 대상 파일을 불러온 뒤 ppgt_stub_apply <대상 파일>을 호출하면, 그 파일에 정의된 __port_*(입력 포트)와 __out_*(출력 포트) 함수를
+# 모두 대체 함수로 바꾼다.
 # 대체 함수는 op port 기록을 남기고 사례 stub 응답 중 함수 이름과 인자가 모두 같은 첫 응답을 출력·반환한다.
 # 일치하는 응답이 없으면 op unmatched-stub을 기록하고 125를 반환한다.
 
@@ -45,9 +46,9 @@ ppgt_port_call() {
 	return "$PPGT_STUB_RET"
 }
 
-# 대상 파일에 정의된 __port_* 함수를 대체한다. $1: 대상 파일
+# 대상 파일에 정의된 __port_*·__out_* 함수를 대체한다. $1: 대상 파일
 ppgt_stub_apply() {
-	ppgt_stub_names=$(LC_ALL=C "$PPGT_SED" -n 's/^\([a-z_]*__port_[a-z_]*\)() .*/\1/p' "$1")
+	ppgt_stub_names=$(LC_ALL=C "$PPGT_SED" -n -e 's/^\([a-z_]*__port_[a-z_]*\)() .*/\1/p' -e 's/^\([a-z_]*__out_[a-z_]*\)() .*/\1/p' "$1")
 	ppgt_stub_rest=$ppgt_stub_names
 	while [ -n "$ppgt_stub_rest" ]; do
 		ppgt_stub_one=${ppgt_stub_rest%%"$PPGT_NL"*}
