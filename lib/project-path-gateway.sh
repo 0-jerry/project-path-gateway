@@ -411,7 +411,7 @@ project_path_gateway__app_load_entries() (
 			if project_path_gateway__domain_entry_line_has_cr "$line"; then
 				has_cr=1
 			fi
-			project_path_gateway__port_report_violation "$file" "$lineno" "$code" "$key" "$first" "$has_cr"
+			project_path_gateway__out_violation "$file" "$lineno" "$code" "$key" "$first" "$has_cr"
 			bad=1
 		done
 		[ "$bad" -eq 0 ]
@@ -490,11 +490,11 @@ project_path_gateway__app_verify() (
 				if project_path_gateway__domain_is_inside "$1" "$physical"; then
 					passed=$((passed + 1))
 				else
-					project_path_gateway__port_report_outside "$key" "$path" "$physical"
+					project_path_gateway__out_outside "$key" "$path" "$physical"
 					failed=$((failed + 1))
 				fi
 			else
-				project_path_gateway__port_report_missing "$key" "$path"
+				project_path_gateway__out_missing "$key" "$path"
 				failed=$((failed + 1))
 			fi
 		done
@@ -881,8 +881,8 @@ project_path_gateway__if_error() (
 	printf 'project-path-gateway: %s: %s\n' "$1" "$2" >&2
 )
 
-# 데이터 파일 위반 보고 포트 구현 (contracts/library-api.md 6절).
-project_path_gateway__port_report_violation() (
+# 출력 포트 구현: 데이터 파일 위반 보고 (contracts/library-api.md 6절).
+project_path_gateway__out_violation() (
 	set +e +u +f
 	IFS=' 	''
 '
@@ -989,8 +989,8 @@ project_path_gateway_get() (
 	return 2
 )
 
-# 검증 누락 보고 포트 구현.
-project_path_gateway__port_report_missing() (
+# 출력 포트 구현: 검증 누락 보고.
+project_path_gateway__out_missing() (
 	set +e +u +f
 	IFS=' 	''
 '
@@ -998,8 +998,8 @@ project_path_gateway__port_report_missing() (
 	printf 'project-path-gateway: 누락: %s=%s\n' "$1" "$2" >&2
 )
 
-# 검증 루트 밖 보고 포트 구현.
-project_path_gateway__port_report_outside() (
+# 출력 포트 구현: 검증 루트 밖 보고.
+project_path_gateway__out_outside() (
 	set +e +u +f
 	IFS=' 	''
 '

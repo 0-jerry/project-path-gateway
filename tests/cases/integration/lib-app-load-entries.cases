@@ -48,22 +48,22 @@ stub-out ABS=/x
 stub-out UP=a/../b
 stub-out OK=ok
 stub-out CR=x\r
-stub project_path_gateway__port_report_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 1 no_separator \e \e 0
-stub project_path_gateway__port_report_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 2 invalid_key lower \e 0
-stub project_path_gateway__port_report_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 3 empty_path EMPTY \e 0
-stub project_path_gateway__port_report_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 4 absolute_path ABS \e 0
-stub project_path_gateway__port_report_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 5 parent_segment UP \e 0
-stub project_path_gateway__port_report_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 7 carriage_return CR \e 1
+stub project_path_gateway__out_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 1 no_separator \e \e 0
+stub project_path_gateway__out_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 2 invalid_key lower \e 0
+stub project_path_gateway__out_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 3 empty_path EMPTY \e 0
+stub project_path_gateway__out_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 4 absolute_path ABS \e 0
+stub project_path_gateway__out_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 5 parent_segment UP \e 0
+stub project_path_gateway__out_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 7 carriage_return CR \e 1
 status 3
 out 6\tOK\tok
 op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
 op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_report_violation /r/.tools/project-path-gateway/project-path-gateway.conf 1 no_separator \e \e 0
-op port project_path_gateway__port_report_violation /r/.tools/project-path-gateway/project-path-gateway.conf 2 invalid_key lower \e 0
-op port project_path_gateway__port_report_violation /r/.tools/project-path-gateway/project-path-gateway.conf 3 empty_path EMPTY \e 0
-op port project_path_gateway__port_report_violation /r/.tools/project-path-gateway/project-path-gateway.conf 4 absolute_path ABS \e 0
-op port project_path_gateway__port_report_violation /r/.tools/project-path-gateway/project-path-gateway.conf 5 parent_segment UP \e 0
-op port project_path_gateway__port_report_violation /r/.tools/project-path-gateway/project-path-gateway.conf 7 carriage_return CR \e 1
+op port project_path_gateway__out_violation /r/.tools/project-path-gateway/project-path-gateway.conf 1 no_separator \e \e 0
+op port project_path_gateway__out_violation /r/.tools/project-path-gateway/project-path-gateway.conf 2 invalid_key lower \e 0
+op port project_path_gateway__out_violation /r/.tools/project-path-gateway/project-path-gateway.conf 3 empty_path EMPTY \e 0
+op port project_path_gateway__out_violation /r/.tools/project-path-gateway/project-path-gateway.conf 4 absolute_path ABS \e 0
+op port project_path_gateway__out_violation /r/.tools/project-path-gateway/project-path-gateway.conf 5 parent_segment UP \e 0
+op port project_path_gateway__out_violation /r/.tools/project-path-gateway/project-path-gateway.conf 7 carriage_return CR \e 1
 
 case load-entries-duplicate-key-passes-first-line
 arg /r
@@ -74,15 +74,15 @@ stub-out KEY=a
 stub-out OTHER=b
 stub-out KEY=c
 stub-out KEY=d
-stub project_path_gateway__port_report_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 4 duplicate_key KEY 2 0
-stub project_path_gateway__port_report_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 5 duplicate_key KEY 2 0
+stub project_path_gateway__out_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 4 duplicate_key KEY 2 0
+stub project_path_gateway__out_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 5 duplicate_key KEY 2 0
 status 3
 out 2\tKEY\ta
 out 3\tOTHER\tb
 op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
 op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_report_violation /r/.tools/project-path-gateway/project-path-gateway.conf 4 duplicate_key KEY 2 0
-op port project_path_gateway__port_report_violation /r/.tools/project-path-gateway/project-path-gateway.conf 5 duplicate_key KEY 2 0
+op port project_path_gateway__out_violation /r/.tools/project-path-gateway/project-path-gateway.conf 4 duplicate_key KEY 2 0
+op port project_path_gateway__out_violation /r/.tools/project-path-gateway/project-path-gateway.conf 5 duplicate_key KEY 2 0
 
 case load-entries-unreadable
 arg /r

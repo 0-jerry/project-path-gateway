@@ -85,6 +85,7 @@ check_layers() {
 		if (rest ~ /^infra_/) return "infra"
 		if (rest ~ /^if_/) return "if"
 		if (rest ~ /^port_/) return "port"
+		if (rest ~ /^out_/) return "out"
 		if (rest ~ /^sys_/) return "sys"
 		return "unknown"
 	}
@@ -134,14 +135,14 @@ check_layers() {
 			cl = layer_of(call)
 			ok = 0
 			if (cl == "domain") ok = 1
-			else if (sec == 2 && (cl == "app" || cl == "port")) ok = 1
+			else if (sec == 2 && (cl == "app" || cl == "port" || cl == "out")) ok = 1
 			else if (sec == 3 && (cl == "infra" || cl == "port" || cl == "sys") && defsec[call] == 3) ok = 1
 			if (cl == "sys" && sec != 3) ok = 0
 			if (index(curfn, pre) == 1 && layer_of(curfn) == "sys" && call != curfn) {
 				problem(file ":" FNR ": 시스템 포트 본문에서 내부 함수 호출: " call)
 				continue
 			}
-			else if (sec == 4 && (cl == "app" || ((cl == "if" || cl == "port") && defsec[call] == 4))) ok = 1
+			else if (sec == 4 && (cl == "app" || ((cl == "if" || cl == "port" || cl == "out") && defsec[call] == 4))) ok = 1
 			if (sec == 1 && cl != "domain") ok = 0
 			if (!(call in defsec)) {
 				problem(file ":" FNR ": 정의되지 않은 함수 호출: " call)
@@ -188,6 +189,7 @@ check_layers() {
 			if (l == "infra" && s != 3) problem(where ": 인프라 함수가 인프라 구획 밖에 있음: " name)
 			if (l == "if" && s != 4) problem(where ": 인터페이스 함수가 인터페이스 구획 밖에 있음: " name)
 			if (l == "port" && s != 3 && s != 4) problem(where ": 포트는 인프라 또는 인터페이스 구획에서만 정의: " name)
+			if (l == "out" && s != 4) problem(where ": 출력 포트는 인터페이스 구획에서만 정의: " name)
 			if (l == "sys" && s != 3) problem(where ": 시스템 포트가 인프라 구획 밖에 있음: " name)
 			if (l == "unknown") problem(where ": 계층 접두어가 없는 내부 함수: " name)
 		}

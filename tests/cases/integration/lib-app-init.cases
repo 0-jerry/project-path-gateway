@@ -56,14 +56,14 @@ stub-out-raw /rootx
 stub project_path_gateway__port_readable_file 0 /root/.tools/project-path-gateway/project-path-gateway.conf
 stub project_path_gateway__port_read_lines 0 /root/.tools/project-path-gateway/project-path-gateway.conf
 stub-out bad
-stub project_path_gateway__port_report_violation 0 /root/.tools/project-path-gateway/project-path-gateway.conf 1 no_separator \e \e 0
+stub project_path_gateway__out_violation 0 /root/.tools/project-path-gateway/project-path-gateway.conf 1 no_separator \e \e 0
 status 3
 op port project_path_gateway__port_is_dir /root
 op port project_path_gateway__port_physical_dir /root
 op port project_path_gateway__port_find_root /root .tools/project-path-gateway/.project-path-gateway
 op port project_path_gateway__port_readable_file /root/.tools/project-path-gateway/project-path-gateway.conf
 op port project_path_gateway__port_read_lines /root/.tools/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_report_violation /root/.tools/project-path-gateway/project-path-gateway.conf 1 no_separator \e \e 0
+op port project_path_gateway__out_violation /root/.tools/project-path-gateway/project-path-gateway.conf 1 no_separator \e \e 0
 
 case init-success-prints-root
 arg rel/dir

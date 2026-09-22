@@ -47,11 +47,11 @@ stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/p
 stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
 stub-out K=a
 stub-out bad
-stub project_path_gateway__port_report_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 2 no_separator \e \e 0
+stub project_path_gateway__out_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 2 no_separator \e \e 0
 status 3
 op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
 op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_report_violation /r/.tools/project-path-gateway/project-path-gateway.conf 2 no_separator \e \e 0
+op port project_path_gateway__out_violation /r/.tools/project-path-gateway/project-path-gateway.conf 2 no_separator \e \e 0
 
 # 등록 성공과 교체 결과 코드 (US1, FR-020, research R-01 7~9단계)
 case app-edit-add-success

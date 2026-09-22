@@ -66,11 +66,11 @@ stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/p
 stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
 stub-out A=a
 stub-out B=/abs
-stub project_path_gateway__port_report_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 2 absolute_path B \e 0
+stub project_path_gateway__out_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 2 absolute_path B \e 0
 status 3
 op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
 op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_report_violation /r/.tools/project-path-gateway/project-path-gateway.conf 2 absolute_path B \e 0
+op port project_path_gateway__out_violation /r/.tools/project-path-gateway/project-path-gateway.conf 2 absolute_path B \e 0
 
 case lookup-unreadable-data-file
 arg /r
