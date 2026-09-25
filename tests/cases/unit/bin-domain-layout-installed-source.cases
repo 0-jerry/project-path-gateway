@@ -1,0 +1,9 @@
+# 도메인 단위: 도구 배치 모델 - PREFIX 기준 설치 원본 상대경로 (기능 005 FR-041, 기능 006 FR-017 research R-04)
+# 라이브러리와 스킬이 같은 규칙으로 설치되므로 종류를 인자로 받는다.
+target bin-func ppg__domain_layout_installed_source
+layer domain
+
+case layout-installed-library
+arg library
+status 0
+out share/project-path-gateway/project-path-gateway.sh

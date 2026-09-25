@@ -1,12 +1,12 @@
-# 인프라 통합: 도구 디렉터리 만들기 (기능 001 cli_init_test, research R-10)
-# 인자: 도구 상위 디렉터리, 도구 디렉터리 (기능 005 research R-05, 애플리케이션이 배치 모델로 만든다).
-target bin-func ppg__port_ensure_tool_dirs
+# 인프라 통합: 초기화 디렉터리 목록 만들기 (기능 001 cli_init_test, 기능 006 FR-018 research R-03)
+# 인자: 대상 디렉터리 하나. 포트가 배치 모델의 디렉터리 목록을 순회해 없는 것만 만들고 만든 것을 기록한다.
+# 디렉터리 개수가 늘어도 인자와 상태 변수는 늘지 않는다.
+target bin-func ppg__port_ensure_dirs
 layer infra
 
 case ensure-tool-dirs-creates-both
 fs dir /p
-arg /p/.tools
-arg /p/.tools/project-path-gateway
+arg /p
 status 0
 op is-dir /p/.tools
 op mkdir /p/.tools
@@ -15,8 +15,7 @@ op mkdir /p/.tools/project-path-gateway
 
 case ensure-tool-dirs-creates-only-missing
 fs dir /p/.tools
-arg /p/.tools
-arg /p/.tools/project-path-gateway
+arg /p
 status 0
 op is-dir /p/.tools
 op is-dir /p/.tools/project-path-gateway
@@ -24,8 +23,7 @@ op mkdir /p/.tools/project-path-gateway
 
 case ensure-tool-dirs-existing
 fs dir /p/.tools/project-path-gateway
-arg /p/.tools
-arg /p/.tools/project-path-gateway
+arg /p
 status 0
 op is-dir /p/.tools
 op is-dir /p/.tools/project-path-gateway
@@ -33,8 +31,7 @@ op is-dir /p/.tools/project-path-gateway
 case ensure-tool-dirs-readonly-target
 fs dir /p
 fs readonly /p
-arg /p/.tools
-arg /p/.tools/project-path-gateway
+arg /p
 status 1
 op is-dir /p/.tools
 op mkdir /p/.tools
@@ -42,10 +39,18 @@ op mkdir /p/.tools
 case ensure-tool-dirs-second-mkdir-fails
 fs dir /p
 fault mkdir /p/.tools/project-path-gateway
-arg /p/.tools
-arg /p/.tools/project-path-gateway
+arg /p
 status 1
 op is-dir /p/.tools
 op mkdir /p/.tools
 op is-dir /p/.tools/project-path-gateway
 op mkdir /p/.tools/project-path-gateway
+
+case ensure-dirs-target-with-space-and-korean
+fs dir /t/my\sproject/한글
+arg /t/my\sproject/한글
+status 0
+op is-dir /t/my\sproject/한글/.tools
+op mkdir /t/my\sproject/한글/.tools
+op is-dir /t/my\sproject/한글/.tools/project-path-gateway
+op mkdir /t/my\sproject/한글/.tools/project-path-gateway

@@ -1,0 +1,8 @@
+# 도메인 단위: 도구 배치 모델 - 설치 원본을 찾지 못했을 때의 실패 코드 (기능 006 FR-015·FR-017, data-model 1.2)
+target bin-func ppg__domain_layout_missing_code
+layer domain
+
+case layout-missing-code-library
+arg library
+status 0
+out no_library

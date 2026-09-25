@@ -1,0 +1,7 @@
+# 도메인 단위: 도구 배치 모델 - 임시 파일 정리 대상 디렉터리 (기능 006 FR-023, data-model 1.4)
+target bin-func ppg__domain_layout_temp_dirs
+layer domain
+
+case layout-temp-dirs
+status 0
+out .tools/project-path-gateway

@@ -1,0 +1,19 @@
+# 도메인 단위: 도구 배치 모델 - 디렉터리가 디렉터리가 아닐 때의 실패 코드 (기능 006 FR-017·FR-020, data-model 1.1)
+# 기존 .tools 계열 문구를 유지하기 위해 실패 코드를 도메인이 정한다.
+target bin-func ppg__domain_layout_dir_code
+layer domain
+
+case layout-dir-code-tool-parent
+arg .tools
+status 0
+out tool_not_dir
+
+case layout-dir-code-tool-dir
+arg .tools/project-path-gateway
+status 0
+out tool_dir_not_dir
+
+case layout-dir-code-other
+arg .agents/skills
+status 0
+out dir_not_dir
