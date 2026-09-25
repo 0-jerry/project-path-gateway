@@ -5,3 +5,4 @@ layer domain
 case layout-temp-dirs
 status 0
 out .tools/project-path-gateway
+out .agents/skills/project-path-gateway

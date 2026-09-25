@@ -7,3 +7,8 @@ case layout-installed-library
 arg library
 status 0
 out share/project-path-gateway/project-path-gateway.sh
+
+case layout-installed-skill
+arg skill
+status 0
+out share/project-path-gateway/SKILL.md

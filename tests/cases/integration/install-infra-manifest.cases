@@ -6,10 +6,10 @@ fs dir /pre/share/project-path-gateway
 case write-manifest
 arg /pre/share/project-path-gateway/install-manifest.ppg-manifest.4242
 status 0
-op write /pre/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/install-manifest\n
+op write /pre/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/SKILL.md\nshare/project-path-gateway/install-manifest\n
 
 case write-manifest-fails
 fault write /pre/share/project-path-gateway/install-manifest.ppg-manifest.4242
 arg /pre/share/project-path-gateway/install-manifest.ppg-manifest.4242
 status 1
-op write /pre/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/install-manifest\n
+op write /pre/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/SKILL.md\nshare/project-path-gateway/install-manifest\n

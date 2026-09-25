@@ -6,3 +6,8 @@ case layout-missing-code-library
 arg library
 status 0
 out no_library
+
+case layout-missing-code-skill
+arg skill
+status 0
+out no_skill

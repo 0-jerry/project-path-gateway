@@ -7,3 +7,6 @@ case layout-dirs
 status 0
 out .tools
 out .tools/project-path-gateway
+out .agents
+out .agents/skills
+out .agents/skills/project-path-gateway

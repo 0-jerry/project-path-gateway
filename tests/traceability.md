@@ -299,3 +299,28 @@
 | 005-EDGE-8 | 키·경로 모두 위반이면 invalid_key 하나 | FR-005 | `tests/cases/contract/lib-add.cases:edit-invalid-add-key-and-path-both-wrong`, `tests/cases/unit/lib-domain-entry-violation.cases:entry-violation-key-and-path-both-wrong` | - |
 | 005-EDGE-9 | set -euf·바꾼 IFS에서도 결과 같음 | FR-024 | `tests/cases/contract/lib-isolation.cases:isolation-set-eu-caller-is-not-terminated`, `tests/cases/contract/lib-isolation.cases:isolation-ifs-noglob-and-cdpath-do-not-change-results` | - |
 | 005-EDGE-10 | 항목 200개 시간이 변경 전보다 늘지 않음 | SC-005 | `tests/cases/contract/lib-verify.cases:verify-two-hundred-entries`, `tests/cases/contract/lib-update.cases:update-last-key-of-200-entries` | 9 |
+
+## 6. 기능 006 수용 시나리오·경계 사례
+
+기능 006(초기화 기본 경로 템플릿과 에이전트 스킬, `specs/006-init-template-skill/spec.md`)의 수용 시나리오와 경계 사례 표 행이다.
+출처에는 `006-` 접두어를 붙인다. 정적 검사로 확인하는 행은 사례 열에 `lint <번호>절`을 적는다.
+
+| 출처 | 요약 | 요구사항 | 사례 | 수동 확인 |
+|---|---|---|---|---|
+| 006-US1-1 | 새 데이터 파일에 기본 항목 두 개가 들어 있고 초기화 직후 검증 통과 | FR-002, FR-003, FR-005, SC-001 | `tests/cases/unit/bin-domain-data-template.cases:data-template-bytes`, `tests/cases/contract/cli-init.cases:cli-init-without-argument`, `tests/cases/contract/lib-verify.cases:verify-default-template-entries-pass` | 12 |
+| 006-US1-2 | 이미 있는 데이터 파일은 유지되고 항목을 덧붙이지 않음 | FR-002, SC-002 | `tests/cases/contract/cli-init.cases:cli-init-rerun-replaces-only-library`, `tests/cases/contract/cli.cases:cli-init-output-format-rerun` | 12 |
+| 006-US1-3 | 기본 항목 키 조회가 루트 기준 절대경로를 냄 | FR-005 | `tests/cases/contract/lib-get.cases:get-default-template-entries` | 12 |
+| 006-US2-1 | 스킬 파일이 생성되고 설치본과 같은 내용 | FR-010, FR-011, FR-012, FR-021, SC-001 | `tests/cases/contract/cli-init.cases:cli-init-without-argument`, `tests/cases/unit/bin-domain-layout-file-path.cases:layout-file-path-skill`, `tests/cases/unit/bin-domain-layout-installed-source.cases:layout-installed-skill` | 12 |
+| 006-US2-2 | `.agents/skills` 안 다른 스킬은 읽거나 바꾸지 않음 | FR-014 | `tests/cases/contract/cli-init.cases:cli-init-other-skills-untouched` | 12 |
+| 006-US2-3 | 기존 스킬 파일은 교체로 보고 | FR-013 | `tests/cases/contract/cli-init.cases:cli-init-other-skills-untouched`, `tests/cases/unit/bin-domain-layout-policy.cases:layout-policy-skill`, `tests/cases/unit/bin-domain-plan.cases:plan-skill-file` | 12 |
+| 006-US2-4 | 설치 스크립트가 스킬 원본을 설치하고 목록에 넣음, 제거가 따라 지움 | FR-016 | `tests/cases/unit/install-domain-manifest-content.cases:install-manifest-content`, `tests/cases/contract/install.cases:install-prefix-option-and-files`, `tests/cases/contract/uninstall.cases:uninstall-removes-skill-from-manifest` | 12 |
+| 006-US3-1 | 스킬 쓰기 실패 시 이번 실행이 만든 디렉터리만 역순으로 되돌림 | FR-022, SC-003 | `tests/cases/contract/cli-init.cases:cli-init-skill-write-failure-rolls-back-created-dirs`, `tests/cases/integration/bin-app-init-project.cases:init-project-write-skill-fails` | 12 |
+| 006-US3-2 | 이미 있던 `.agents/skills`와 그 안 항목은 그대로 | FR-014, FR-022, SC-003 | `tests/cases/contract/cli-init.cases:cli-init-skill-write-failure-keeps-existing-agents-skills` | 12 |
+| 006-US3-3 | 중단 신호는 두 정리 대상 디렉터리의 이번 실행 임시 파일만 지움 | FR-023 | `tests/cases/contract/cli-signal.cases:signal-int-cleans-temp-files-in-both-dirs`, `tests/cases/contract/cli-signal.cases:signal-term-cleans-own-temp-files`, `tests/cases/unit/bin-domain-layout-temp-dirs.cases:layout-temp-dirs` | 4 |
+| 006-EDGE-1 | `.agents` 자리가 디렉터리가 아니면 반환 2, 아무것도 만들지 않음 | FR-018, FR-020 | `tests/cases/contract/cli-init.cases:cli-init-agents-is-regular-file`, `tests/cases/unit/bin-domain-layout-dir-code.cases:layout-dir-code-other` | 12 |
+| 006-EDGE-2 | 스킬 파일 자리가 일반 파일이 아니면 반환 2 | FR-020 | `tests/cases/contract/cli-init.cases:cli-init-skill-file-is-not-regular`, `tests/cases/integration/bin-app-init-project.cases:init-project-skill-not-regular` | 12 |
+| 006-EDGE-3 | 설치된 스킬 원본이 없으면 쓰기 전에 반환 1 | FR-015 | `tests/cases/contract/cli-init.cases:cli-init-missing-skill-source`, `tests/cases/integration/bin-app-init-project.cases:init-project-no-skill-source`, `tests/cases/unit/bin-domain-layout-missing-code.cases:layout-missing-code-skill` | 12 |
+| 006-EDGE-4 | 이전 버전 설치 목록으로 제거하면 스킬이 남아 공유 디렉터리도 남음 | FR-016 | `tests/cases/contract/uninstall.cases:uninstall-old-manifest-leaves-skill-and-share-dir` | - |
+| 006-EDGE-5 | 디렉터리 목록·파일 목록에 항목을 더해도 애플리케이션·인프라는 그대로 | FR-017, FR-018, FR-030 | `lint 5절`, `tests/cases/unit/bin-domain-layout-dirs.cases:layout-dirs`, `tests/cases/unit/bin-domain-layout-kinds.cases:layout-kinds`, `tests/cases/integration/bin-infra-ensure-dirs.cases:ensure-dirs-target-with-space-and-korean` | - |
+| 006-EDGE-6 | 스킬 문서와 라이브러리 공개 함수가 어긋나면 정적 검사 실패 | FR-032, SC-005 | `lint 9절` | 12 |
+| 006-EDGE-7 | 공백·한글 경로에서도 디렉터리 만들기·되돌리기가 동작 | FR-018, FR-031 | `tests/cases/integration/bin-infra-ensure-dirs.cases:ensure-dirs-target-with-space-and-korean`, `tests/cases/integration/bin-infra-rollback-dirs.cases:rollback-dirs-path-with-space-and-korean` | 12 |

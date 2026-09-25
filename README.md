@@ -39,28 +39,43 @@ sh project-path-gateway/uninstall.sh [--prefix DIR]
 project-path-gateway init [TARGET_DIR]
 ```
 
-`TARGET_DIR`(생략하면 현재 작업 디렉터리)이 프로젝트 루트가 되고, 그 아래 도구 디렉터리에 파일 세 개를 만듭니다.
+`TARGET_DIR`(생략하면 현재 작업 디렉터리)이 프로젝트 루트가 되고, 그 아래에 파일 네 개를 만듭니다.
 
 ```text
 <루트>/
-└── .tools/
-    └── project-path-gateway/
-        ├── .project-path-gateway        # 루트 표식 파일
-        ├── project-path-gateway.conf    # 데이터 파일
-        └── project-path-gateway.sh      # 라이브러리
+├── .tools/
+│   └── project-path-gateway/
+│       ├── .project-path-gateway        # 루트 표식 파일
+│       ├── project-path-gateway.conf    # 데이터 파일
+│       └── project-path-gateway.sh      # 라이브러리
+└── .agents/
+    └── skills/
+        └── project-path-gateway/
+            └── SKILL.md                 # 에이전트 스킬 (1.1.0부터)
 ```
 
 | 파일 | 없을 때 | 있을 때 |
 |---|---|---|
 | 루트 표식 파일 | 생성 | 유지(내용·수정 시각 그대로) |
-| 데이터 파일 | 생성(주석만 있고 항목 0개) | 유지(내용·수정 시각 그대로) |
+| 데이터 파일 | 생성(설명 주석과 기본 항목 두 개) | 유지(내용·수정 시각 그대로) |
 | 라이브러리 | 생성 | 전역 프로그램에 포함된 버전으로 교체 |
+| 에이전트 스킬 | 생성 | 설치된 버전으로 교체 |
 
 - 파일마다 `생성`, `유지`, `교체` 중 무엇을 했는지 출력하고, 마지막 줄에 `초기화 완료: <루트 물리 경로>`를 출력합니다.
 - 어떤 파일에도 루트 절대경로, 사용자 이름, 날짜를 기록하지 않습니다. clone 위치가 달라도 그대로 동작합니다.
-- `.tools/` 안의 다른 도구 항목은 건드리지 않습니다. Git 저장소인지는 확인하지 않습니다.
-- 대상이 디렉터리가 아니거나 `.tools`·도구 디렉터리·세 파일 중 형태가 맞지 않는 것이 있으면 아무 파일도 만들지 않고
-  반환 2로 끝납니다. 쓰기 중 실패하면 반환 1이며, 처리 중이던 파일은 이전 상태로 남습니다.
+- `.tools/`와 `.agents/skills/` 안의 다른 항목은 건드리지 않습니다. Git 저장소인지는 확인하지 않습니다.
+- 새 데이터 파일에는 `init`이 만드는 두 경로가 기본 항목으로 들어갑니다. 그래서 초기화 직후
+  `project_path_gateway_verify`가 바로 통과합니다. 필요하지 않으면 지워도 됩니다.
+
+  ```text
+  PPG_TOOL_DIR=.tools/project-path-gateway
+  AGENT_SKILLS_DIR=.agents/skills
+  ```
+
+- 대상이 디렉터리가 아니거나, 만들어야 하는 디렉터리 자리에 디렉터리가 아닌 것이 있거나, 네 파일 중 형태가 맞지 않는 것이
+  있으면 아무 파일도 만들지 않고 반환 2로 끝납니다. 설치된 라이브러리·스킬 원본을 찾지 못하면 아무것도 만들지 않고 반환 1입니다
+  (설치 스크립트를 다시 실행하세요). 쓰기 중 실패하면 반환 1이며, 처리 중이던 파일은 이전 상태로 남고 이번 실행에서 만든
+  디렉터리만 안쪽부터 지웁니다.
 - **`.tools/project-path-gateway/`는 반드시 프로젝트와 함께 커밋하세요.** `.gitignore`에 넣으면 clone한 환경에서
   라이브러리와 데이터 파일을 찾을 수 없습니다.
 
@@ -80,6 +95,17 @@ project-path-gateway init .
 - `init`은 루트 표식 파일과 데이터 파일을 유지하고 라이브러리만 1.0.0으로 교체합니다.
 - `.tool/` 안에 다른 도구가 없으면 빈 `.tool/` 디렉터리를 지웁니다.
 - 스크립트나 훅이 `.tool/project-path-gateway/project-path-gateway.sh`를 직접 불러오고 있으면 `.tools/`로 고칩니다.
+
+### 에이전트 스킬
+
+`init`은 `<루트>/.agents/skills/project-path-gateway/SKILL.md`에 이 라이브러리 사용법을 담은 스킬 문서를 둡니다.
+Claude Code, Codex 등 `.agents/skills/`를 읽는 코딩 에이전트가 경로를 하드코딩하지 않고 키로 조회·검증·등록하도록
+안내하는 문서입니다.
+
+- 내용은 설치된 원본(`<PREFIX>/share/project-path-gateway/SKILL.md`)을 그대로 복사한 것입니다. 프로젝트마다 다르지 않습니다.
+- 라이브러리와 같은 도구 소유 파일이라 `init`마다 설치된 버전으로 **교체**합니다. 이 파일을 직접 고치지 마세요.
+- `.agents/skills/` 안의 다른 스킬은 읽지도 바꾸지도 않습니다.
+- 스킬이 필요 없으면 `init` 뒤에 디렉터리를 지워도 됩니다. 다음 `init`에서 다시 만들어집니다.
 
 ## 루트 표식 파일과 루트 탐색 규칙
 

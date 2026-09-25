@@ -1,24 +1,27 @@
 # 공개 API 계약: 임시 파일 정리 trap (기능 001 cli_init_test_traps_clean_only_own_temp_files, research R-10)
 # interrupt SIG N: N번째 변경 작업 직전에 기억한 trap 동작을 실행한다. 자기 PID(4242) 임시 파일만 지우고 신호별 반환값으로 끝난다.
+# 기능 006: 대상에 .tools/project-path-gateway만 있으므로 변경 작업은 .agents 계열 mkdir 세 개 뒤에 첫 파일 쓰기가 온다.
+# TERM 4는 첫 파일 쓰기 시점, INT 2는 디렉터리 만들기 중간이다.
 target bin-main project-path-gateway
 layer api
 self /t/prefix/bin/project-path-gateway
 fs file /t/prefix/bin/project-path-gateway
 fs file /t/prefix/share/project-path-gateway/project-path-gateway.sh
+fs file /t/prefix/share/project-path-gateway/SKILL.md
 fs file /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242.x
 fs file /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.1.x
 
 case signal-term-cleans-own-temp-files
-interrupt TERM 3
+interrupt TERM 4
 arg init
 arg /t/공백\s있는\s대상
 status 143
 op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
 op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
 op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
-op write /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tools/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
-op link /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway /t/공백\s있는\s대상/.tools/project-path-gateway/.project-path-gateway
-op remove /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway
+op mkdir /t/공백\s있는\s대상/.agents
+op mkdir /t/공백\s있는\s대상/.agents/skills
+op mkdir /t/공백\s있는\s대상/.agents/skills/project-path-gateway
 op remove /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242.x
 
 case signal-int-cleans-own-temp-files
@@ -29,8 +32,7 @@ status 130
 op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
 op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
 op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
-op write /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tools/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
-op remove /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway
+op mkdir /t/공백\s있는\s대상/.agents
 op remove /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242.x
 
 case signal-normal-exit-cleans-own-temp-files
@@ -40,10 +42,14 @@ status 0
 out project-path-gateway: 생성: .tools/project-path-gateway/.project-path-gateway
 out project-path-gateway: 생성: .tools/project-path-gateway/project-path-gateway.conf
 out project-path-gateway: 생성: .tools/project-path-gateway/project-path-gateway.sh
+out project-path-gateway: 생성: .agents/skills/project-path-gateway/SKILL.md
 out project-path-gateway: 초기화 완료: /t/공백 있는 대상
 op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
 op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
 op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
+op mkdir /t/공백\s있는\s대상/.agents
+op mkdir /t/공백\s있는\s대상/.agents/skills
+op mkdir /t/공백\s있는\s대상/.agents/skills/project-path-gateway
 op write /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tools/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
 op link /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway /t/공백\s있는\s대상/.tools/project-path-gateway/.project-path-gateway
 op remove /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway
@@ -53,6 +59,9 @@ op remove /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242.pr
 op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
 op link /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh /t/공백\s있는\s대상/.tools/project-path-gateway/project-path-gateway.sh
 op remove /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
+op copy /t/prefix/bin/../share/project-path-gateway/SKILL.md /t/공백\s있는\s대상/.agents/skills/project-path-gateway/.ppg-tmp.4242.SKILL.md
+op link /t/공백\s있는\s대상/.agents/skills/project-path-gateway/.ppg-tmp.4242.SKILL.md /t/공백\s있는\s대상/.agents/skills/project-path-gateway/SKILL.md
+op remove /t/공백\s있는\s대상/.agents/skills/project-path-gateway/.ppg-tmp.4242.SKILL.md
 op remove /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242.x
 
 case signal-hup-without-trap-ends-with-129
@@ -63,3 +72,20 @@ status 129
 op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
 op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
 op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
+
+# 기능 006 FR-023: 정리 대상 디렉터리가 두 개(.tools/project-path-gateway, .agents/skills/project-path-gateway)다.
+# 두 디렉터리가 모두 있고 각각 자기 PID 임시 파일이 있으면 신호 처리에서 둘 다 지운다. 다른 PID(1) 파일은 남긴다.
+case signal-int-cleans-temp-files-in-both-dirs
+fs file /t/both/.tools/project-path-gateway/.ppg-tmp.4242.a
+fs file /t/both/.tools/project-path-gateway/.ppg-tmp.1.a
+fs file /t/both/.agents/skills/project-path-gateway/.ppg-tmp.4242.b
+fs file /t/both/.agents/skills/project-path-gateway/.ppg-tmp.1.b
+interrupt INT 1
+arg init
+arg /t/both
+status 130
+op trap EXIT ppg__app_cleanup\s"$PPG_IF_TARGET"
+op trap INT ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s130
+op trap TERM ppg__app_cleanup\s"$PPG_IF_TARGET";\sexit\s143
+op remove /t/both/.tools/project-path-gateway/.ppg-tmp.4242.a
+op remove /t/both/.agents/skills/project-path-gateway/.ppg-tmp.4242.b

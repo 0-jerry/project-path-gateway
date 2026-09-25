@@ -14,7 +14,7 @@
 # 인프라 상태 변수(PPG_INFRA_)를 유지해야 하므로 함수는 서브셸 본문으로 정의하지 않는다.
 # 애플리케이션 내부 코드: 0 성공, 10 사전 검사 실패, 11 라이브러리 원본 없음, 12 쓰기 실패.
 
-PPG_VERSION=1.0.0
+PPG_VERSION=1.1.0
 
 # === 계층: 도메인 ===
 
@@ -62,7 +62,10 @@ ppg__domain_data_template() {
 ppg__domain_layout_dirs() {
 	printf '%s\n' \
 		'.tools' \
-		'.tools/project-path-gateway'
+		'.tools/project-path-gateway' \
+		'.agents' \
+		'.agents/skills' \
+		'.agents/skills/project-path-gateway'
 }
 
 # 디렉터리가 디렉터리가 아닐 때의 실패 코드.
@@ -76,7 +79,7 @@ ppg__domain_layout_dir_code() {
 
 # 초기화가 처리하는 파일 종류와 순서.
 ppg__domain_layout_kinds() {
-	printf 'marker data library\n'
+	printf 'marker data library skill\n'
 }
 
 # 파일 종류별 경로(대상 디렉터리 기준 상대경로).
@@ -85,13 +88,14 @@ ppg__domain_layout_file_path() {
 	marker) printf '.tools/project-path-gateway/.project-path-gateway\n' ;;
 	data) printf '.tools/project-path-gateway/project-path-gateway.conf\n' ;;
 	library) printf '.tools/project-path-gateway/project-path-gateway.sh\n' ;;
+	skill) printf '.agents/skills/project-path-gateway/SKILL.md\n' ;;
 	esac
 }
 
 # 파일이 이미 있을 때의 정책: keep(사용자 소유) 또는 replace(도구 소유).
 ppg__domain_layout_policy() {
 	case $1 in
-	library) printf 'replace\n' ;;
+	library | skill) printf 'replace\n' ;;
 	*) printf 'keep\n' ;;
 	esac
 }
@@ -99,7 +103,7 @@ ppg__domain_layout_policy() {
 # 파일 내용의 출처: builtin(내장 내용 함수) 또는 installed(설치된 원본 파일).
 ppg__domain_layout_content_source() {
 	case $1 in
-	library) printf 'installed\n' ;;
+	library | skill) printf 'installed\n' ;;
 	*) printf 'builtin\n' ;;
 	esac
 }
@@ -116,6 +120,7 @@ ppg__domain_layout_content_func() {
 ppg__domain_layout_installed_source() {
 	case $1 in
 	library) printf 'share/project-path-gateway/project-path-gateway.sh\n' ;;
+	skill) printf 'share/project-path-gateway/SKILL.md\n' ;;
 	esac
 }
 
@@ -123,13 +128,15 @@ ppg__domain_layout_installed_source() {
 ppg__domain_layout_missing_code() {
 	case $1 in
 	library) printf 'no_library\n' ;;
+	skill) printf 'no_skill\n' ;;
 	esac
 }
 
 # 이번 실행의 임시 파일을 정리할 디렉터리 목록(대상 디렉터리 기준 상대경로).
 ppg__domain_layout_temp_dirs() {
 	printf '%s\n' \
-		'.tools/project-path-gateway'
+		'.tools/project-path-gateway' \
+		'.agents/skills/project-path-gateway'
 }
 
 # --- 기타 규칙 ---
@@ -553,6 +560,7 @@ ppg__out_failure() {
 	dir_not_dir) ppg_if_message="디렉터리가 아닙니다: $2" ;;
 	not_regular) ppg_if_message="일반 파일이 아닙니다: $2" ;;
 	no_library) ppg_if_message="라이브러리 원본을 찾지 못했습니다: $2. 설치 스크립트를 다시 실행하세요" ;;
+	no_skill) ppg_if_message="스킬 원본을 찾지 못했습니다: $2. 설치 스크립트를 다시 실행하세요" ;;
 	write) ppg_if_message="파일을 쓰지 못했습니다: $2" ;;
 	*) ppg_if_message="알 수 없는 오류입니다: $1 $2" ;;
 	esac

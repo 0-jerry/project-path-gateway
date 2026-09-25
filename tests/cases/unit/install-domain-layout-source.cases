@@ -16,3 +16,8 @@ case install-layout-source-version
 arg version
 status 0
 out VERSION
+
+case install-layout-source-skill
+arg skill
+status 0
+out share/SKILL.md

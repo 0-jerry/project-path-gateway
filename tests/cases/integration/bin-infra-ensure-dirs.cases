@@ -12,6 +12,12 @@ op is-dir /p/.tools
 op mkdir /p/.tools
 op is-dir /p/.tools/project-path-gateway
 op mkdir /p/.tools/project-path-gateway
+op is-dir /p/.agents
+op mkdir /p/.agents
+op is-dir /p/.agents/skills
+op mkdir /p/.agents/skills
+op is-dir /p/.agents/skills/project-path-gateway
+op mkdir /p/.agents/skills/project-path-gateway
 
 case ensure-tool-dirs-creates-only-missing
 fs dir /p/.tools
@@ -20,6 +26,12 @@ status 0
 op is-dir /p/.tools
 op is-dir /p/.tools/project-path-gateway
 op mkdir /p/.tools/project-path-gateway
+op is-dir /p/.agents
+op mkdir /p/.agents
+op is-dir /p/.agents/skills
+op mkdir /p/.agents/skills
+op is-dir /p/.agents/skills/project-path-gateway
+op mkdir /p/.agents/skills/project-path-gateway
 
 case ensure-tool-dirs-existing
 fs dir /p/.tools/project-path-gateway
@@ -27,6 +39,12 @@ arg /p
 status 0
 op is-dir /p/.tools
 op is-dir /p/.tools/project-path-gateway
+op is-dir /p/.agents
+op mkdir /p/.agents
+op is-dir /p/.agents/skills
+op mkdir /p/.agents/skills
+op is-dir /p/.agents/skills/project-path-gateway
+op mkdir /p/.agents/skills/project-path-gateway
 
 case ensure-tool-dirs-readonly-target
 fs dir /p
@@ -54,3 +72,9 @@ op is-dir /t/my\sproject/한글/.tools
 op mkdir /t/my\sproject/한글/.tools
 op is-dir /t/my\sproject/한글/.tools/project-path-gateway
 op mkdir /t/my\sproject/한글/.tools/project-path-gateway
+op is-dir /t/my\sproject/한글/.agents
+op mkdir /t/my\sproject/한글/.agents
+op is-dir /t/my\sproject/한글/.agents/skills
+op mkdir /t/my\sproject/한글/.agents/skills
+op is-dir /t/my\sproject/한글/.agents/skills/project-path-gateway
+op mkdir /t/my\sproject/한글/.agents/skills/project-path-gateway
