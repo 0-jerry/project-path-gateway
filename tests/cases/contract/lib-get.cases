@@ -142,3 +142,19 @@ out /t/root/two
 op returned project_path_gateway_init 0
 op returned project_path_gateway_get 0
 op returned project_path_gateway_get 0
+
+# 기능 006 US1·FR-005: 기본 항목 두 개는 조회로 루트 기준 절대경로를 낸다.
+case get-default-template-entries
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
+content PPG_TOOL_DIR=.tools/project-path-gateway
+content AGENT_SKILLS_DIR=.agents/skills
+fs dir /t/root/.agents/skills
+call project_path_gateway_init /t/root
+call project_path_gateway_get PPG_TOOL_DIR
+call project_path_gateway_get AGENT_SKILLS_DIR
+status 0
+out /t/root/.tools/project-path-gateway
+out /t/root/.agents/skills
+op returned project_path_gateway_init 0
+op returned project_path_gateway_get 0
+op returned project_path_gateway_get 0

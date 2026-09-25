@@ -38,6 +38,6 @@ arg /p/.tools/project-path-gateway/project-path-gateway.conf
 arg ppg__domain_data_template
 status 0
 op pid
-op write /p/.tools/project-path-gateway/.ppg-tmp.777.project-path-gateway.conf #\sproject-path-gateway\s데이터\s파일\n#\s한\s줄에\sKEY=경로\s형식으로\s적습니다.\s경로는\s프로젝트\s루트(.tools/의\s상위\s디렉터리)\s기준\s상대경로입니다.\n#\s키:\s대문자로\s시작하고\s대문자·숫자·_만\s사용합니다.\s파일\s안에서\s중복될\s수\s없습니다.\n#\s경로:\s/로\s시작할\s수\s없고\s..\s세그먼트를\s쓸\s수\s없습니다.\s=\s앞뒤\s공백은\s제거되지\s않습니다.\n#\s빈\s줄과\s#으로\s시작하는\s줄은\s무시합니다.\n#\n#\s예:\n#\sSOURCES_ROOT=sources\n#\sBUILD_SCRIPT=scripts/build.sh\n
+op write /p/.tools/project-path-gateway/.ppg-tmp.777.project-path-gateway.conf #\sproject-path-gateway\s데이터\s파일\n#\s한\s줄에\sKEY=경로\s형식으로\s적습니다.\s경로는\s프로젝트\s루트(.tools/의\s상위\s디렉터리)\s기준\s상대경로입니다.\n#\s키:\s대문자로\s시작하고\s대문자·숫자·_만\s사용합니다.\s파일\s안에서\s중복될\s수\s없습니다.\n#\s경로:\s/로\s시작할\s수\s없고\s..\s세그먼트를\s쓸\s수\s없습니다.\s=\s앞뒤\s공백은\s제거되지\s않습니다.\n#\s빈\s줄과\s#으로\s시작하는\s줄은\s무시합니다.\n#\n#\s아래\s두\s항목은\s초기화가\s넣은\s기본\s항목입니다.\s필요하지\s않으면\s지워도\s됩니다.\nPPG_TOOL_DIR=.tools/project-path-gateway\nAGENT_SKILLS_DIR=.agents/skills\n#\n#\s예:\n#\sSOURCES_ROOT=sources\n#\sBUILD_SCRIPT=scripts/build.sh\n
 op link /p/.tools/project-path-gateway/.ppg-tmp.777.project-path-gateway.conf /p/.tools/project-path-gateway/project-path-gateway.conf
 op remove /p/.tools/project-path-gateway/.ppg-tmp.777.project-path-gateway.conf
