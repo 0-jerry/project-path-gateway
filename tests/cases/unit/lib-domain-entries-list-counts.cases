@@ -1,0 +1,14 @@
+# 도메인 단위: 항목 목록 모델 project_path_gateway__domain_entries_list_counts CHECKED (기능 008 research R-09 9단계)
+# "디렉터리 등록 수 파일 등록 수 유지 수" 한 줄. 위반 다섯 줄 안의 A·K 모양 줄은 세지 않는다.
+target lib-func project_path_gateway__domain_entries_list_counts
+layer domain
+
+case list-counts-mixed
+arg A\tdir\t1\tSRC\tsrc\nA\tfile\t2\tAPP\ta.json\nK\t3\tX\nA\tdir\t4\tDOCS\tdocs\nV\n5\nkey_conflict\nK\t9\tY\nA\tdir\tz
+status 0
+out 2 1 1
+
+case list-counts-empty
+arg \e
+status 0
+out 0 0 0

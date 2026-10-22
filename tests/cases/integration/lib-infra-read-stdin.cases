@@ -1,0 +1,22 @@
+# 인프라 통합: 입력 포트 project_path_gateway__port_read_stdin (기능 008 research R-09 2단계)
+# 표준 입력 전체를 끝 표지 방식으로 출력한다. 바이트는 그대로다.
+target lib-func project_path_gateway__port_read_stdin
+layer infra
+
+case read-stdin-lines
+stdin SRC=src
+stdin # 주석
+status 0
+out-raw SRC=src\n# 주석\nx
+op read-stdin
+
+case read-stdin-without-final-lf
+stdin-raw A=a\r\nB=b
+status 0
+out-raw A=a\r\nB=bx
+op read-stdin
+
+case read-stdin-empty
+status 0
+out-raw x
+op read-stdin

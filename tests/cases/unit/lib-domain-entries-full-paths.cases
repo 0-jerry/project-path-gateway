@@ -1,0 +1,29 @@
+# 도메인 단위: 항목 목록 모델 project_path_gateway__domain_entries_full_paths ROOT ITEMS (기능 008 data-model 1.1, research R-09 4단계)
+# 목록 결과 줄마다 루트와 결합한 절대경로 한 줄, 위반 레코드는 빈 줄. 결합은 domain_join과 같다(루트 끝 / 하나를 뗀다).
+target lib-func project_path_gateway__domain_entries_full_paths
+layer domain
+
+case full-paths-records-and-violation
+arg /t/root
+arg dir\t1\tSRC\tsrc\n!\t2\tinvalid_key\t0\tsrc\nfile\t3\tAPP\tconfig/app.json
+status 0
+out /t/root/src
+out
+out /t/root/config/app.json
+
+case full-paths-root-slash
+arg /
+arg dir\t1\tSRC\tsrc
+status 0
+out /src
+
+case full-paths-path-with-tab-and-space
+arg /t/my\sroot
+arg file\t1\tA\ta\tb\sc.txt
+status 0
+out /t/my root/a\tb c.txt
+
+case full-paths-empty-items
+arg /t/root
+arg \e
+status 0

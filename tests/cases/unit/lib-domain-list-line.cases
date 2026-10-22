@@ -1,0 +1,104 @@
+# 도메인 단위: 항목 모델 일괄 등록 목록 줄 해석 project_path_gateway__domain_entry_parse_list_line LINENO LINE (기능 008 data-model 2.1, research R-09 3단계)
+# 반환 0: 항목 레코드(종류는 경로 모양), 1: 위반 레코드 "!<TAB>줄번호<TAB>원인<TAB>CR 있음<TAB>키", 2: 빈 줄·주석(출력 없음).
+target lib-func project_path_gateway__domain_entry_parse_list_line
+layer domain
+
+case list-line-empty-is-ignored
+arg 1
+arg \e
+status 2
+
+case list-line-comment-is-ignored
+arg 1
+arg #SRC=src
+status 2
+
+case list-line-dir-shape
+arg 3
+arg SRC=src
+status 0
+out dir\t3\tSRC\tsrc
+
+case list-line-dir-trailing-slash-kept
+arg 3
+arg SRC=src/
+status 0
+out dir\t3\tSRC\tsrc/
+
+case list-line-file-shape
+arg 4
+arg APP_CONFIG=config/app.json
+status 0
+out file\t4\tAPP_CONFIG\tconfig/app.json
+
+case list-line-dotfile-is-file
+arg 5
+arg ENV=.env
+status 0
+out file\t5\tENV\t.env
+
+case list-line-first-equal-splits
+arg 6
+arg A=b=c.txt
+status 0
+out file\t6\tA\tb=c.txt
+
+case list-line-spaces-are-kept
+arg 7
+arg A=\s내\s문서
+status 0
+out dir\t7\tA\t 내 문서
+
+case list-line-file-shape-with-trailing-slash
+arg 8
+arg OUT=a.txt/
+status 1
+out !\t8\tnot_file_path\t0\tOUT
+
+case list-line-invalid-key
+arg 2
+arg src=src
+status 1
+out !\t2\tinvalid_key\t0\tsrc
+
+case list-line-no-separator
+arg 9
+arg NOEQ
+status 1
+out !\t9\tno_separator\t0\t
+
+case list-line-empty-path
+arg 9
+arg A=
+status 1
+out !\t9\tempty_path\t0\tA
+
+case list-line-absolute-path
+arg 9
+arg A=/etc
+status 1
+out !\t9\tabsolute_path\t0\tA
+
+case list-line-parent-segment
+arg 9
+arg OUT=../out
+status 1
+out !\t9\tparent_segment\t0\tOUT
+
+case list-line-crlf
+arg 9
+arg Y=y\r
+status 1
+out !\t9\tcarriage_return\t1\tY
+
+case list-line-cr-in-key
+arg 9
+arg Y\r=y
+status 1
+out !\t9\tinvalid_key\t1\tY\r
+
+case list-line-key-checked-before-path
+arg 9
+arg a=/abs
+status 1
+out !\t9\tinvalid_key\t0\ta

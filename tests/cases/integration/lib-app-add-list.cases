@@ -1,0 +1,381 @@
+# 애플리케이션 통합: 일괄 등록 흐름 project_path_gateway__app_add_list ROOT LIST (기능 008 research R-09, data-model 1.2)
+# 반환: 0 성공(stdout "디렉터리 수 파일 수 유지 수" + x), 3·4·15 데이터 파일 오류, 16 목록 읽기 불가, 17 목록 위반(stdout 위반 수 + x),
+# 11·12·13 쓰기 전 확인·교체 실패(stdout 데이터 파일 + x), 18 디렉터리 데이터 파일을 바꾼 뒤 파일 데이터 파일 실패(stdout 파일 데이터 파일 + x).
+target lib-func project_path_gateway__app_add_list
+layer app
+
+# 성공: 두 파일을 쓰기 전에 모두 확인하고 디렉터리 → 파일 순서로 원문 끝에 블록을 더한다 (FR-034, FR-035)
+
+case app-add-list-file-success-writes-dirs-then-files
+arg /r
+arg /w/list
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub-out K=a
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_readable_file 0 /w/list
+stub project_path_gateway__port_read_file 0 /w/list
+stub-out-raw SRC=src\nAPP=c.json\n# 주석\n\nDOCS=docsx
+stub project_path_gateway__port_path_kinds 0 /r/src\n/r/c.json\n/r/docs
+stub-out dir
+stub-out none
+stub-out none
+stub project_path_gateway__port_data_file_writable 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_data_file_writable 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub-out-raw K=ax
+stub project_path_gateway__port_replace_data_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf K=a\nSRC=src\nDOCS=docs\n
+stub project_path_gateway__port_read_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub-out-raw x
+stub project_path_gateway__port_replace_data_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf APP=c.json\n
+status 0
+out-raw 2 1 0x
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_readable_file /w/list
+op port project_path_gateway__port_read_file /w/list
+op port project_path_gateway__port_path_kinds /r/src\n/r/c.json\n/r/docs
+op port project_path_gateway__port_data_file_writable /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_data_file_writable /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_replace_data_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf K=a\nSRC=src\nDOCS=docs\n
+op port project_path_gateway__port_read_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_replace_data_file /r/.tools/project-path-gateway/project-path-gateway.files.conf APP=c.json\n
+
+case app-add-list-stdin-dirs-only
+arg /r
+arg -
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_stdin 0
+stub-out-raw SRC=srcx
+stub project_path_gateway__port_path_kinds 0 /r/src
+stub-out none
+stub project_path_gateway__port_data_file_writable 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_read_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub-out-raw # 디렉터리x
+stub project_path_gateway__port_replace_data_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf #\s디렉터리\nSRC=src\n
+status 0
+out-raw 1 0 0x
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_stdin
+op port project_path_gateway__port_path_kinds /r/src
+op port project_path_gateway__port_data_file_writable /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_replace_data_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf #\s디렉터리\nSRC=src\n
+
+case app-add-list-nothing-to-write
+arg /r
+arg -
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub-out SRC=src
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_stdin 0
+stub-out-raw # 주석만\nSRC=src\nx
+stub project_path_gateway__port_path_kinds 0 /r/src
+stub-out dir
+status 0
+out-raw 0 0 1x
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_stdin
+op port project_path_gateway__port_path_kinds /r/src
+
+case app-add-list-empty-list
+arg /r
+arg -
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_stdin 0
+stub-out-raw x
+stub project_path_gateway__port_path_kinds 0 \e
+status 0
+out-raw 0 0 0x
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_stdin
+op port project_path_gateway__port_path_kinds \e
+
+# 목록 읽기 불가 (계약 2절)
+
+case app-add-list-file-unreadable
+arg /r
+arg /w/list
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_readable_file 1 /w/list
+status 16
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_readable_file /w/list
+
+case app-add-list-file-read-fails
+arg /r
+arg /w/list
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_readable_file 0 /w/list
+stub project_path_gateway__port_read_file 1 /w/list
+status 16
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_readable_file /w/list
+op port project_path_gateway__port_read_file /w/list
+
+case app-add-list-stdin-read-fails
+arg /r
+arg -
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_stdin 1
+status 16
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_stdin
+
+# 목록 위반: 줄 순서대로 모두 보고하고 아무것도 확인·쓰지 않는다 (FR-032, SC-003)
+
+case app-add-list-violations-reported-in-order
+arg /r
+arg /w/list
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub-out K=a
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_readable_file 0 /w/list
+stub project_path_gateway__port_read_file 0 /w/list
+stub-out-raw src=src\nA=a\nA=b\nK=other\nMAKEFILE=Makefilex
+stub project_path_gateway__port_path_kinds 0 \n/r/a\n/r/b\n/r/other\n/r/Makefile
+stub-out none
+stub-out none
+stub-out none
+stub-out none
+stub-out file
+stub project_path_gateway__out_list_violation 0 /w/list 1 invalid_key src 0 \e
+stub project_path_gateway__out_list_violation 0 /w/list 3 duplicate_key A 2 \e
+stub project_path_gateway__out_list_violation 0 /w/list 4 key_conflict K dir a
+stub project_path_gateway__out_list_violation 0 /w/list 5 kind_mismatch MAKEFILE dir file
+status 17
+out-raw 4x
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_readable_file /w/list
+op port project_path_gateway__port_read_file /w/list
+op port project_path_gateway__port_path_kinds \n/r/a\n/r/b\n/r/other\n/r/Makefile
+op port project_path_gateway__out_list_violation /w/list 1 invalid_key src 0 \e
+op port project_path_gateway__out_list_violation /w/list 3 duplicate_key A 2 \e
+op port project_path_gateway__out_list_violation /w/list 4 key_conflict K dir a
+op port project_path_gateway__out_list_violation /w/list 5 kind_mismatch MAKEFILE dir file
+
+# 쓰기 전 확인과 교체 실패 (FR-034, 계약 2절)
+
+case app-add-list-dirs-file-is-link
+arg /r
+arg -
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_stdin 0
+stub-out-raw SRC=src\nAPP=a.jsonx
+stub project_path_gateway__port_path_kinds 0 /r/src\n/r/a.json
+stub project_path_gateway__port_data_file_writable 1 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+status 11
+out-raw /r/.tools/project-path-gateway/project-path-gateway.dirs.confx
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_stdin
+op port project_path_gateway__port_path_kinds /r/src\n/r/a.json
+op port project_path_gateway__port_data_file_writable /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+
+case app-add-list-files-file-not-writable-nothing-written
+arg /r
+arg -
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_stdin 0
+stub-out-raw SRC=src\nAPP=a.jsonx
+stub project_path_gateway__port_path_kinds 0 /r/src\n/r/a.json
+stub project_path_gateway__port_data_file_writable 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_data_file_writable 2 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+status 12
+out-raw /r/.tools/project-path-gateway/project-path-gateway.files.confx
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_stdin
+op port project_path_gateway__port_path_kinds /r/src\n/r/a.json
+op port project_path_gateway__port_data_file_writable /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_data_file_writable /r/.tools/project-path-gateway/project-path-gateway.files.conf
+
+case app-add-list-tool-directory-not-writable
+arg /r
+arg -
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_stdin 0
+stub-out-raw APP=a.jsonx
+stub project_path_gateway__port_path_kinds 0 /r/a.json
+stub project_path_gateway__port_data_file_writable 3 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+status 13
+out-raw /r/.tools/project-path-gateway/project-path-gateway.files.confx
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_stdin
+op port project_path_gateway__port_path_kinds /r/a.json
+op port project_path_gateway__port_data_file_writable /r/.tools/project-path-gateway/project-path-gateway.files.conf
+
+case app-add-list-first-replace-fails
+arg /r
+arg -
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_stdin 0
+stub-out-raw SRC=src\nAPP=a.jsonx
+stub project_path_gateway__port_path_kinds 0 /r/src\n/r/a.json
+stub project_path_gateway__port_data_file_writable 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_data_file_writable 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub-out-raw x
+stub project_path_gateway__port_replace_data_file 2 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf SRC=src\n
+status 12
+out-raw /r/.tools/project-path-gateway/project-path-gateway.dirs.confx
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_stdin
+op port project_path_gateway__port_path_kinds /r/src\n/r/a.json
+op port project_path_gateway__port_data_file_writable /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_data_file_writable /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_replace_data_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf SRC=src\n
+
+case app-add-list-second-replace-fails-after-first
+arg /r
+arg -
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_stdin 0
+stub-out-raw SRC=src\nAPP=a.jsonx
+stub project_path_gateway__port_path_kinds 0 /r/src\n/r/a.json
+stub project_path_gateway__port_data_file_writable 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_data_file_writable 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub-out-raw x
+stub project_path_gateway__port_replace_data_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf SRC=src\n
+stub project_path_gateway__port_read_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub-out-raw x
+stub project_path_gateway__port_replace_data_file 3 /r/.tools/project-path-gateway/project-path-gateway.files.conf APP=a.json\n
+status 18
+out-raw /r/.tools/project-path-gateway/project-path-gateway.files.confx
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_stdin
+op port project_path_gateway__port_path_kinds /r/src\n/r/a.json
+op port project_path_gateway__port_data_file_writable /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_data_file_writable /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_replace_data_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf SRC=src\n
+op port project_path_gateway__port_read_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_replace_data_file /r/.tools/project-path-gateway/project-path-gateway.files.conf APP=a.json\n
+
+case app-add-list-files-only-replace-fails-is-not-partial
+arg /r
+arg -
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_stdin 0
+stub-out-raw APP=a.jsonx
+stub project_path_gateway__port_path_kinds 0 /r/a.json
+stub project_path_gateway__port_data_file_writable 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub-out-raw x
+stub project_path_gateway__port_replace_data_file 1 /r/.tools/project-path-gateway/project-path-gateway.files.conf APP=a.json\n
+status 11
+out-raw /r/.tools/project-path-gateway/project-path-gateway.files.confx
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_stdin
+op port project_path_gateway__port_path_kinds /r/a.json
+op port project_path_gateway__port_data_file_writable /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_replace_data_file /r/.tools/project-path-gateway/project-path-gateway.files.conf APP=a.json\n
+
+# 데이터 파일 오류는 목록을 읽기 전에 끝낸다 (FR-002)
+
+case app-add-list-data-file-violation
+arg /r
+arg -
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub-out bad
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__out_violation 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf 1 no_separator \e \e 0 dir
+status 3
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__out_violation /r/.tools/project-path-gateway/project-path-gateway.dirs.conf 1 no_separator \e \e 0 dir
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+
+case app-add-list-data-file-unreadable
+arg /r
+arg -
+stub project_path_gateway__port_readable_file 1 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 1 /r/.tools/project-path-gateway/project-path-gateway.conf
+status 4
+out-raw /r/.tools/project-path-gateway/project-path-gateway.dirs.confx
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf

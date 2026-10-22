@@ -1,0 +1,45 @@
+# 인프라 통합: 입력 포트 project_path_gateway__port_path_kinds PATHS (기능 008 research R-06 2단계)
+# 줄마다 dir, file, other(그 밖에 존재), none(없음·빈 줄)을 한 번의 시스템 포트 호출로 낸다. 링크는 최종 대상으로 판정하고, 목록이 비면 시스템 포트를 부르지 않는다.
+target lib-func project_path_gateway__port_path_kinds
+layer infra
+
+case path-kinds-each-kind
+fs dir /t/d
+fs file /t/f.txt
+fs other /t/fifo
+arg /t/d\n/t/f.txt\n/t/fifo\n/t/none\n\n/t/d/
+status 0
+out dir
+out file
+out other
+out none
+out none
+out dir
+op path-kinds /t/d\n/t/f.txt\n/t/fifo\n/t/none\n\n/t/d/
+
+case path-kinds-links-follow-final-target
+fs dir /t/real
+fs file /t/real/a.txt
+fs link /t/ld /t/real
+fs link /t/lf /t/real/a.txt
+fs link /t/broken /t/nope
+arg /t/ld\n/t/lf\n/t/broken\n/t/ld/a.txt
+status 0
+out dir
+out file
+out none
+out file
+op path-kinds /t/ld\n/t/lf\n/t/broken\n/t/ld/a.txt
+
+case path-kinds-under-denied-directory
+fs deny /t/locked
+fs file /t/locked/a.txt
+arg /t/locked\n/t/locked/a.txt
+status 0
+out dir
+out none
+op path-kinds /t/locked\n/t/locked/a.txt
+
+case path-kinds-empty-list
+arg \e
+status 0
