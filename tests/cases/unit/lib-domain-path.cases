@@ -109,3 +109,197 @@ case path-line-feed-at-end
 arg a\n
 status 0
 out line_feed
+
+# 기능 007 FR-016·FR-017: 종류 인자 KIND가 있으면 기존 위반 뒤에 경로 모양을 판정한다
+# (data-model.md 1.2 표. 종류 인자가 없는 위 사례들은 그대로 모양을 보지 않는다)
+
+case path-kind-dir-single-dot
+arg .
+arg dir
+status 0
+
+case path-kind-file-single-dot
+arg .
+arg file
+status 0
+out not_file_path
+
+case path-kind-dir-dot-segment
+arg dir/.
+arg dir
+status 0
+
+case path-kind-file-dot-segment
+arg dir/.
+arg file
+status 0
+out not_file_path
+
+case path-kind-dir-dot-slash
+arg ./
+arg dir
+status 0
+
+case path-kind-file-dot-slash
+arg ./
+arg file
+status 0
+out not_file_path
+
+case path-kind-dir-dotfile
+arg .gitignore
+arg dir
+status 0
+out not_dir_path
+
+case path-kind-file-dotfile
+arg .gitignore
+arg file
+status 0
+
+case path-kind-dir-dotdir-name
+arg .github
+arg dir
+status 0
+out not_dir_path
+
+case path-kind-file-dotdir-name
+arg .github
+arg file
+status 0
+
+case path-kind-dir-dotenv-local
+arg .env.local
+arg dir
+status 0
+out not_dir_path
+
+case path-kind-file-dotenv-local
+arg .env.local
+arg file
+status 0
+
+case path-kind-dir-extension
+arg build.sh
+arg dir
+status 0
+out not_dir_path
+
+case path-kind-file-extension
+arg build.sh
+arg file
+status 0
+
+case path-kind-dir-double-extension
+arg archive.tar.gz
+arg dir
+status 0
+out not_dir_path
+
+case path-kind-file-double-extension
+arg archive.tar.gz
+arg file
+status 0
+
+case path-kind-dir-version-name
+arg v1.2
+arg dir
+status 0
+out not_dir_path
+
+case path-kind-file-version-name
+arg v1.2
+arg file
+status 0
+
+case path-kind-dir-plain-name
+arg src
+arg dir
+status 0
+
+case path-kind-file-plain-name
+arg src
+arg file
+status 0
+out not_file_path
+
+case path-kind-dir-trailing-dot-name
+arg b.
+arg dir
+status 0
+
+case path-kind-file-trailing-dot-name
+arg b.
+arg file
+status 0
+out not_file_path
+
+case path-kind-dir-no-extension-name
+arg Makefile
+arg dir
+status 0
+
+case path-kind-file-no-extension-name
+arg Makefile
+arg file
+status 0
+out not_file_path
+
+case path-kind-file-trailing-slash
+arg a.txt/
+arg file
+status 0
+out not_file_path
+
+case path-kind-dir-trailing-slash
+arg src/
+arg dir
+status 0
+
+case path-kind-dir-dotdir-trailing-slash
+arg .github/
+arg dir
+status 0
+out not_dir_path
+
+case path-kind-dir-nested-file-shape
+arg src/build.sh
+arg dir
+status 0
+out not_dir_path
+
+case path-kind-file-nested-dir-shape
+arg src/lib
+arg file
+status 0
+out not_file_path
+
+case path-kind-existing-violation-comes-first
+arg /a.txt
+arg dir
+status 0
+out absolute_path
+
+case path-kind-existing-violation-before-file-shape
+arg ..
+arg file
+status 0
+out parent_segment
+
+case path-kind-empty-path-before-shape
+arg \e
+arg file
+status 0
+out empty_path
+
+case path-kind-cr-before-shape
+arg a.txt\r
+arg dir
+status 0
+out carriage_return
+
+case path-kind-line-feed-before-shape
+arg src\n
+arg file
+status 0
+out line_feed

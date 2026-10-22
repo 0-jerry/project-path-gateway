@@ -44,8 +44,9 @@ project_path_gateway__domain_key_is_valid() (
 
 # --- 모델: 경로 ---
 
-# 경로 규칙 위반 원인 코드를 출력한다. 위반이 없으면 아무것도 출력하지 않는다.
-# 순서: empty_path, absolute_path, parent_segment, carriage_return, line_feed. 경로 규칙을 판정하는 곳은 이 함수뿐이다 (기능 005 FR-003).
+# 경로 규칙 위반 원인 코드를 출력한다. 위반이 없으면 아무것도 출력하지 않는다. 인자는 PATH [KIND](KIND는 dir 또는 file).
+# 순서: empty_path, absolute_path, parent_segment, carriage_return, line_feed, 종류 위반(not_dir_path, not_file_path).
+# 종류 위반은 KIND가 있을 때만 본다. 경로 규칙과 경로 모양을 판정하는 곳은 이 함수뿐이다 (기능 005 FR-003, 기능 007 FR-016·FR-017, research R-03).
 project_path_gateway__domain_path_violation() (
 	set +e +u +f
 	IFS=' 	''
@@ -72,8 +73,52 @@ project_path_gateway__domain_path_violation() (
 		;;
 	esac
 	case $1 in
-	*"$cr"*) printf 'carriage_return\n' ;;
-	*"$nl"*) printf 'line_feed\n' ;;
+	*"$cr"*)
+		printf 'carriage_return\n'
+		return 0
+		;;
+	*"$nl"*)
+		printf 'line_feed\n'
+		return 0
+		;;
+	esac
+	if [ $# -lt 2 ]; then
+		return 0
+	fi
+	# 끝 `/`를 모두 뗀 뒤 마지막 세그먼트의 모양을 본다. 끝 `/`가 있던 경로는 파일이 될 수 없다 (research R-03).
+	trimmed=$1
+	while :; do
+		case $trimmed in
+		?*/) trimmed=${trimmed%/} ;;
+		*) break ;;
+		esac
+	done
+	segment=${trimmed##*/}
+	case $segment in
+	.) shape='dir' ;;
+	.*) shape='file' ;;
+	?*.?*) shape='file' ;;
+	*) shape='dir' ;;
+	esac
+	case $2 in
+	file)
+		if [ "$shape" = dir ]; then
+			printf 'not_file_path\n'
+			return 0
+		fi
+		case $1 in
+		*/)
+			printf 'not_file_path\n'
+			return 0
+			;;
+		esac
+		;;
+	dir)
+		if [ "$shape" = file ]; then
+			printf 'not_dir_path\n'
+			return 0
+		fi
+		;;
 	esac
 	return 0
 )
