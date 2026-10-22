@@ -7,6 +7,7 @@
   조회·등록·검증 시점에 잡습니다.
 - 경로를 옮기거나 지울 때 데이터 파일 한 줄만 고치면 모든 스크립트가 새 경로를 씁니다.
 - 등록한 경로가 실제로 있는지 pre-commit 훅에서 커밋 전에 확인할 수 있습니다.
+- 기존 프로젝트에 적용할 때는 셸 스크립트에 직접 적힌 경로를 찾아 목록으로 받고, 검토한 목록을 한 번에 등록합니다.
 - 개발자 PC에는 전역 프로그램을 한 번 설치하고, 프로젝트에는 라이브러리 파일을 함께 커밋합니다.
   저장소를 clone한 다른 환경은 전역 프로그램 없이 조회·검증을 사용합니다.
 
@@ -90,7 +91,7 @@ project-path-gateway init [TARGET_DIR]
 2.0.0부터 데이터 파일이 디렉터리 데이터 파일과 파일 데이터 파일 두 개로 나뉘고, 조회·등록·갱신 함수가 종류별로 바뀌었습니다.
 2.0.0 라이브러리는 1.x 데이터 파일 `project-path-gateway.conf`를 읽지 않습니다. 옮기는 도구는 없으며 아래 절차를 손으로 따릅니다.
 
-1. 전역 프로그램을 2.0.0으로 다시 설치합니다(`sh install.sh`).
+1. 전역 프로그램을 2.0.0 이상으로 다시 설치합니다(`sh install.sh`).
 2. 프로젝트에서 `project-path-gateway init`을 실행합니다. 새 데이터 파일 두 개가 `생성`되고 라이브러리가 `교체`되며,
    이전 데이터 파일이 있다는 안내가 stderr에 나옵니다. 이전 데이터 파일은 그대로 남습니다.
 3. 이전 데이터 파일의 항목마다 종류를 정해 옮겨 적습니다. 디렉터리는 `project-path-gateway.dirs.conf`, 파일은
@@ -129,7 +130,7 @@ git mv .tool/project-path-gateway .tools/project-path-gateway
 project-path-gateway init .
 ```
 
-- `init`은 루트 표식 파일과 데이터 파일을 유지하고 라이브러리만 교체합니다. 2.0.0 전역 프로그램이면 이어서 위 "1.x 프로젝트 옮기기"를 따릅니다.
+- `init`은 루트 표식 파일과 데이터 파일을 유지하고 라이브러리만 교체합니다. 2.0.0 이상 전역 프로그램이면 이어서 위 "1.x 프로젝트 옮기기"를 따릅니다.
 - `.tool/` 안에 다른 도구가 없으면 빈 `.tool/` 디렉터리를 지웁니다.
 - 스크립트나 훅이 `.tool/project-path-gateway/project-path-gateway.sh`를 직접 불러오고 있으면 `.tools/`로 고칩니다.
 
@@ -143,6 +144,49 @@ Claude Code, Codex 등 `.agents/skills/`를 읽는 코딩 에이전트가 경로
 - 라이브러리와 같은 도구 소유 파일이라 `init`마다 설치된 버전으로 **교체**합니다. 이 파일을 직접 고치지 마세요.
 - `.agents/skills/` 안의 다른 스킬은 읽지도 바꾸지도 않습니다.
 - 스킬이 필요 없으면 `init` 뒤에 디렉터리를 지워도 됩니다. 다음 `init`에서 다시 만들어집니다.
+
+## 기존 프로젝트에 적용하기
+
+셸 스크립트에 경로를 직접 적어 쓰던 프로젝트는 찾기(`project_path_gateway_scan`)로 바꿀 경로 목록을 받고, 검토한 목록을
+일괄 등록(`project_path_gateway_add_list`)으로 한 번에 등록합니다(2.1.0부터). 두 함수의 자세한 규칙은 "공개 기능"의
+"하드코딩된 경로 찾기"와 "경로 목록 일괄 등록"에 있습니다.
+
+1. 프로젝트 루트에서 `project-path-gateway init`을 실행합니다.
+2. 찾기 결과를 파일로 받습니다. 찾기는 파일을 바꾸지 않습니다.
+
+   ```sh
+   sh -c '. ./.tools/project-path-gateway/project-path-gateway.sh && project_path_gateway_init && project_path_gateway_scan' > paths.list
+   ```
+
+3. `paths.list`를 검토합니다. 새 후보만 `KEY=경로` 줄이고 나머지는 `#` 주석입니다.
+   - 등록하지 않을 새 후보 줄은 지웁니다. 맨 이름(`src`, `docs`처럼 `/`가 없는 표기)은 그 이름의 파일·디렉터리가 있으면 후보가 되므로
+     명령 인자나 단어가 우연히 겹친 것이 섞일 수 있습니다.
+   - 키 이름은 키 규칙 안에서 바꿔도 됩니다.
+   - "확인 필요"(프로젝트에 없는 경로)를 등록하려면 제안 줄 앞 `#`을 지웁니다. 스크립트가 실행 중에 만드는 경로(빌드 출력 등)가 여기에 나옵니다.
+   - "등록 불가"에는 원인과 대안이 적혀 있습니다. `Makefile`처럼 파일 모양이 아닌 파일은 상위 디렉터리를 디렉터리 항목으로 등록하고
+     스크립트에서 이름을 붙여 씁니다.
+   - "이미 등록"은 그 경로를 조회하는 호출을, "루트 참조"는 키 대신 `PROJECT_PATH_GATEWAY_ROOT`를 쓰라는 안내를 보여 줍니다.
+4. 목록을 등록하고 검증합니다. 목록에 위반이 하나라도 있으면 위반을 모두 보고하고 아무것도 쓰지 않습니다. 고쳐서 다시 실행하면
+   이미 등록된 줄은 `유지`로 셉니다.
+
+   ```sh
+   sh -c '. ./.tools/project-path-gateway/project-path-gateway.sh && project_path_gateway_init && project_path_gateway_add_list paths.list && project_path_gateway_verify'
+   ```
+
+5. 스크립트의 경로 문자열을 조회 호출로 바꿉니다. 찾기 결과의 발견 위치 줄(`#   <스크립트>:<줄 번호>: <원문>`)이 바꿀 곳입니다.
+   다시 찾기를 실행하면 남은 곳을 확인할 수 있습니다. 다 바꾸면 `paths.list`를 지웁니다.
+
+찾기의 범위와 한계:
+
+- 대상 스크립트는 루트 아래 이름이 `.sh`로 끝나는 파일과, 소유자 실행 권한이 있고 첫 줄이 `sh`·`bash`·`dash`·`zsh`·`ksh` shebang
+  (`#!/usr/bin/env bash`처럼 `env` 경유 포함)인 파일입니다. `.git` 디렉터리, 링크 디렉터리 안, 도구 파일(`.tools/project-path-gateway/`,
+  `.agents/skills/project-path-gateway/`), 이름에 TAB·CR이 든 파일, 읽을 수 없는 파일은 보지 않습니다.
+- 셸 문법을 모두 해석하지는 않습니다. 따옴표·이스케이프·변수와 명령 치환을 처리해 단어를 나누고, 치환 뒤에 이어지는 상대 부분
+  (`"$ROOT/config/app.json"`의 `config/app.json`)과 `NAME=값`·`--opt=값`의 값을 봅니다. 변수로 조립한 경로, 글로브(`*.sh`), URL,
+  `~`로 시작하는 경로, 루트 밖 절대경로는 찾지 않습니다.
+- `./`·`../`로 시작하는 표기는 스크립트가 있는 디렉터리 기준, 그 밖의 상대 표기는 루트 기준을 먼저 보고 없으면 스크립트 디렉터리 기준을
+  봅니다. 스크립트가 실행 중에 작업 디렉터리를 바꾸는 것(`cd`)은 따라가지 않습니다.
+- 맨 이름은 실제로 있을 때만 후보가 되고, `/`가 든 표기와 `./`·`../` 표기는 없으면 "확인 필요"로 나옵니다.
 
 ## 루트 표식 파일과 루트 탐색 규칙
 
@@ -227,12 +271,14 @@ project_path_gateway_init /abs/path/in/project # 경로 전달: 그 디렉터리
 | `project_path_gateway_add_file KEY PATH` | 새 항목 `KEY=PATH`를 파일 데이터 파일 끝에 등록합니다. 키 규칙은 `add_dir`와 같습니다. 출력 없음 | 0 성공, 2 실패 |
 | `project_path_gateway_update_dir KEY PATH` | 디렉터리 키의 경로를 바꿉니다. 키가 없거나 파일 키이면 오류이며 새로 등록하지 않습니다. 출력 없음 | 0 성공, 2 실패 |
 | `project_path_gateway_update_file KEY PATH` | 파일 키의 경로를 바꿉니다. 키가 없거나 디렉터리 키이면 오류입니다. 출력 없음 | 0 성공, 2 실패 |
+| `project_path_gateway_add_list LIST` | `KEY=경로` 목록(파일, `-`이면 표준 입력)을 경로 모양에 맞는 데이터 파일에 한꺼번에 등록합니다. 위반이 하나라도 있으면 아무것도 쓰지 않습니다. 요약 한 줄 출력 | 0 성공, 2 실패 |
+| `project_path_gateway_scan` | 루트 아래 셸 스크립트에 직접 적힌 경로를 찾아 `add_list` 입력으로 쓸 수 있는 목록을 출력합니다. 파일을 바꾸지 않습니다 | 0 성공, 2 실패 |
 
 | 반환값 | 의미 |
 |---|---|
 | 0 | 성공 |
 | 1 | `project_path_gateway_verify` 검증 실패 |
-| 2 | 인자 오류, 미초기화, 루트 오류, 데이터 파일 오류, 미등록 키, 종류 불일치, 이미 등록된 키, 리포트 파일·데이터 파일 쓰기 실패 |
+| 2 | 인자 오류, 미초기화, 루트 오류, 데이터 파일 오류, 미등록 키, 종류 불일치, 이미 등록된 키, 목록 읽기 불가·목록 위반, 리포트 파일·데이터 파일 쓰기 실패 |
 
 - 디렉터리 키를 `project_path_gateway_file`로, 파일 키를 `project_path_gateway_dir`로 조회하면
   `파일 키가 아닙니다(디렉터리 데이터 파일에 등록됨): <KEY>`처럼 키가 등록된 데이터 파일을 알려 주고 반환 2입니다.
@@ -286,6 +332,84 @@ project_path_gateway_init /abs/path/in/project # 경로 전달: 그 디렉터리
 - 이미 초기화한 프로젝트의 라이브러리가 2.0.0보다 오래되었으면 이 함수들이 없습니다. `project-path-gateway init <루트>`를 다시 실행해
   라이브러리를 교체하고 "1.x 프로젝트 옮기기"를 따르세요.
 
+### 경로 목록 일괄 등록
+
+`project_path_gateway_add_list LIST`는 `KEY=경로` 줄 목록을 경로 모양에 맞는 데이터 파일에 한꺼번에 등록합니다.
+`LIST`는 목록 파일 경로(작업 디렉터리 기준 상대경로 가능)이고 `-`이면 표준 입력입니다.
+
+- 목록 줄 문법은 데이터 파일과 같습니다. 빈 줄과 `#`으로 시작하는 줄은 무시합니다. 디렉터리 모양 경로는 디렉터리 데이터 파일에,
+  파일 모양 경로는 파일 데이터 파일에 목록 순서대로 더합니다.
+- 줄마다 키·경로 규칙, 경로가 실제로 있으면 실제 종류가 모양과 맞는지, 목록 안 중복 키, 이미 등록된 키를 확인합니다.
+  같은 키·같은 경로로 이미 등록된 줄은 쓰지 않고 `유지`로 셉니다. 같은 키가 다른 경로로 등록되어 있으면 위반입니다.
+  없는 경로도 모양대로 등록합니다.
+- 위반이 하나라도 있으면 줄마다 `project-path-gateway: <LIST>:<줄 번호>: <원인>`을 보고하고 끝에
+  `목록 위반 <N>건이 있어 아무것도 등록하지 않았습니다`를 출력한 뒤 아무 파일도 바꾸지 않고 반환 2입니다.
+- 성공하면 `project-path-gateway: 일괄 등록: 디렉터리 <D>건, 파일 <F>건, 유지 <K>건`을 stdout에 출력합니다. 쓸 항목이 있는 데이터 파일만
+  바꾸며, 결과는 `add_dir`·`add_file`을 목록 순서대로 부른 것과 같습니다. 쓰기 방식(임시 파일, 권한 유지, 링크·쓰기 권한 확인)은 등록·갱신과 같습니다.
+- 쓰기 전에 바꿀 데이터 파일을 모두 확인하고 디렉터리 → 파일 순서로 씁니다. 디렉터리 데이터 파일을 바꾼 뒤 파일 데이터 파일 쓰기에
+  실패하면 `데이터 파일을 쓸 수 없습니다: <파일 데이터 파일> (이미 바뀐 데이터 파일: <디렉터리 데이터 파일>)`을 출력하고 반환 2입니다.
+  원인을 고쳐 같은 목록을 다시 실행하면 이미 쓴 줄은 `유지`로 세고 나머지만 씁니다.
+
+### 하드코딩된 경로 찾기
+
+`project_path_gateway_scan`은 루트 아래 셸 스크립트에 직접 적힌 경로를 찾아 일괄 등록 목록 형식으로 stdout에 출력합니다.
+인자를 받지 않고 파일을 바꾸지 않습니다. 대상 스크립트와 한계는 "기존 프로젝트에 적용하기"에 있습니다.
+
+예를 들어 루트 `/w/app`에 `src/`, `config/app.json`, `Makefile`이 있고 `APP_CONFIG=config/app.json`이 등록되어 있으며
+`scripts/build.sh`가 다음과 같으면,
+
+```sh
+#!/bin/sh
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+ls src
+cat "$ROOT/config/app.json"
+make -f Makefile
+cp src/a.txt build/out.txt
+```
+
+찾기 결과는 다음과 같습니다.
+
+```text
+# project-path-gateway 찾기 결과 (루트: /w/app)
+# 이 목록은 project_path_gateway_add_list 입력으로 쓸 수 있습니다. 등록하지 않을 줄은 지우고 키 이름은 고쳐도 됩니다.
+# 요약: 스크립트 1개, 새 후보 1, 이미 등록 1, 등록 불가 1, 확인 필요 2, 루트 참조 1
+
+# == 새 후보 (1) ==
+# 디렉터리 src
+#   scripts/build.sh:3: src
+SRC=src
+
+# == 이미 등록 (1) ==
+# 파일 config/app.json: project_path_gateway_file APP_CONFIG
+#   scripts/build.sh:4: "$ROOT/config/app.json"
+
+# == 등록 불가 (1) ==
+# 파일 Makefile: 파일 모양이 아닙니다(이름.확장자 또는 .으로 시작하는 이름). 상위 디렉터리를 디렉터리 항목으로 등록하고 이름을 붙여 쓰세요
+#   scripts/build.sh:5: Makefile
+
+# == 확인 필요 (2) ==
+# 파일(모양으로 추정) build/out.txt: 프로젝트에 없습니다. 등록하려면 아래 줄의 #을 지우세요
+#   scripts/build.sh:6: build/out.txt
+#BUILD_OUT_TXT=build/out.txt
+# 파일(모양으로 추정) src/a.txt: 프로젝트에 없습니다. 등록하려면 아래 줄의 #을 지우세요
+#   scripts/build.sh:6: src/a.txt
+#SRC_A_TXT=src/a.txt
+
+# == 루트 참조 (1) ==
+# 루트 자체를 가리킵니다. 키로 등록하지 말고 project_path_gateway_init이 정한 PROJECT_PATH_GATEWAY_ROOT를 쓰세요
+#   scripts/build.sh:2: "$(dirname "$0")/.."
+```
+
+- 분류는 새 후보, 이미 등록, 등록 불가, 확인 필요, 루트 참조 순서이고 후보가 없는 분류는 생략합니다. 분류 안 후보는 경로의 바이트 순서,
+  발견 위치는 스크립트 경로 → 줄 번호 순서입니다. 같은 경로를 가리키는 여러 표기는 한 후보로 묶습니다.
+- 발견 위치 줄은 `#   <스크립트>:<줄 번호>: <원문>`이고, 절대경로 표기였으면 끝에 ` (절대경로)`가 붙습니다.
+- 제안 키는 경로를 대문자로 바꾸고 대문자·숫자 밖의 글자를 `_`로 바꿔 만듭니다(연속 `_`는 하나, 앞뒤 `_` 제거, 숫자로 시작하면 `PATH_` 접두).
+  기존 키나 앞 제안과 겹치면 `_2`, `_3`을 붙입니다.
+- 등록 불가 원인은 파일 모양이 아닌 일반 파일, 디렉터리 모양이 아닌 디렉터리, 실제 위치가 루트 밖(링크), 디렉터리나 일반 파일이 아닌 것입니다.
+- 데이터 파일 오류는 조회와 같은 문구로 보고하고 반환 2입니다.
+- 이미 초기화한 프로젝트의 라이브러리가 2.1.0보다 오래되었으면 찾기·일괄 등록 함수가 없습니다. `project-path-gateway init <루트>`를
+  다시 실행해 라이브러리를 교체하세요.
+
 ## 출력 형식
 
 | 구분 | 형식 | 출력 |
@@ -298,6 +422,9 @@ project_path_gateway_init /abs/path/in/project # 경로 전달: 그 디렉터리
 | 검증 실패 요약 | `project-path-gateway: 검증 실패 <n>건` | stderr 마지막 줄 |
 | 검증 성공 요약 | `project-path-gateway: 검증 통과 <n>건` | stdout |
 | 리포트 파일 | 위 누락·루트 밖·종류 불일치·검증 요약 줄과 같은 내용 | `REPORT_FILE` |
+| 목록 위반 | `project-path-gateway: <LIST>:<줄 번호>: <원인>` | stderr |
+| 일괄 등록 요약 | `project-path-gateway: 일괄 등록: 디렉터리 <D>건, 파일 <F>건, 유지 <K>건` | stdout |
+| 찾기 결과 | 데이터 파일 줄 문법을 따르는 목록("하드코딩된 경로 찾기") | stdout |
 | 이전 데이터 파일 안내 | `project-path-gateway: <기능 이름>: 이전 형식 데이터 파일이 있습니다: <경로>. README의 "1.x 프로젝트 옮기기" 절차로 항목을 옮기세요` | stderr |
 
 ## 제약
@@ -415,6 +542,22 @@ register_dir() {
 
 register_file APP_CONFIG config/app.json
 register_dir DOCS docs
+```
+
+### 기존 프로젝트에 적용하기
+
+저장소 루트에서 실행해 셸 스크립트에 직접 적힌 경로 가운데 새 후보를 그대로 등록하고 검증합니다. 찾기 결과에서 새 후보만
+`KEY=경로` 줄이고 나머지는 주석이라 고치지 않고 넘겨도 됩니다. 결과를 검토하고 고친 뒤 등록하려면 앞의 "기존 프로젝트에 적용하기" 절차를 따릅니다.
+
+<!-- example: apply-existing-project -->
+```sh
+#!/bin/sh
+# scripts/apply-paths.sh (저장소 루트를 작업 디렉터리로 실행)
+set -eu
+. ./.tools/project-path-gateway/project-path-gateway.sh
+project_path_gateway_init
+project_path_gateway_scan | project_path_gateway_add_list -
+project_path_gateway_verify
 ```
 
 ## 개발
