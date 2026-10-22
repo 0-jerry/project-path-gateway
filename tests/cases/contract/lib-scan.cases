@@ -1,0 +1,306 @@
+# 공개 API 계약: project_path_gateway_scan (하드코딩된 경로 찾기, 기능 008 US1, contracts/library-api.md 1절, contracts/scan-output.md)
+# 읽기 전용이므로 모든 사례의 파일 시스템 변경 기록은 반환 기록뿐이다(FR-010).
+target lib-session project_path_gateway
+layer api
+fs file /t/root/.tools/project-path-gateway/.project-path-gateway
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+content PPG_TOOL_DIR=.tools/project-path-gateway
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.files.conf
+
+# 수용 시나리오 (US1-1~6)
+
+case scan-reports-existing-paths-with-locations
+fs dir /t/root/src
+fs file /t/root/config/app.json
+fs file /t/root/scripts/build.sh
+content #!/bin/sh
+content ls src
+content cat config/app.json
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_scan
+status 0
+out # project-path-gateway 찾기 결과 (루트: /t/root)
+out # 이 목록은 project_path_gateway_add_list 입력으로 쓸 수 있습니다. 등록하지 않을 줄은 지우고 키 이름은 고쳐도 됩니다.
+out # 요약: 스크립트 1개, 새 후보 2, 이미 등록 0, 등록 불가 0, 확인 필요 0, 루트 참조 0
+out
+out # == 새 후보 (2) ==
+out # 파일 config/app.json
+out #   scripts/build.sh:3: config/app.json
+out CONFIG_APP_JSON=config/app.json
+out # 디렉터리 src
+out #   scripts/build.sh:2: src
+out SRC=src
+op returned project_path_gateway_scan 0
+
+case scan-merges-notations-of-same-path
+fs file /t/root/config/app.json
+fs file /t/root/scripts/build.sh
+content cat "$(dirname "$0")/../config/app.json"
+fs file /t/root/deploy.sh
+content cat ./config/app.json
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_scan
+status 0
+out # project-path-gateway 찾기 결과 (루트: /t/root)
+out # 이 목록은 project_path_gateway_add_list 입력으로 쓸 수 있습니다. 등록하지 않을 줄은 지우고 키 이름은 고쳐도 됩니다.
+out # 요약: 스크립트 2개, 새 후보 1, 이미 등록 0, 등록 불가 0, 확인 필요 0, 루트 참조 0
+out
+out # == 새 후보 (1) ==
+out # 파일 config/app.json
+out #   deploy.sh:1: ./config/app.json
+out #   scripts/build.sh:1: "$(dirname "$0")/../config/app.json"
+out CONFIG_APP_JSON=config/app.json
+op returned project_path_gateway_scan 0
+
+case scan-registered-path-shows-lookup
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.files.conf
+content APP_CONFIG=config/app.json
+fs file /t/root/config/app.json
+fs file /t/root/scripts/build.sh
+content cat config/app.json
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_scan
+status 0
+out # project-path-gateway 찾기 결과 (루트: /t/root)
+out # 이 목록은 project_path_gateway_add_list 입력으로 쓸 수 있습니다. 등록하지 않을 줄은 지우고 키 이름은 고쳐도 됩니다.
+out # 요약: 스크립트 1개, 새 후보 0, 이미 등록 1, 등록 불가 0, 확인 필요 0, 루트 참조 0
+out
+out # == 이미 등록 (1) ==
+out # 파일 config/app.json: project_path_gateway_file APP_CONFIG
+out #   scripts/build.sh:1: config/app.json
+op returned project_path_gateway_scan 0
+
+case scan-missing-path-is-commented-and-outside-absolute-ignored
+fs file /t/root/scripts/build.sh
+content cp build/out.txt /usr/bin/env
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_scan
+status 0
+out # project-path-gateway 찾기 결과 (루트: /t/root)
+out # 이 목록은 project_path_gateway_add_list 입력으로 쓸 수 있습니다. 등록하지 않을 줄은 지우고 키 이름은 고쳐도 됩니다.
+out # 요약: 스크립트 1개, 새 후보 0, 이미 등록 0, 등록 불가 0, 확인 필요 1, 루트 참조 0
+out
+out # == 확인 필요 (1) ==
+out # 파일(모양으로 추정) build/out.txt: 프로젝트에 없습니다. 등록하려면 아래 줄의 #을 지우세요
+out #   scripts/build.sh:1: build/out.txt
+out #BUILD_OUT_TXT=build/out.txt
+op returned project_path_gateway_scan 0
+
+case scan-no-candidates
+fs file /t/root/scripts/hello.sh
+content echo hello
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_scan
+status 0
+out # project-path-gateway 찾기 결과 (루트: /t/root)
+out # 이 목록은 project_path_gateway_add_list 입력으로 쓸 수 있습니다. 등록하지 않을 줄은 지우고 키 이름은 고쳐도 됩니다.
+out # 요약: 스크립트 1개, 새 후보 0, 이미 등록 0, 등록 불가 0, 확인 필요 0, 루트 참조 0
+op returned project_path_gateway_scan 0
+
+case scan-not-initialized
+call project_path_gateway_scan
+status 2
+err project-path-gateway: project_path_gateway_scan: 초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요
+op returned project_path_gateway_scan 2
+
+# 결과 형식 예 (contracts/scan-output.md 3절, 루트만 다르다)
+
+case scan-output-contract-example
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.files.conf
+content APP_CONFIG=config/app.json
+fs dir /t/root/src
+fs file /t/root/config/app.json
+fs file /t/root/Makefile
+fs file /t/root/scripts/build.sh
+content #!/bin/sh
+content ROOT=$(cd "$(dirname "$0")/.." && pwd)
+content ls src
+content cat "$ROOT/config/app.json"
+content make -f Makefile
+content cp src/a.txt build/out.txt
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_scan
+status 0
+out # project-path-gateway 찾기 결과 (루트: /t/root)
+out # 이 목록은 project_path_gateway_add_list 입력으로 쓸 수 있습니다. 등록하지 않을 줄은 지우고 키 이름은 고쳐도 됩니다.
+out # 요약: 스크립트 1개, 새 후보 1, 이미 등록 1, 등록 불가 1, 확인 필요 2, 루트 참조 1
+out
+out # == 새 후보 (1) ==
+out # 디렉터리 src
+out #   scripts/build.sh:3: src
+out SRC=src
+out
+out # == 이미 등록 (1) ==
+out # 파일 config/app.json: project_path_gateway_file APP_CONFIG
+out #   scripts/build.sh:4: "$ROOT/config/app.json"
+out
+out # == 등록 불가 (1) ==
+out # 파일 Makefile: 파일 모양이 아닙니다(이름.확장자 또는 .으로 시작하는 이름). 상위 디렉터리를 디렉터리 항목으로 등록하고 이름을 붙여 쓰세요
+out #   scripts/build.sh:5: Makefile
+out
+out # == 확인 필요 (2) ==
+out # 파일(모양으로 추정) build/out.txt: 프로젝트에 없습니다. 등록하려면 아래 줄의 #을 지우세요
+out #   scripts/build.sh:6: build/out.txt
+out #BUILD_OUT_TXT=build/out.txt
+out # 파일(모양으로 추정) src/a.txt: 프로젝트에 없습니다. 등록하려면 아래 줄의 #을 지우세요
+out #   scripts/build.sh:6: src/a.txt
+out #SRC_A_TXT=src/a.txt
+out
+out # == 루트 참조 (1) ==
+out # 루트 자체를 가리킵니다. 키로 등록하지 말고 project_path_gateway_init이 정한 PROJECT_PATH_GATEWAY_ROOT를 쓰세요
+out #   scripts/build.sh:2: "$(dirname "$0")/.."
+op returned project_path_gateway_scan 0
+
+# 대상 스크립트 고르기: .sh, 실행 권한 + 셸 shebang. 버전 관리 디렉터리·도구 파일 제외, 도구 라이브러리를 가리키는 표기도 후보가 아니다
+
+case scan-selects-scripts-and-excludes-tool-files
+fs dir /t/root/src
+fs dir /t/root/docs
+fs dir /t/root/lib
+fs file /t/root/bin/run
+content #!/usr/bin/env bash
+content . "$(dirname "$0")/../.tools/project-path-gateway/project-path-gateway.sh"
+content ls docs .tools/project-path-gateway
+fs mode /t/root/bin/run 755
+fs file /t/root/bin/tool.py
+content #!/usr/bin/env python3
+content open('lib')
+fs mode /t/root/bin/tool.py 755
+fs file /t/root/.git/hooks/pre-commit.sh
+content ls src
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.sh
+content ls src
+fs file /t/root/.agents/skills/project-path-gateway/helper.sh
+content ls lib
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_scan
+status 0
+out # project-path-gateway 찾기 결과 (루트: /t/root)
+out # 이 목록은 project_path_gateway_add_list 입력으로 쓸 수 있습니다. 등록하지 않을 줄은 지우고 키 이름은 고쳐도 됩니다.
+out # 요약: 스크립트 1개, 새 후보 1, 이미 등록 1, 등록 불가 0, 확인 필요 0, 루트 참조 0
+out
+out # == 새 후보 (1) ==
+out # 디렉터리 docs
+out #   bin/run:3: docs
+out DOCS=docs
+out
+out # == 이미 등록 (1) ==
+out # 디렉터리 .tools/project-path-gateway: project_path_gateway_dir PPG_TOOL_DIR
+out #   bin/run:3: .tools/project-path-gateway
+op returned project_path_gateway_scan 0
+
+case scan-no-scripts
+fs dir /t/root/src
+fs file /t/root/README.md
+content ls src
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_scan
+status 0
+out # project-path-gateway 찾기 결과 (루트: /t/root)
+out # 이 목록은 project_path_gateway_add_list 입력으로 쓸 수 있습니다. 등록하지 않을 줄은 지우고 키 이름은 고쳐도 됩니다.
+out # 요약: 스크립트 0개, 새 후보 0, 이미 등록 0, 등록 불가 0, 확인 필요 0, 루트 참조 0
+op returned project_path_gateway_scan 0
+
+# 등록 불가: 루트 밖을 가리키는 링크, 디렉터리나 일반 파일이 아닌 것, 디렉터리 모양이 아닌 디렉터리
+
+case scan-blocked-causes
+fs dir /t/outside
+fs link /t/root/shared /t/outside
+fs other /t/root/pipe
+fs dir /t/root/v1.2
+fs file /t/root/run.sh
+content ls shared pipe v1.2
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_scan
+status 0
+out # project-path-gateway 찾기 결과 (루트: /t/root)
+out # 이 목록은 project_path_gateway_add_list 입력으로 쓸 수 있습니다. 등록하지 않을 줄은 지우고 키 이름은 고쳐도 됩니다.
+out # 요약: 스크립트 1개, 새 후보 0, 이미 등록 0, 등록 불가 3, 확인 필요 0, 루트 참조 0
+out
+out # == 등록 불가 (3) ==
+out # 그 밖 pipe: 디렉터리나 일반 파일이 아닙니다
+out #   run.sh:1: pipe
+out # 디렉터리 shared: 실제 위치가 루트 밖이거나 확인할 수 없습니다
+out #   run.sh:1: shared
+out # 디렉터리 v1.2: 디렉터리 모양이 아닙니다(확장자가 있거나 .으로 시작). 상위 디렉터리를 디렉터리 항목으로 등록하고 이름을 붙여 쓰세요
+out #   run.sh:1: v1.2
+op returned project_path_gateway_scan 0
+
+# 절대경로 표기: 루트 안은 절대 표시, 루트 자체는 루트 참조
+
+case scan-absolute-notations
+fs dir /t/root/src
+fs file /t/root/run.sh
+content ls /t/root/src /t/root /etc/hosts
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_scan
+status 0
+out # project-path-gateway 찾기 결과 (루트: /t/root)
+out # 이 목록은 project_path_gateway_add_list 입력으로 쓸 수 있습니다. 등록하지 않을 줄은 지우고 키 이름은 고쳐도 됩니다.
+out # 요약: 스크립트 1개, 새 후보 1, 이미 등록 0, 등록 불가 0, 확인 필요 0, 루트 참조 1
+out
+out # == 새 후보 (1) ==
+out # 디렉터리 src
+out #   run.sh:1: /t/root/src (절대경로)
+out SRC=src
+out
+out # == 루트 참조 (1) ==
+out # 루트 자체를 가리킵니다. 키로 등록하지 말고 project_path_gateway_init이 정한 PROJECT_PATH_GATEWAY_ROOT를 쓰세요
+out #   run.sh:1: /t/root (절대경로)
+op returned project_path_gateway_scan 0
+
+# 오류 (계약 1절)
+
+case scan-rejects-arguments
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_scan src
+status 2
+err project-path-gateway: project_path_gateway_scan: 인자를 받지 않습니다
+op returned project_path_gateway_scan 2
+
+case scan-data-file-violation
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.files.conf
+content bad
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_scan
+status 2
+err project-path-gateway: /t/root/.tools/project-path-gateway/project-path-gateway.files.conf:1: KEY=경로 형식이 아닙니다
+op returned project_path_gateway_scan 2
+
+case scan-data-file-missing
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/missing
+fs file /t/missing/.tools/project-path-gateway/project-path-gateway.dirs.conf
+call project_path_gateway_scan
+status 2
+err project-path-gateway: project_path_gateway_scan: 데이터 파일을 읽을 수 없습니다: /t/missing/.tools/project-path-gateway/project-path-gateway.files.conf
+op returned project_path_gateway_scan 2
+
+case scan-data-file-missing-with-legacy-file
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/old
+fs file /t/old/.tools/project-path-gateway/project-path-gateway.conf
+content SRC=src
+call project_path_gateway_scan
+status 2
+err project-path-gateway: project_path_gateway_scan: 데이터 파일을 읽을 수 없습니다: /t/old/.tools/project-path-gateway/project-path-gateway.dirs.conf
+err project-path-gateway: project_path_gateway_scan: 이전 형식 데이터 파일이 있습니다: /t/old/.tools/project-path-gateway/project-path-gateway.conf. README의 "1.x 프로젝트 옮기기" 절차로 항목을 옮기세요
+op returned project_path_gateway_scan 2
+
+# 호출 셸 격리: set -euf, IFS가 바뀐 셸에서도 같은 결과이고 셸이 끝나지 않는다
+
+case scan-caller-shell-isolation
+caller-set -euf
+caller-ifs :
+fs dir /t/root/src
+fs file /t/root/run.sh
+content ls src
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call eval project_path_gateway_scan\s|\sgrep\s'^SRC='
+call eval project_path_gateway_scan\sx\s2>/dev/null\s||\sprintf\s'rc=%s\\n'\s"$?"
+call eval printf\s'alive\\n'
+status 0
+out SRC=src
+out rc=2
+out alive
+op returned eval 0
+op returned eval 0
+op returned eval 0

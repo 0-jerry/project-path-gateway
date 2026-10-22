@@ -1,0 +1,109 @@
+# 인프라 통합: 입력 포트 project_path_gateway__port_script_lines ROOT (기능 008 research R-02, contracts/library-api.md 1절)
+# 루트 아래 .sh 파일과, 실행 권한이 있고 첫 줄이 셸 shebang인 파일을 이름 바이트 순서로 골라 찾기 스트림(F·L 줄)을 낸다.
+# 버전 관리 디렉터리, 거부 디렉터리, 링크 디렉터리 안, 링크 파일, 도구 파일, 읽을 수 없는 파일은 보지 않는다.
+target lib-func project_path_gateway__port_script_lines
+layer infra
+
+case script-lines-selects-shell-scripts
+fs file /t/r/a.sh
+content ls src
+fs file /t/r/bin/run
+content #!/usr/bin/env bash
+content cat x.txt
+fs mode /t/r/bin/run 755
+fs file /t/r/bin/py
+content #!/usr/bin/python3
+content open('a.txt')
+fs mode /t/r/bin/py 755
+fs file /t/r/bin/noexec
+content #!/bin/sh
+content ls docs
+fs file /t/r/README.md
+content ls src
+arg /t/r
+status 0
+out F\t/t/r/a.sh
+out L\tls src
+out F\t/t/r/bin/run
+out L\t#!/usr/bin/env bash
+out L\tcat x.txt
+op find-scripts /t/r
+op is-readable /t/r/a.sh
+op read-lines /t/r/a.sh
+op read-first-line /t/r/bin/py
+op read-first-line /t/r/bin/run
+op is-readable /t/r/bin/run
+op read-lines /t/r/bin/run
+
+case script-lines-skips-vcs-denied-and-tool-files
+fs file /t/r/.git/hooks/pre-commit.sh
+content ls src
+fs file /t/r/.tools/project-path-gateway/project-path-gateway.sh
+content ls src
+fs file /t/r/.agents/skills/project-path-gateway/helper.sh
+content ls src
+fs deny /t/r/locked
+fs file /t/r/locked/l.sh
+content ls src
+fs file /t/r/z.sh
+content ls lib
+arg /t/r
+status 0
+out F\t/t/r/z.sh
+out L\tls lib
+op find-scripts /t/r
+op is-readable /t/r/z.sh
+op read-lines /t/r/z.sh
+
+case script-lines-does-not-follow-links
+fs file /t/real/in.sh
+content ls src
+fs link /t/r/linkdir /t/real
+fs link /t/r/link.sh /t/real/in.sh
+fs file /t/r/b.sh
+content ls b
+arg /t/r
+status 0
+out F\t/t/r/b.sh
+out L\tls b
+op find-scripts /t/r
+op is-readable /t/r/b.sh
+op read-lines /t/r/b.sh
+
+case script-lines-unreadable-script-is-skipped
+fs file /t/r/a.sh
+content ls a
+fs deny /t/r/a.sh
+fs file /t/r/b.sh
+content ls b
+arg /t/r
+status 0
+out F\t/t/r/b.sh
+out L\tls b
+op find-scripts /t/r
+op is-readable /t/r/a.sh
+op is-readable /t/r/b.sh
+op read-lines /t/r/b.sh
+
+case script-lines-without-final-lf-and-empty-script
+fs file /t/r/a.sh
+content-raw echo a\necho b
+fs file /t/r/empty.sh
+arg /t/r
+status 0
+out F\t/t/r/a.sh
+out L\techo a
+out L\techo b
+out F\t/t/r/empty.sh
+op find-scripts /t/r
+op is-readable /t/r/a.sh
+op read-lines /t/r/a.sh
+op is-readable /t/r/empty.sh
+op read-lines /t/r/empty.sh
+
+case script-lines-no-scripts
+fs file /t/r/README.md
+content ls src
+arg /t/r
+status 0
+op find-scripts /t/r

@@ -1,0 +1,36 @@
+# 도메인 단위: 도구 배치 모델 project_path_gateway__domain_layout_is_tool_file REL (기능 008 research R-02)
+# 루트 기준 상대경로가 도구 디렉터리나 에이전트 스킬 디렉터리 아래이면 반환 0. 찾기는 이 파일들을 읽거나 후보로 내지 않는다.
+target lib-func project_path_gateway__domain_layout_is_tool_file
+layer domain
+
+case tool-file-library
+arg .tools/project-path-gateway/project-path-gateway.sh
+status 0
+
+case tool-file-data-file
+arg .tools/project-path-gateway/project-path-gateway.dirs.conf
+status 0
+
+case tool-file-agent-skill
+arg .agents/skills/project-path-gateway/SKILL.md
+status 0
+
+case tool-file-tool-directory-itself-is-not
+arg .tools/project-path-gateway
+status 1
+
+case tool-file-other-tool-directory
+arg .tools/other/run.sh
+status 1
+
+case tool-file-other-skill
+arg .agents/skills/other/SKILL.md
+status 1
+
+case tool-file-only-at-root
+arg sub/.tools/project-path-gateway/project-path-gateway.sh
+status 1
+
+case tool-file-empty
+arg \e
+status 1

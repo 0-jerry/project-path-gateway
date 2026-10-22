@@ -1,0 +1,161 @@
+# 애플리케이션 통합: 찾기 흐름 project_path_gateway__app_scan ROOT (기능 008 research R-02~R-07, data-model 3절)
+# 데이터 파일 읽기 → 스크립트 스트림 → 추출 → 존재 일괄 확인(한 번) → 있는 경로의 물리 위치 확인 → 후보 스트림 + x.
+# 반환: 0 성공, 3 데이터 파일 규칙 위반, 4·15 데이터 파일 읽기 불가(stdout 데이터 파일 경로 + x). 파일을 바꾸는 포트는 부르지 않는다.
+target lib-func project_path_gateway__app_scan
+layer app
+
+# 흐름: 새 후보, 이미 등록, 등록 불가(모양 위반, 루트 밖 링크, 그 밖 종류), 확인 필요, 루트 참조. 도구 파일은 물리 확인 없이 뺀다
+
+case app-scan-flow-all-classes
+arg /r
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub-out SRC=src
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_script_lines 0 /r
+stub-out F\t/r/b.sh
+stub-out L\tls src docs Makefile link/a.txt fifo build/x.txt .tools/project-path-gateway/project-path-gateway.sh /r
+stub project_path_gateway__port_path_kinds 0 /r/ls\n\n/r/src\n\n/r/docs\n\n/r/Makefile\n\n/r/link/a.txt\n\n/r/fifo\n\n/r/build/x.txt\n\n/r/.tools/project-path-gateway/project-path-gateway.sh
+stub-out none
+stub-out none
+stub-out dir
+stub-out none
+stub-out dir
+stub-out none
+stub-out file
+stub-out none
+stub-out file
+stub-out none
+stub-out other
+stub-out none
+stub-out none
+stub-out none
+stub-out file
+stub project_path_gateway__port_resolve_physical 0 /r/src
+stub-out-raw /r/srcx
+stub project_path_gateway__port_resolve_physical 0 /r/docs
+stub-out-raw /r/docsx
+stub project_path_gateway__port_resolve_physical 0 /r/Makefile
+stub-out-raw /r/Makefilex
+stub project_path_gateway__port_resolve_physical 0 /r/link/a.txt
+stub-out-raw /elsewhere/a.txtx
+status 0
+out N\t1\t1\t1\t3\t1\t1
+out C\tnew\tdir\tDOCS\tdocs
+out @\tb.sh\t1\t-\tdocs
+out C\tregistered\tdir\tdir:SRC\tsrc
+out @\tb.sh\t1\t-\tsrc
+out C\tblocked\tfile\tnot_file_path\tMakefile
+out @\tb.sh\t1\t-\tMakefile
+out C\tblocked\tother\tspecial\tfifo
+out @\tb.sh\t1\t-\tfifo
+out C\tblocked\tfile\toutside\tlink/a.txt
+out @\tb.sh\t1\t-\tlink/a.txt
+out C\tmissing\tfile\tBUILD_X_TXT\tbuild/x.txt
+out @\tb.sh\t1\t-\tbuild/x.txt
+out C\troot\t-\t-\t
+out-raw @\tb.sh\t1\ta\t/rx
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_script_lines /r
+op port project_path_gateway__port_path_kinds /r/ls\n\n/r/src\n\n/r/docs\n\n/r/Makefile\n\n/r/link/a.txt\n\n/r/fifo\n\n/r/build/x.txt\n\n/r/.tools/project-path-gateway/project-path-gateway.sh
+op port project_path_gateway__port_resolve_physical /r/src
+op port project_path_gateway__port_resolve_physical /r/docs
+op port project_path_gateway__port_resolve_physical /r/Makefile
+op port project_path_gateway__port_resolve_physical /r/link/a.txt
+
+# 1순위가 없으면 스크립트 디렉터리 기준 2순위를 쓴다. 물리 경로 확인 실패는 루트 밖과 같이 등록 불가다
+
+case app-scan-second-candidate-and-resolve-failure
+arg /r
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_script_lines 0 /r
+stub-out F\t/r/s/b.sh
+stub-out L\tsh lib/x.sh loop.sh
+stub project_path_gateway__port_path_kinds 0 /r/sh\n/r/s/sh\n/r/lib/x.sh\n/r/s/lib/x.sh\n/r/loop.sh\n/r/s/loop.sh
+stub-out none
+stub-out none
+stub-out none
+stub-out file
+stub-out file
+stub-out none
+stub project_path_gateway__port_resolve_physical 0 /r/s/lib/x.sh
+stub-out-raw /r/s/lib/x.shx
+stub project_path_gateway__port_resolve_physical 1 /r/loop.sh
+status 0
+out N\t1\t1\t0\t1\t0\t0
+out C\tnew\tfile\tS_LIB_X_SH\ts/lib/x.sh
+out @\ts/b.sh\t1\t-\tlib/x.sh
+out C\tblocked\tfile\toutside\tloop.sh
+out-raw @\ts/b.sh\t1\t-\tloop.shx
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_script_lines /r
+op port project_path_gateway__port_path_kinds /r/sh\n/r/s/sh\n/r/lib/x.sh\n/r/s/lib/x.sh\n/r/loop.sh\n/r/s/loop.sh
+op port project_path_gateway__port_resolve_physical /r/s/lib/x.sh
+op port project_path_gateway__port_resolve_physical /r/loop.sh
+
+# 스크립트가 없으면 빈 목록으로 존재 확인 포트를 부르고(포트가 바로 돌아온다) 요약만 낸다
+
+case app-scan-no-scripts
+arg /r
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub-out PPG_TOOL_DIR=.tools/project-path-gateway
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_script_lines 0 /r
+stub project_path_gateway__port_path_kinds 0 \e
+status 0
+out-raw N\t0\t0\t0\t0\t0\t0x
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_script_lines /r
+op port project_path_gateway__port_path_kinds \e
+
+# 데이터 파일 오류: 3(위반 보고 뒤 상세 없음), 4, 15
+
+case app-scan-data-file-violation
+arg /r
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub-out bad
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__out_violation 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf 1 no_separator \e \e 0 dir
+status 3
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__out_violation /r/.tools/project-path-gateway/project-path-gateway.dirs.conf 1 no_separator \e \e 0 dir
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+
+case app-scan-data-file-unreadable
+arg /r
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 1 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_readable_file 1 /r/.tools/project-path-gateway/project-path-gateway.conf
+status 4
+out-raw /r/.tools/project-path-gateway/project-path-gateway.files.confx
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
+
+case app-scan-data-file-unreadable-legacy
+arg /r
+stub project_path_gateway__port_readable_file 1 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+status 15
+out-raw /r/.tools/project-path-gateway/project-path-gateway.dirs.confx
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf

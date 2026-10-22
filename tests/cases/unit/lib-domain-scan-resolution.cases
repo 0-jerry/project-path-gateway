@@ -1,0 +1,40 @@
+# 도메인 단위: 찾기 모델 project_path_gateway__domain_scan_resolution ID STATUS KIND CAUSE PATH (기능 008 data-model 3.4)
+# 해석 결과 레코드 "S<TAB>번호<TAB>상태<TAB>종류<TAB>원인<TAB>경로"를 낸다. 빈 종류·원인은 -로 쓴다.
+target lib-func project_path_gateway__domain_scan_resolution
+layer domain
+
+case resolution-ok
+arg 3
+arg ok
+arg dir
+arg \e
+arg src
+status 0
+out S\t3\tok\tdir\t-\tsrc
+
+case resolution-blocked-with-cause
+arg 4
+arg blocked
+arg file
+arg not_file_path
+arg Makefile
+status 0
+out S\t4\tblocked\tfile\tnot_file_path\tMakefile
+
+case resolution-root-empty-fields
+arg 5
+arg root
+arg \e
+arg \e
+arg \e
+status 0
+out S\t5\troot\t-\t-\t
+
+case resolution-path-with-spaces
+arg 6
+arg missing
+arg dir
+arg \e
+arg my\sdir/sub
+status 0
+out S\t6\tmissing\tdir\t-\tmy dir/sub

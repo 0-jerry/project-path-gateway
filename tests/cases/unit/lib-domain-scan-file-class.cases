@@ -1,0 +1,58 @@
+# 도메인 단위: 찾기 모델 project_path_gateway__domain_scan_file_class ROOT FILE (기능 008 research R-02, contracts/library-api.md 1절)
+# 찾기 후보 파일의 처리를 한 줄로 낸다: skip(도구 파일, 이름에 TAB·CR), script(.sh), check(첫 줄 shebang 확인 필요).
+target lib-func project_path_gateway__domain_scan_file_class
+layer domain
+
+case file-class-sh-is-script
+arg /r
+arg /r/scripts/build.sh
+status 0
+out script
+
+case file-class-no-extension-is-check
+arg /r
+arg /r/bin/run
+status 0
+out check
+
+case file-class-other-extension-is-check
+arg /r
+arg /r/a.sh.bak
+status 0
+out check
+
+case file-class-tool-library-is-skip
+arg /r
+arg /r/.tools/project-path-gateway/project-path-gateway.sh
+status 0
+out skip
+
+case file-class-agent-skill-is-skip
+arg /r
+arg /r/.agents/skills/project-path-gateway/helper.sh
+status 0
+out skip
+
+case file-class-tab-in-name-is-skip
+arg /r
+arg /r/a\tb.sh
+status 0
+out skip
+
+case file-class-cr-in-name-is-skip
+arg /r
+arg /r/a\r.sh
+status 0
+out skip
+
+case file-class-root-slash-script
+arg /
+arg /x.sh
+status 0
+out script
+
+case file-class-root-slash-tool-file
+arg /
+arg /.tools/project-path-gateway/project-path-gateway.sh
+status 0
+out skip
