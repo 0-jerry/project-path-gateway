@@ -214,12 +214,13 @@ check_layers() {
 					continue
 				}
 				if (index(name, pre) != 1) {
-					# 공개 함수 여덟 개 (기능 007 FR-020, research R-04)
+					# 공개 함수 열 개 (기능 007 FR-020, 기능 008 FR-040)
 					if (name != "project_path_gateway_init" && name != "project_path_gateway_verify" &&
 						name != "project_path_gateway_dir" && name != "project_path_gateway_file" &&
 						name != "project_path_gateway_add_dir" && name != "project_path_gateway_add_file" &&
-						name != "project_path_gateway_update_dir" && name != "project_path_gateway_update_file")
-						problem(where, "L-0", "공개 함수는 init, verify, dir, file, add_dir, add_file, update_dir, update_file 여덟 개만 허용: " name)
+						name != "project_path_gateway_update_dir" && name != "project_path_gateway_update_file" &&
+						name != "project_path_gateway_scan" && name != "project_path_gateway_add_list")
+						problem(where, "L-0", "공개 함수는 init, verify, dir, file, add_dir, add_file, update_dir, update_file, scan, add_list 열 개만 허용: " name)
 					else if (s != 4)
 						problem(where, "L-0", "공개 함수는 인터페이스 구획에 있어야 함: " name)
 				}
