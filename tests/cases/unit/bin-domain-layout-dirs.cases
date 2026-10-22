@@ -1,0 +1,12 @@
+# 도메인 단위: 도구 배치 모델 - 초기화 디렉터리 목록 (기능 006 FR-017, US1·US2, data-model 1.1)
+# 대상 디렉터리 기준 상대경로이며 상위가 먼저다. 애플리케이션은 이 순서로 상태를 검사하고 만든다.
+target bin-func ppg__domain_layout_dirs
+layer domain
+
+case layout-dirs
+status 0
+out .tools
+out .tools/project-path-gateway
+out .agents
+out .agents/skills
+out .agents/skills/project-path-gateway

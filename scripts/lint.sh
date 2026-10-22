@@ -15,6 +15,7 @@
 #    파이프라인·명령 치환 안의 변경 시스템 포트 호출
 # 7. 추적 대조표(tests/traceability.md)의 사례 식별자·lint 절 참조·수동 확인 절 참조
 # 8. lint 자체 확인: tests/lint/fixtures/*.sh 위반 예시(D-1~D-6)를 5절 검사가 모두 잡는지 확인
+# 9. 스킬 문서 대조 (기능 006 contracts/skill.md 3절): share/SKILL.md와 라이브러리 공개 함수 이름이 어긋나지 않는지 확인
 
 repo_root=$(cd -P -- "$(dirname -- "$0")/.." && pwd -P) || exit 2
 cd "$repo_root" || exit 2
@@ -406,6 +407,26 @@ for f in tests/lint/fixtures/*.sh; do
 	fi
 done
 rm -f "$lint_tmp"
+
+# 9. 스킬 문서 대조 (기능 006 contracts/skill.md 3절): share/SKILL.md에 라이브러리 공개 함수 이름이 모두 나오고,
+#    문서에 나온 project_path_gateway_ 이름이 모두 라이브러리에 정의되어 있어야 한다.
+skill_doc=share/SKILL.md
+if [ ! -f "$skill_doc" ]; then
+	report "$skill_doc: 스킬 문서가 없습니다"
+else
+	# 공개 함수는 접두어 뒤에 _가 오지 않는 이름이다(project_path_gateway__*는 내부 함수).
+	lint_public=$(sed -n 's/^\(project_path_gateway_[a-z][a-z_]*\)() .*$/\1/p' "$lib" | LC_ALL=C sort -u)
+	lint_doc_names=$(LC_ALL=C tr -c 'a-z_' '\n' <"$skill_doc" | sed 's/_*$//' |
+		grep -x 'project_path_gateway_[a-z][a-z_]*' | LC_ALL=C sort -u)
+	for name in $lint_public; do
+		printf '%s\n' "$lint_doc_names" | grep -F -q -x "$name" ||
+			report "$skill_doc: 공개 함수와 어긋납니다: $name"
+	done
+	for name in $lint_doc_names; do
+		printf '%s\n' "$lint_public" | grep -F -q -x "$name" ||
+			report "$skill_doc: 공개 함수와 어긋납니다: $name"
+	done
+fi
 
 if [ "$problems" -gt 0 ]; then
 	printf 'lint: 위반 %s건\n' "$problems" >&2

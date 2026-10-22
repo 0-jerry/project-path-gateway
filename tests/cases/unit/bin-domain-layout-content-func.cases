@@ -1,0 +1,14 @@
+# 도메인 단위: 도구 배치 모델 - 내장 내용 함수 이름 (기능 006 FR-017, data-model 1.2)
+# 애플리케이션은 이 이름을 쓰기 포트에 넘기므로 종류 이름을 갖지 않는다.
+target bin-func ppg__domain_layout_content_func
+layer domain
+
+case layout-content-func-marker
+arg marker
+status 0
+out ppg__domain_marker_content
+
+case layout-content-func-data
+arg data
+status 0
+out ppg__domain_data_template

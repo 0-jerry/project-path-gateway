@@ -10,6 +10,8 @@ fs file /repo/bin/project-path-gateway
 content # bin
 fs file /repo/lib/project-path-gateway.sh
 content # lib
+fs file /repo/share/SKILL.md
+content # skill
 fs file /repo/VERSION
 content 0.1.0
 
@@ -31,7 +33,10 @@ op move /t/home/.local/share/project-path-gateway/project-path-gateway.sh.ppg-in
 op copy /repo/VERSION /t/home/.local/share/project-path-gateway/VERSION.ppg-install.4242
 op chmod 644 /t/home/.local/share/project-path-gateway/VERSION.ppg-install.4242
 op move /t/home/.local/share/project-path-gateway/VERSION.ppg-install.4242 /t/home/.local/share/project-path-gateway/VERSION
-op write /t/home/.local/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/install-manifest\n
+op copy /repo/share/SKILL.md /t/home/.local/share/project-path-gateway/SKILL.md.ppg-install.4242
+op chmod 644 /t/home/.local/share/project-path-gateway/SKILL.md.ppg-install.4242
+op move /t/home/.local/share/project-path-gateway/SKILL.md.ppg-install.4242 /t/home/.local/share/project-path-gateway/SKILL.md
+op write /t/home/.local/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/SKILL.md\nshare/project-path-gateway/install-manifest\n
 op copy /t/home/.local/share/project-path-gateway/install-manifest.ppg-manifest.4242 /t/home/.local/share/project-path-gateway/install-manifest.ppg-install.4242
 op chmod 644 /t/home/.local/share/project-path-gateway/install-manifest.ppg-install.4242
 op move /t/home/.local/share/project-path-gateway/install-manifest.ppg-install.4242 /t/home/.local/share/project-path-gateway/install-manifest
@@ -55,7 +60,10 @@ op move /t/prefix/share/project-path-gateway/project-path-gateway.sh.ppg-install
 op copy /repo/VERSION /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242
 op chmod 644 /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242
 op move /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242 /t/prefix/share/project-path-gateway/VERSION
-op write /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/install-manifest\n
+op copy /repo/share/SKILL.md /t/prefix/share/project-path-gateway/SKILL.md.ppg-install.4242
+op chmod 644 /t/prefix/share/project-path-gateway/SKILL.md.ppg-install.4242
+op move /t/prefix/share/project-path-gateway/SKILL.md.ppg-install.4242 /t/prefix/share/project-path-gateway/SKILL.md
+op write /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/SKILL.md\nshare/project-path-gateway/install-manifest\n
 op copy /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242
 op chmod 644 /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242
 op move /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242 /t/prefix/share/project-path-gateway/install-manifest
@@ -80,7 +88,10 @@ op move /t/opt/share/project-path-gateway/project-path-gateway.sh.ppg-install.42
 op copy /repo/VERSION /t/opt/share/project-path-gateway/VERSION.ppg-install.4242
 op chmod 644 /t/opt/share/project-path-gateway/VERSION.ppg-install.4242
 op move /t/opt/share/project-path-gateway/VERSION.ppg-install.4242 /t/opt/share/project-path-gateway/VERSION
-op write /t/opt/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/install-manifest\n
+op copy /repo/share/SKILL.md /t/opt/share/project-path-gateway/SKILL.md.ppg-install.4242
+op chmod 644 /t/opt/share/project-path-gateway/SKILL.md.ppg-install.4242
+op move /t/opt/share/project-path-gateway/SKILL.md.ppg-install.4242 /t/opt/share/project-path-gateway/SKILL.md
+op write /t/opt/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/SKILL.md\nshare/project-path-gateway/install-manifest\n
 op copy /t/opt/share/project-path-gateway/install-manifest.ppg-manifest.4242 /t/opt/share/project-path-gateway/install-manifest.ppg-install.4242
 op chmod 644 /t/opt/share/project-path-gateway/install-manifest.ppg-install.4242
 op move /t/opt/share/project-path-gateway/install-manifest.ppg-install.4242 /t/opt/share/project-path-gateway/install-manifest
@@ -103,7 +114,10 @@ op move /t/env/share/project-path-gateway/project-path-gateway.sh.ppg-install.42
 op copy /repo/VERSION /t/env/share/project-path-gateway/VERSION.ppg-install.4242
 op chmod 644 /t/env/share/project-path-gateway/VERSION.ppg-install.4242
 op move /t/env/share/project-path-gateway/VERSION.ppg-install.4242 /t/env/share/project-path-gateway/VERSION
-op write /t/env/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/install-manifest\n
+op copy /repo/share/SKILL.md /t/env/share/project-path-gateway/SKILL.md.ppg-install.4242
+op chmod 644 /t/env/share/project-path-gateway/SKILL.md.ppg-install.4242
+op move /t/env/share/project-path-gateway/SKILL.md.ppg-install.4242 /t/env/share/project-path-gateway/SKILL.md
+op write /t/env/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/SKILL.md\nshare/project-path-gateway/install-manifest\n
 op copy /t/env/share/project-path-gateway/install-manifest.ppg-manifest.4242 /t/env/share/project-path-gateway/install-manifest.ppg-install.4242
 op chmod 644 /t/env/share/project-path-gateway/install-manifest.ppg-install.4242
 op move /t/env/share/project-path-gateway/install-manifest.ppg-install.4242 /t/env/share/project-path-gateway/install-manifest
@@ -127,7 +141,10 @@ op move /t/prefix/share/project-path-gateway/project-path-gateway.sh.ppg-install
 op copy /repo/VERSION /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242
 op chmod 644 /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242
 op move /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242 /t/prefix/share/project-path-gateway/VERSION
-op write /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/install-manifest\n
+op copy /repo/share/SKILL.md /t/prefix/share/project-path-gateway/SKILL.md.ppg-install.4242
+op chmod 644 /t/prefix/share/project-path-gateway/SKILL.md.ppg-install.4242
+op move /t/prefix/share/project-path-gateway/SKILL.md.ppg-install.4242 /t/prefix/share/project-path-gateway/SKILL.md
+op write /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/SKILL.md\nshare/project-path-gateway/install-manifest\n
 op copy /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242
 op chmod 644 /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242
 op move /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242 /t/prefix/share/project-path-gateway/install-manifest
@@ -150,7 +167,10 @@ op move /t/prefix/share/project-path-gateway/project-path-gateway.sh.ppg-install
 op copy /repo/VERSION /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242
 op chmod 644 /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242
 op move /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242 /t/prefix/share/project-path-gateway/VERSION
-op write /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/install-manifest\n
+op copy /repo/share/SKILL.md /t/prefix/share/project-path-gateway/SKILL.md.ppg-install.4242
+op chmod 644 /t/prefix/share/project-path-gateway/SKILL.md.ppg-install.4242
+op move /t/prefix/share/project-path-gateway/SKILL.md.ppg-install.4242 /t/prefix/share/project-path-gateway/SKILL.md
+op write /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/SKILL.md\nshare/project-path-gateway/install-manifest\n
 op copy /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242
 op chmod 644 /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242
 op move /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242 /t/prefix/share/project-path-gateway/install-manifest
@@ -179,7 +199,10 @@ op move /t/prefix/share/project-path-gateway/project-path-gateway.sh.ppg-install
 op copy /repo/VERSION /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242
 op chmod 644 /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242
 op move /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242 /t/prefix/share/project-path-gateway/VERSION
-op write /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/install-manifest\n
+op copy /repo/share/SKILL.md /t/prefix/share/project-path-gateway/SKILL.md.ppg-install.4242
+op chmod 644 /t/prefix/share/project-path-gateway/SKILL.md.ppg-install.4242
+op move /t/prefix/share/project-path-gateway/SKILL.md.ppg-install.4242 /t/prefix/share/project-path-gateway/SKILL.md
+op write /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/SKILL.md\nshare/project-path-gateway/install-manifest\n
 op copy /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242
 op chmod 644 /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242
 op move /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242 /t/prefix/share/project-path-gateway/install-manifest
@@ -207,7 +230,10 @@ op move /t/prefix/share/project-path-gateway/project-path-gateway.sh.ppg-install
 op copy /repo/VERSION /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242
 op chmod 644 /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242
 op move /t/prefix/share/project-path-gateway/VERSION.ppg-install.4242 /t/prefix/share/project-path-gateway/VERSION
-op write /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/install-manifest\n
+op copy /repo/share/SKILL.md /t/prefix/share/project-path-gateway/SKILL.md.ppg-install.4242
+op chmod 644 /t/prefix/share/project-path-gateway/SKILL.md.ppg-install.4242
+op move /t/prefix/share/project-path-gateway/SKILL.md.ppg-install.4242 /t/prefix/share/project-path-gateway/SKILL.md
+op write /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 bin/project-path-gateway\nshare/project-path-gateway/project-path-gateway.sh\nshare/project-path-gateway/VERSION\nshare/project-path-gateway/SKILL.md\nshare/project-path-gateway/install-manifest\n
 op copy /t/prefix/share/project-path-gateway/install-manifest.ppg-manifest.4242 /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242
 op chmod 644 /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242
 op move /t/prefix/share/project-path-gateway/install-manifest.ppg-install.4242 /t/prefix/share/project-path-gateway/install-manifest

@@ -4,4 +4,4 @@ layer domain
 
 case install-layout-kinds
 status 0
-out bin library version
+out bin library version skill

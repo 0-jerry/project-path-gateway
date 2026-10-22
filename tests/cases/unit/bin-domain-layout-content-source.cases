@@ -1,0 +1,24 @@
+# 도메인 단위: 도구 배치 모델 - 내용 출처 (기능 006 FR-017, data-model 1.2)
+# builtin은 내장 내용 함수, installed는 설치된 원본 파일이다.
+target bin-func ppg__domain_layout_content_source
+layer domain
+
+case layout-content-source-marker
+arg marker
+status 0
+out builtin
+
+case layout-content-source-data
+arg data
+status 0
+out builtin
+
+case layout-content-source-library
+arg library
+status 0
+out installed
+
+case layout-content-source-skill
+arg skill
+status 0
+out installed

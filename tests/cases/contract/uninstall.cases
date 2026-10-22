@@ -85,3 +85,42 @@ case uninstall-prefix-without-value
 arg --prefix
 status 2
 err 사용법: sh uninstall.sh [--prefix DIR]
+
+# 기능 006 FR-016: 1.1.0 설치 목록(스킬 줄 포함)으로 제거하면 SKILL.md도 지우고 공유 디렉터리가 빈 상태가 되어 사라진다.
+# 제거 스크립트는 목록을 그대로 따르므로 코드가 바뀌지 않는다.
+case uninstall-removes-skill-from-manifest
+self /repo/uninstall.sh
+fs file /t/p2/bin/project-path-gateway
+fs file /t/p2/share/project-path-gateway/project-path-gateway.sh
+fs file /t/p2/share/project-path-gateway/VERSION
+fs file /t/p2/share/project-path-gateway/SKILL.md
+fs file /t/p2/share/project-path-gateway/install-manifest
+content bin/project-path-gateway
+content share/project-path-gateway/project-path-gateway.sh
+content share/project-path-gateway/VERSION
+content share/project-path-gateway/SKILL.md
+content share/project-path-gateway/install-manifest
+arg --prefix
+arg /t/p2
+status 0
+out project-path-gateway: 제거 완료: /t/p2
+op remove /t/p2/bin/project-path-gateway
+op remove /t/p2/share/project-path-gateway/project-path-gateway.sh
+op remove /t/p2/share/project-path-gateway/VERSION
+op remove /t/p2/share/project-path-gateway/SKILL.md
+op remove /t/p2/share/project-path-gateway/install-manifest
+op rmdir /t/p2/share/project-path-gateway
+
+# 기능 006 경계 사례: 1.0.0 설치 목록(스킬 줄 없음)으로 제거하면 SKILL.md가 남아 공유 디렉터리는 지워지지 않는다.
+case uninstall-old-manifest-leaves-skill-and-share-dir
+fs file /t/prefix/bin/project-path-gateway
+fs file /t/prefix/share/project-path-gateway/SKILL.md
+arg --prefix
+arg /t/prefix
+status 0
+out project-path-gateway: 제거 완료: /t/prefix
+op remove /t/prefix/bin/project-path-gateway
+op remove /t/prefix/share/project-path-gateway/project-path-gateway.sh
+op remove /t/prefix/share/project-path-gateway/VERSION
+op remove /t/prefix/share/project-path-gateway/install-manifest
+op rmdir /t/prefix/share/project-path-gateway

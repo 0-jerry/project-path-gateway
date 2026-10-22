@@ -1,5 +1,7 @@
 # 애플리케이션 통합: 프로젝트 초기화 흐름 (기능 001 cli_init_test, contracts/cli.md 2절, research R-10)
 # 사전 검사 실패는 쓰기 포트를 호출하지 않고, 쓰기 실패는 out_failure → cleanup_temp → rollback_dirs 순서로 정리한다.
+# 기능 006: 디렉터리는 목록 포트(ensure_dirs)가 대상 디렉터리 하나만 받아 처리하고, 실패한 경로는 port_failed_dir로 읽는다.
+# 설치 원본은 사전 검사에서 한 번, 쓰기 직전에 한 번 확인한다(research R-05).
 target bin-func ppg__app_init_project
 layer app
 
@@ -19,6 +21,12 @@ stub-out dir
 stub ppg__port_dir_state 0 /p/.tools
 stub-out other
 stub ppg__port_dir_state 0 /p/.tools/project-path-gateway
+stub-out absent
+stub ppg__port_dir_state 0 /p/.agents
+stub-out absent
+stub ppg__port_dir_state 0 /p/.agents/skills
+stub-out absent
+stub ppg__port_dir_state 0 /p/.agents/skills/project-path-gateway
 stub-out absent
 stub ppg__out_failure 0 tool_not_dir /p/.tools
 status 10
@@ -49,17 +57,28 @@ stub ppg__port_dir_state 0 /p/.tools
 stub-out dir
 stub ppg__port_dir_state 0 /p/.tools/project-path-gateway
 stub-out dir
+stub ppg__port_dir_state 0 /p/.agents
+stub-out dir
+stub ppg__port_dir_state 0 /p/.agents/skills
+stub-out dir
+stub ppg__port_dir_state 0 /p/.agents/skills/project-path-gateway
+stub-out dir
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/.project-path-gateway
 stub-out other
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.conf
 stub-out file
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.sh
 stub-out file
+stub ppg__port_file_state 0 /p/.agents/skills/project-path-gateway/SKILL.md
+stub-out file
 stub ppg__out_failure 0 not_regular /p/.tools/project-path-gateway/.project-path-gateway
 status 10
 op port ppg__port_dir_state /p
 op port ppg__port_dir_state /p/.tools
 op port ppg__port_dir_state /p/.tools/project-path-gateway
+op port ppg__port_dir_state /p/.agents
+op port ppg__port_dir_state /p/.agents/skills
+op port ppg__port_dir_state /p/.agents/skills/project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/.project-path-gateway
 op port ppg__out_failure not_regular /p/.tools/project-path-gateway/.project-path-gateway
 
@@ -70,6 +89,12 @@ stub-out dir
 stub ppg__port_dir_state 0 /p/.tools
 stub-out dir
 stub ppg__port_dir_state 0 /p/.tools/project-path-gateway
+stub-out dir
+stub ppg__port_dir_state 0 /p/.agents
+stub-out dir
+stub ppg__port_dir_state 0 /p/.agents/skills
+stub-out dir
+stub ppg__port_dir_state 0 /p/.agents/skills/project-path-gateway
 stub-out dir
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/.project-path-gateway
 stub-out file
@@ -82,6 +107,9 @@ status 10
 op port ppg__port_dir_state /p
 op port ppg__port_dir_state /p/.tools
 op port ppg__port_dir_state /p/.tools/project-path-gateway
+op port ppg__port_dir_state /p/.agents
+op port ppg__port_dir_state /p/.agents/skills
+op port ppg__port_dir_state /p/.agents/skills/project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/.project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.conf
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.sh
@@ -95,23 +123,35 @@ stub ppg__port_dir_state 0 /p/.tools
 stub-out absent
 stub ppg__port_dir_state 0 /p/.tools/project-path-gateway
 stub-out absent
+stub ppg__port_dir_state 0 /p/.agents
+stub-out absent
+stub ppg__port_dir_state 0 /p/.agents/skills
+stub-out absent
+stub ppg__port_dir_state 0 /p/.agents/skills/project-path-gateway
+stub-out absent
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/.project-path-gateway
 stub-out absent
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.conf
 stub-out absent
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.sh
 stub-out absent
-stub ppg__port_library_source 1 share/project-path-gateway/project-path-gateway.sh
+stub ppg__port_file_state 0 /p/.agents/skills/project-path-gateway/SKILL.md
+stub-out absent
+stub ppg__port_installed_source 1 share/project-path-gateway/project-path-gateway.sh
 stub-out-raw /pre/share/project-path-gateway/project-path-gateway.shx
 stub ppg__out_failure 0 no_library /pre/share/project-path-gateway/project-path-gateway.sh
 status 11
 op port ppg__port_dir_state /p
 op port ppg__port_dir_state /p/.tools
 op port ppg__port_dir_state /p/.tools/project-path-gateway
+op port ppg__port_dir_state /p/.agents
+op port ppg__port_dir_state /p/.agents/skills
+op port ppg__port_dir_state /p/.agents/skills/project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/.project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.conf
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.sh
-op port ppg__port_library_source share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_file_state /p/.agents/skills/project-path-gateway/SKILL.md
+op port ppg__port_installed_source share/project-path-gateway/project-path-gateway.sh
 op port ppg__out_failure no_library /pre/share/project-path-gateway/project-path-gateway.sh
 
 case init-project-physical-dir-fails
@@ -122,24 +162,39 @@ stub ppg__port_dir_state 0 /p/.tools
 stub-out absent
 stub ppg__port_dir_state 0 /p/.tools/project-path-gateway
 stub-out absent
+stub ppg__port_dir_state 0 /p/.agents
+stub-out absent
+stub ppg__port_dir_state 0 /p/.agents/skills
+stub-out absent
+stub ppg__port_dir_state 0 /p/.agents/skills/project-path-gateway
+stub-out absent
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/.project-path-gateway
 stub-out absent
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.conf
 stub-out absent
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.sh
 stub-out absent
-stub ppg__port_library_source 0 share/project-path-gateway/project-path-gateway.sh
+stub ppg__port_file_state 0 /p/.agents/skills/project-path-gateway/SKILL.md
+stub-out absent
+stub ppg__port_installed_source 0 share/project-path-gateway/project-path-gateway.sh
 stub-out-raw /pre/share/project-path-gateway/project-path-gateway.shx
+stub ppg__port_installed_source 0 share/project-path-gateway/SKILL.md
+stub-out-raw /pre/share/project-path-gateway/SKILL.mdx
 stub ppg__port_physical_dir 1 /p
 stub ppg__out_failure 0 not_dir /p
 status 10
 op port ppg__port_dir_state /p
 op port ppg__port_dir_state /p/.tools
 op port ppg__port_dir_state /p/.tools/project-path-gateway
+op port ppg__port_dir_state /p/.agents
+op port ppg__port_dir_state /p/.agents/skills
+op port ppg__port_dir_state /p/.agents/skills/project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/.project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.conf
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.sh
-op port ppg__port_library_source share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_file_state /p/.agents/skills/project-path-gateway/SKILL.md
+op port ppg__port_installed_source share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_installed_source share/project-path-gateway/SKILL.md
 op port ppg__port_physical_dir /p
 op port ppg__out_failure not_dir /p
 
@@ -151,33 +206,53 @@ stub ppg__port_dir_state 0 /p/.tools
 stub-out absent
 stub ppg__port_dir_state 0 /p/.tools/project-path-gateway
 stub-out absent
+stub ppg__port_dir_state 0 /p/.agents
+stub-out absent
+stub ppg__port_dir_state 0 /p/.agents/skills
+stub-out absent
+stub ppg__port_dir_state 0 /p/.agents/skills/project-path-gateway
+stub-out absent
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/.project-path-gateway
 stub-out absent
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.conf
 stub-out absent
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.sh
 stub-out absent
-stub ppg__port_library_source 0 share/project-path-gateway/project-path-gateway.sh
+stub ppg__port_file_state 0 /p/.agents/skills/project-path-gateway/SKILL.md
+stub-out absent
+stub ppg__port_installed_source 0 share/project-path-gateway/project-path-gateway.sh
 stub-out-raw /pre/share/project-path-gateway/project-path-gateway.shx
+stub ppg__port_installed_source 0 share/project-path-gateway/SKILL.md
+stub-out-raw /pre/share/project-path-gateway/SKILL.mdx
 stub ppg__port_physical_dir 0 /p
 stub-out-raw /real/px
-stub ppg__port_ensure_tool_dirs 1 /p/.tools /p/.tools/project-path-gateway
-stub ppg__out_failure 0 write /p/.tools/project-path-gateway
+stub ppg__port_ensure_dirs 1 /p
+stub ppg__port_failed_dir 0
+stub-out /p/.tools
+stub ppg__out_failure 0 write /p/.tools
 stub ppg__port_cleanup_temp 0 /p/.tools/project-path-gateway
-stub ppg__port_rollback_dirs 0 /p/.tools /p/.tools/project-path-gateway
+stub ppg__port_cleanup_temp 0 /p/.agents/skills/project-path-gateway
+stub ppg__port_rollback_dirs 0
 status 12
 op port ppg__port_dir_state /p
 op port ppg__port_dir_state /p/.tools
 op port ppg__port_dir_state /p/.tools/project-path-gateway
+op port ppg__port_dir_state /p/.agents
+op port ppg__port_dir_state /p/.agents/skills
+op port ppg__port_dir_state /p/.agents/skills/project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/.project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.conf
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.sh
-op port ppg__port_library_source share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_file_state /p/.agents/skills/project-path-gateway/SKILL.md
+op port ppg__port_installed_source share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_installed_source share/project-path-gateway/SKILL.md
 op port ppg__port_physical_dir /p
-op port ppg__port_ensure_tool_dirs /p/.tools /p/.tools/project-path-gateway
-op port ppg__out_failure write /p/.tools/project-path-gateway
+op port ppg__port_ensure_dirs /p
+op port ppg__port_failed_dir
+op port ppg__out_failure write /p/.tools
 op port ppg__port_cleanup_temp /p/.tools/project-path-gateway
-op port ppg__port_rollback_dirs /p/.tools /p/.tools/project-path-gateway
+op port ppg__port_cleanup_temp /p/.agents/skills/project-path-gateway
+op port ppg__port_rollback_dirs
 
 case init-project-write-marker-fails
 arg /p
@@ -187,36 +262,53 @@ stub ppg__port_dir_state 0 /p/.tools
 stub-out absent
 stub ppg__port_dir_state 0 /p/.tools/project-path-gateway
 stub-out absent
+stub ppg__port_dir_state 0 /p/.agents
+stub-out absent
+stub ppg__port_dir_state 0 /p/.agents/skills
+stub-out absent
+stub ppg__port_dir_state 0 /p/.agents/skills/project-path-gateway
+stub-out absent
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/.project-path-gateway
 stub-out absent
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.conf
 stub-out absent
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.sh
 stub-out absent
-stub ppg__port_library_source 0 share/project-path-gateway/project-path-gateway.sh
+stub ppg__port_file_state 0 /p/.agents/skills/project-path-gateway/SKILL.md
+stub-out absent
+stub ppg__port_installed_source 0 share/project-path-gateway/project-path-gateway.sh
 stub-out-raw /pre/share/project-path-gateway/project-path-gateway.shx
+stub ppg__port_installed_source 0 share/project-path-gateway/SKILL.md
+stub-out-raw /pre/share/project-path-gateway/SKILL.mdx
 stub ppg__port_physical_dir 0 /p
 stub-out-raw /real/px
-stub ppg__port_ensure_tool_dirs 0 /p/.tools /p/.tools/project-path-gateway
+stub ppg__port_ensure_dirs 0 /p
 stub ppg__port_write_new 1 /p/.tools/project-path-gateway/.project-path-gateway ppg__domain_marker_content
 stub ppg__out_failure 0 write /p/.tools/project-path-gateway/.project-path-gateway
 stub ppg__port_cleanup_temp 0 /p/.tools/project-path-gateway
-stub ppg__port_rollback_dirs 0 /p/.tools /p/.tools/project-path-gateway
+stub ppg__port_cleanup_temp 0 /p/.agents/skills/project-path-gateway
+stub ppg__port_rollback_dirs 0
 status 12
 op port ppg__port_dir_state /p
 op port ppg__port_dir_state /p/.tools
 op port ppg__port_dir_state /p/.tools/project-path-gateway
+op port ppg__port_dir_state /p/.agents
+op port ppg__port_dir_state /p/.agents/skills
+op port ppg__port_dir_state /p/.agents/skills/project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/.project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.conf
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.sh
-op port ppg__port_library_source share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_file_state /p/.agents/skills/project-path-gateway/SKILL.md
+op port ppg__port_installed_source share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_installed_source share/project-path-gateway/SKILL.md
 op port ppg__port_physical_dir /p
-op port ppg__port_ensure_tool_dirs /p/.tools /p/.tools/project-path-gateway
+op port ppg__port_ensure_dirs /p
 op port ppg__port_file_state /p/.tools/project-path-gateway/.project-path-gateway
 op port ppg__port_write_new /p/.tools/project-path-gateway/.project-path-gateway ppg__domain_marker_content
 op port ppg__out_failure write /p/.tools/project-path-gateway/.project-path-gateway
 op port ppg__port_cleanup_temp /p/.tools/project-path-gateway
-op port ppg__port_rollback_dirs /p/.tools /p/.tools/project-path-gateway
+op port ppg__port_cleanup_temp /p/.agents/skills/project-path-gateway
+op port ppg__port_rollback_dirs
 
 case init-project-copy-library-fails-after-two-files
 arg /p
@@ -226,17 +318,27 @@ stub ppg__port_dir_state 0 /p/.tools
 stub-out absent
 stub ppg__port_dir_state 0 /p/.tools/project-path-gateway
 stub-out absent
+stub ppg__port_dir_state 0 /p/.agents
+stub-out absent
+stub ppg__port_dir_state 0 /p/.agents/skills
+stub-out absent
+stub ppg__port_dir_state 0 /p/.agents/skills/project-path-gateway
+stub-out absent
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/.project-path-gateway
 stub-out absent
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.conf
 stub-out absent
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.sh
 stub-out absent
-stub ppg__port_library_source 0 share/project-path-gateway/project-path-gateway.sh
+stub ppg__port_file_state 0 /p/.agents/skills/project-path-gateway/SKILL.md
+stub-out absent
+stub ppg__port_installed_source 0 share/project-path-gateway/project-path-gateway.sh
 stub-out-raw /pre/share/project-path-gateway/project-path-gateway.shx
+stub ppg__port_installed_source 0 share/project-path-gateway/SKILL.md
+stub-out-raw /pre/share/project-path-gateway/SKILL.mdx
 stub ppg__port_physical_dir 0 /p
 stub-out-raw /real/px
-stub ppg__port_ensure_tool_dirs 0 /p/.tools /p/.tools/project-path-gateway
+stub ppg__port_ensure_dirs 0 /p
 stub ppg__port_write_new 0 /p/.tools/project-path-gateway/.project-path-gateway ppg__domain_marker_content
 stub ppg__port_write_new 0 /p/.tools/project-path-gateway/project-path-gateway.conf ppg__domain_data_template
 stub ppg__port_copy_new 1 /p/.tools/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
@@ -244,17 +346,23 @@ stub ppg__out_action 0 create .tools/project-path-gateway/.project-path-gateway
 stub ppg__out_action 0 create .tools/project-path-gateway/project-path-gateway.conf
 stub ppg__out_failure 0 write /p/.tools/project-path-gateway/project-path-gateway.sh
 stub ppg__port_cleanup_temp 0 /p/.tools/project-path-gateway
-stub ppg__port_rollback_dirs 0 /p/.tools /p/.tools/project-path-gateway
+stub ppg__port_cleanup_temp 0 /p/.agents/skills/project-path-gateway
+stub ppg__port_rollback_dirs 0
 status 12
 op port ppg__port_dir_state /p
 op port ppg__port_dir_state /p/.tools
 op port ppg__port_dir_state /p/.tools/project-path-gateway
+op port ppg__port_dir_state /p/.agents
+op port ppg__port_dir_state /p/.agents/skills
+op port ppg__port_dir_state /p/.agents/skills/project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/.project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.conf
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.sh
-op port ppg__port_library_source share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_file_state /p/.agents/skills/project-path-gateway/SKILL.md
+op port ppg__port_installed_source share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_installed_source share/project-path-gateway/SKILL.md
 op port ppg__port_physical_dir /p
-op port ppg__port_ensure_tool_dirs /p/.tools /p/.tools/project-path-gateway
+op port ppg__port_ensure_dirs /p
 op port ppg__port_file_state /p/.tools/project-path-gateway/.project-path-gateway
 op port ppg__port_write_new /p/.tools/project-path-gateway/.project-path-gateway ppg__domain_marker_content
 op port ppg__out_action create .tools/project-path-gateway/.project-path-gateway
@@ -262,10 +370,12 @@ op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway
 op port ppg__port_write_new /p/.tools/project-path-gateway/project-path-gateway.conf ppg__domain_data_template
 op port ppg__out_action create .tools/project-path-gateway/project-path-gateway.conf
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.sh
+op port ppg__port_installed_source share/project-path-gateway/project-path-gateway.sh
 op port ppg__port_copy_new /p/.tools/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
 op port ppg__out_failure write /p/.tools/project-path-gateway/project-path-gateway.sh
 op port ppg__port_cleanup_temp /p/.tools/project-path-gateway
-op port ppg__port_rollback_dirs /p/.tools /p/.tools/project-path-gateway
+op port ppg__port_cleanup_temp /p/.agents/skills/project-path-gateway
+op port ppg__port_rollback_dirs
 
 case init-project-replace-library-fails
 arg /p
@@ -275,42 +385,60 @@ stub ppg__port_dir_state 0 /p/.tools
 stub-out dir
 stub ppg__port_dir_state 0 /p/.tools/project-path-gateway
 stub-out dir
+stub ppg__port_dir_state 0 /p/.agents
+stub-out dir
+stub ppg__port_dir_state 0 /p/.agents/skills
+stub-out dir
+stub ppg__port_dir_state 0 /p/.agents/skills/project-path-gateway
+stub-out dir
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/.project-path-gateway
 stub-out file
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.conf
 stub-out file
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.sh
 stub-out file
-stub ppg__port_library_source 0 share/project-path-gateway/project-path-gateway.sh
+stub ppg__port_file_state 0 /p/.agents/skills/project-path-gateway/SKILL.md
+stub-out file
+stub ppg__port_installed_source 0 share/project-path-gateway/project-path-gateway.sh
 stub-out-raw /pre/share/project-path-gateway/project-path-gateway.shx
+stub ppg__port_installed_source 0 share/project-path-gateway/SKILL.md
+stub-out-raw /pre/share/project-path-gateway/SKILL.mdx
 stub ppg__port_physical_dir 0 /p
 stub-out-raw /real/px
-stub ppg__port_ensure_tool_dirs 0 /p/.tools /p/.tools/project-path-gateway
+stub ppg__port_ensure_dirs 0 /p
 stub ppg__port_replace 1 /p/.tools/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
 stub ppg__out_action 0 keep .tools/project-path-gateway/.project-path-gateway
 stub ppg__out_action 0 keep .tools/project-path-gateway/project-path-gateway.conf
 stub ppg__out_failure 0 write /p/.tools/project-path-gateway/project-path-gateway.sh
 stub ppg__port_cleanup_temp 0 /p/.tools/project-path-gateway
-stub ppg__port_rollback_dirs 0 /p/.tools /p/.tools/project-path-gateway
+stub ppg__port_cleanup_temp 0 /p/.agents/skills/project-path-gateway
+stub ppg__port_rollback_dirs 0
 status 12
 op port ppg__port_dir_state /p
 op port ppg__port_dir_state /p/.tools
 op port ppg__port_dir_state /p/.tools/project-path-gateway
+op port ppg__port_dir_state /p/.agents
+op port ppg__port_dir_state /p/.agents/skills
+op port ppg__port_dir_state /p/.agents/skills/project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/.project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.conf
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.sh
-op port ppg__port_library_source share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_file_state /p/.agents/skills/project-path-gateway/SKILL.md
+op port ppg__port_installed_source share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_installed_source share/project-path-gateway/SKILL.md
 op port ppg__port_physical_dir /p
-op port ppg__port_ensure_tool_dirs /p/.tools /p/.tools/project-path-gateway
+op port ppg__port_ensure_dirs /p
 op port ppg__port_file_state /p/.tools/project-path-gateway/.project-path-gateway
 op port ppg__out_action keep .tools/project-path-gateway/.project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.conf
 op port ppg__out_action keep .tools/project-path-gateway/project-path-gateway.conf
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.sh
+op port ppg__port_installed_source share/project-path-gateway/project-path-gateway.sh
 op port ppg__port_replace /p/.tools/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
 op port ppg__out_failure write /p/.tools/project-path-gateway/project-path-gateway.sh
 op port ppg__port_cleanup_temp /p/.tools/project-path-gateway
-op port ppg__port_rollback_dirs /p/.tools /p/.tools/project-path-gateway
+op port ppg__port_cleanup_temp /p/.agents/skills/project-path-gateway
+op port ppg__port_rollback_dirs
 
 case init-project-new-project
 arg /p
@@ -320,34 +448,51 @@ stub ppg__port_dir_state 0 /p/.tools
 stub-out absent
 stub ppg__port_dir_state 0 /p/.tools/project-path-gateway
 stub-out absent
+stub ppg__port_dir_state 0 /p/.agents
+stub-out absent
+stub ppg__port_dir_state 0 /p/.agents/skills
+stub-out absent
+stub ppg__port_dir_state 0 /p/.agents/skills/project-path-gateway
+stub-out absent
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/.project-path-gateway
 stub-out absent
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.conf
 stub-out absent
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.sh
 stub-out absent
-stub ppg__port_library_source 0 share/project-path-gateway/project-path-gateway.sh
+stub ppg__port_file_state 0 /p/.agents/skills/project-path-gateway/SKILL.md
+stub-out absent
+stub ppg__port_installed_source 0 share/project-path-gateway/project-path-gateway.sh
 stub-out-raw /pre/share/project-path-gateway/project-path-gateway.shx
+stub ppg__port_installed_source 0 share/project-path-gateway/SKILL.md
+stub-out-raw /pre/share/project-path-gateway/SKILL.mdx
 stub ppg__port_physical_dir 0 /p
 stub-out-raw /real/px
-stub ppg__port_ensure_tool_dirs 0 /p/.tools /p/.tools/project-path-gateway
+stub ppg__port_ensure_dirs 0 /p
 stub ppg__port_write_new 0 /p/.tools/project-path-gateway/.project-path-gateway ppg__domain_marker_content
 stub ppg__port_write_new 0 /p/.tools/project-path-gateway/project-path-gateway.conf ppg__domain_data_template
 stub ppg__port_copy_new 0 /p/.tools/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
+stub ppg__port_copy_new 0 /p/.agents/skills/project-path-gateway/SKILL.md /pre/share/project-path-gateway/SKILL.md
 stub ppg__out_action 0 create .tools/project-path-gateway/.project-path-gateway
 stub ppg__out_action 0 create .tools/project-path-gateway/project-path-gateway.conf
 stub ppg__out_action 0 create .tools/project-path-gateway/project-path-gateway.sh
+stub ppg__out_action 0 create .agents/skills/project-path-gateway/SKILL.md
 stub ppg__out_done 0 /real/p
 status 0
 op port ppg__port_dir_state /p
 op port ppg__port_dir_state /p/.tools
 op port ppg__port_dir_state /p/.tools/project-path-gateway
+op port ppg__port_dir_state /p/.agents
+op port ppg__port_dir_state /p/.agents/skills
+op port ppg__port_dir_state /p/.agents/skills/project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/.project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.conf
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.sh
-op port ppg__port_library_source share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_file_state /p/.agents/skills/project-path-gateway/SKILL.md
+op port ppg__port_installed_source share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_installed_source share/project-path-gateway/SKILL.md
 op port ppg__port_physical_dir /p
-op port ppg__port_ensure_tool_dirs /p/.tools /p/.tools/project-path-gateway
+op port ppg__port_ensure_dirs /p
 op port ppg__port_file_state /p/.tools/project-path-gateway/.project-path-gateway
 op port ppg__port_write_new /p/.tools/project-path-gateway/.project-path-gateway ppg__domain_marker_content
 op port ppg__out_action create .tools/project-path-gateway/.project-path-gateway
@@ -355,8 +500,13 @@ op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway
 op port ppg__port_write_new /p/.tools/project-path-gateway/project-path-gateway.conf ppg__domain_data_template
 op port ppg__out_action create .tools/project-path-gateway/project-path-gateway.conf
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.sh
+op port ppg__port_installed_source share/project-path-gateway/project-path-gateway.sh
 op port ppg__port_copy_new /p/.tools/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
 op port ppg__out_action create .tools/project-path-gateway/project-path-gateway.sh
+op port ppg__port_file_state /p/.agents/skills/project-path-gateway/SKILL.md
+op port ppg__port_installed_source share/project-path-gateway/SKILL.md
+op port ppg__port_copy_new /p/.agents/skills/project-path-gateway/SKILL.md /pre/share/project-path-gateway/SKILL.md
+op port ppg__out_action create .agents/skills/project-path-gateway/SKILL.md
 op port ppg__out_done /real/p
 
 case init-project-rerun-keeps-data-and-replaces-library
@@ -367,39 +517,61 @@ stub ppg__port_dir_state 0 /p/.tools
 stub-out dir
 stub ppg__port_dir_state 0 /p/.tools/project-path-gateway
 stub-out dir
+stub ppg__port_dir_state 0 /p/.agents
+stub-out dir
+stub ppg__port_dir_state 0 /p/.agents/skills
+stub-out dir
+stub ppg__port_dir_state 0 /p/.agents/skills/project-path-gateway
+stub-out dir
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/.project-path-gateway
 stub-out file
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.conf
 stub-out file
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.sh
 stub-out file
-stub ppg__port_library_source 0 share/project-path-gateway/project-path-gateway.sh
+stub ppg__port_file_state 0 /p/.agents/skills/project-path-gateway/SKILL.md
+stub-out file
+stub ppg__port_installed_source 0 share/project-path-gateway/project-path-gateway.sh
 stub-out-raw /pre/share/project-path-gateway/project-path-gateway.shx
+stub ppg__port_installed_source 0 share/project-path-gateway/SKILL.md
+stub-out-raw /pre/share/project-path-gateway/SKILL.mdx
 stub ppg__port_physical_dir 0 /p
 stub-out-raw /real/px
-stub ppg__port_ensure_tool_dirs 0 /p/.tools /p/.tools/project-path-gateway
+stub ppg__port_ensure_dirs 0 /p
 stub ppg__port_replace 0 /p/.tools/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
+stub ppg__port_replace 0 /p/.agents/skills/project-path-gateway/SKILL.md /pre/share/project-path-gateway/SKILL.md
 stub ppg__out_action 0 keep .tools/project-path-gateway/.project-path-gateway
 stub ppg__out_action 0 keep .tools/project-path-gateway/project-path-gateway.conf
 stub ppg__out_action 0 replace .tools/project-path-gateway/project-path-gateway.sh
+stub ppg__out_action 0 replace .agents/skills/project-path-gateway/SKILL.md
 stub ppg__out_done 0 /real/p
 status 0
 op port ppg__port_dir_state /p
 op port ppg__port_dir_state /p/.tools
 op port ppg__port_dir_state /p/.tools/project-path-gateway
+op port ppg__port_dir_state /p/.agents
+op port ppg__port_dir_state /p/.agents/skills
+op port ppg__port_dir_state /p/.agents/skills/project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/.project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.conf
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.sh
-op port ppg__port_library_source share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_file_state /p/.agents/skills/project-path-gateway/SKILL.md
+op port ppg__port_installed_source share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_installed_source share/project-path-gateway/SKILL.md
 op port ppg__port_physical_dir /p
-op port ppg__port_ensure_tool_dirs /p/.tools /p/.tools/project-path-gateway
+op port ppg__port_ensure_dirs /p
 op port ppg__port_file_state /p/.tools/project-path-gateway/.project-path-gateway
 op port ppg__out_action keep .tools/project-path-gateway/.project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.conf
 op port ppg__out_action keep .tools/project-path-gateway/project-path-gateway.conf
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.sh
+op port ppg__port_installed_source share/project-path-gateway/project-path-gateway.sh
 op port ppg__port_replace /p/.tools/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
 op port ppg__out_action replace .tools/project-path-gateway/project-path-gateway.sh
+op port ppg__port_file_state /p/.agents/skills/project-path-gateway/SKILL.md
+op port ppg__port_installed_source share/project-path-gateway/SKILL.md
+op port ppg__port_replace /p/.agents/skills/project-path-gateway/SKILL.md /pre/share/project-path-gateway/SKILL.md
+op port ppg__out_action replace .agents/skills/project-path-gateway/SKILL.md
 op port ppg__out_done /real/p
 
 case init-project-data-file-deleted-is-recreated
@@ -410,39 +582,217 @@ stub ppg__port_dir_state 0 /p/.tools
 stub-out dir
 stub ppg__port_dir_state 0 /p/.tools/project-path-gateway
 stub-out dir
+stub ppg__port_dir_state 0 /p/.agents
+stub-out dir
+stub ppg__port_dir_state 0 /p/.agents/skills
+stub-out dir
+stub ppg__port_dir_state 0 /p/.agents/skills/project-path-gateway
+stub-out dir
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/.project-path-gateway
 stub-out file
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.conf
 stub-out absent
 stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.sh
 stub-out file
-stub ppg__port_library_source 0 share/project-path-gateway/project-path-gateway.sh
+stub ppg__port_file_state 0 /p/.agents/skills/project-path-gateway/SKILL.md
+stub-out file
+stub ppg__port_installed_source 0 share/project-path-gateway/project-path-gateway.sh
 stub-out-raw /pre/share/project-path-gateway/project-path-gateway.shx
+stub ppg__port_installed_source 0 share/project-path-gateway/SKILL.md
+stub-out-raw /pre/share/project-path-gateway/SKILL.mdx
 stub ppg__port_physical_dir 0 /p
 stub-out-raw /real/px
-stub ppg__port_ensure_tool_dirs 0 /p/.tools /p/.tools/project-path-gateway
+stub ppg__port_ensure_dirs 0 /p
 stub ppg__port_write_new 0 /p/.tools/project-path-gateway/project-path-gateway.conf ppg__domain_data_template
 stub ppg__port_replace 0 /p/.tools/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
+stub ppg__port_replace 0 /p/.agents/skills/project-path-gateway/SKILL.md /pre/share/project-path-gateway/SKILL.md
 stub ppg__out_action 0 keep .tools/project-path-gateway/.project-path-gateway
 stub ppg__out_action 0 create .tools/project-path-gateway/project-path-gateway.conf
 stub ppg__out_action 0 replace .tools/project-path-gateway/project-path-gateway.sh
+stub ppg__out_action 0 replace .agents/skills/project-path-gateway/SKILL.md
 stub ppg__out_done 0 /real/p
 status 0
 op port ppg__port_dir_state /p
 op port ppg__port_dir_state /p/.tools
 op port ppg__port_dir_state /p/.tools/project-path-gateway
+op port ppg__port_dir_state /p/.agents
+op port ppg__port_dir_state /p/.agents/skills
+op port ppg__port_dir_state /p/.agents/skills/project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/.project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.conf
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.sh
-op port ppg__port_library_source share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_file_state /p/.agents/skills/project-path-gateway/SKILL.md
+op port ppg__port_installed_source share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_installed_source share/project-path-gateway/SKILL.md
 op port ppg__port_physical_dir /p
-op port ppg__port_ensure_tool_dirs /p/.tools /p/.tools/project-path-gateway
+op port ppg__port_ensure_dirs /p
 op port ppg__port_file_state /p/.tools/project-path-gateway/.project-path-gateway
 op port ppg__out_action keep .tools/project-path-gateway/.project-path-gateway
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.conf
 op port ppg__port_write_new /p/.tools/project-path-gateway/project-path-gateway.conf ppg__domain_data_template
 op port ppg__out_action create .tools/project-path-gateway/project-path-gateway.conf
 op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.sh
+op port ppg__port_installed_source share/project-path-gateway/project-path-gateway.sh
 op port ppg__port_replace /p/.tools/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
 op port ppg__out_action replace .tools/project-path-gateway/project-path-gateway.sh
+op port ppg__port_file_state /p/.agents/skills/project-path-gateway/SKILL.md
+op port ppg__port_installed_source share/project-path-gateway/SKILL.md
+op port ppg__port_replace /p/.agents/skills/project-path-gateway/SKILL.md /pre/share/project-path-gateway/SKILL.md
+op port ppg__out_action replace .agents/skills/project-path-gateway/SKILL.md
 op port ppg__out_done /real/p
+
+# 기능 006 US2·FR-015: 스킬 원본이 없으면 디렉터리를 만들기 전에 끝낸다(ensure_dirs 호출 없음).
+case init-project-no-skill-source
+arg /p
+stub ppg__port_dir_state 0 /p
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tools
+stub-out absent
+stub ppg__port_dir_state 0 /p/.tools/project-path-gateway
+stub-out absent
+stub ppg__port_dir_state 0 /p/.agents
+stub-out absent
+stub ppg__port_dir_state 0 /p/.agents/skills
+stub-out absent
+stub ppg__port_dir_state 0 /p/.agents/skills/project-path-gateway
+stub-out absent
+stub ppg__port_file_state 0 /p/.tools/project-path-gateway/.project-path-gateway
+stub-out absent
+stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.conf
+stub-out absent
+stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.sh
+stub-out absent
+stub ppg__port_file_state 0 /p/.agents/skills/project-path-gateway/SKILL.md
+stub-out absent
+stub ppg__port_installed_source 0 share/project-path-gateway/project-path-gateway.sh
+stub-out-raw /pre/share/project-path-gateway/project-path-gateway.shx
+stub ppg__port_installed_source 1 share/project-path-gateway/SKILL.md
+stub-out-raw /pre/share/project-path-gateway/SKILL.mdx
+stub ppg__out_failure 0 no_skill /pre/share/project-path-gateway/SKILL.md
+status 11
+op port ppg__port_dir_state /p
+op port ppg__port_dir_state /p/.tools
+op port ppg__port_dir_state /p/.tools/project-path-gateway
+op port ppg__port_dir_state /p/.agents
+op port ppg__port_dir_state /p/.agents/skills
+op port ppg__port_dir_state /p/.agents/skills/project-path-gateway
+op port ppg__port_file_state /p/.tools/project-path-gateway/.project-path-gateway
+op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.conf
+op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.sh
+op port ppg__port_file_state /p/.agents/skills/project-path-gateway/SKILL.md
+op port ppg__port_installed_source share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_installed_source share/project-path-gateway/SKILL.md
+op port ppg__out_failure no_skill /pre/share/project-path-gateway/SKILL.md
+
+# 기능 006 US2·FR-020: 스킬 파일 자리가 일반 파일이 아니면 사전 검사에서 끝난다.
+case init-project-skill-not-regular
+arg /p
+stub ppg__port_dir_state 0 /p
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tools
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tools/project-path-gateway
+stub-out dir
+stub ppg__port_dir_state 0 /p/.agents
+stub-out dir
+stub ppg__port_dir_state 0 /p/.agents/skills
+stub-out dir
+stub ppg__port_dir_state 0 /p/.agents/skills/project-path-gateway
+stub-out dir
+stub ppg__port_file_state 0 /p/.tools/project-path-gateway/.project-path-gateway
+stub-out file
+stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.conf
+stub-out file
+stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.sh
+stub-out file
+stub ppg__port_file_state 0 /p/.agents/skills/project-path-gateway/SKILL.md
+stub-out other
+stub ppg__out_failure 0 not_regular /p/.agents/skills/project-path-gateway/SKILL.md
+status 10
+op port ppg__port_dir_state /p
+op port ppg__port_dir_state /p/.tools
+op port ppg__port_dir_state /p/.tools/project-path-gateway
+op port ppg__port_dir_state /p/.agents
+op port ppg__port_dir_state /p/.agents/skills
+op port ppg__port_dir_state /p/.agents/skills/project-path-gateway
+op port ppg__port_file_state /p/.tools/project-path-gateway/.project-path-gateway
+op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.conf
+op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.sh
+op port ppg__port_file_state /p/.agents/skills/project-path-gateway/SKILL.md
+op port ppg__out_failure not_regular /p/.agents/skills/project-path-gateway/SKILL.md
+
+# 기능 006 US2·US3·FR-022·FR-024: 스킬 파일 쓰기가 실패하면 앞선 세 파일은 완결된 상태로 남고
+# 임시 파일 정리(두 디렉터리) 뒤 이번 실행에서 만든 디렉터리만 되돌린다.
+# 스킬 파일도 라이브러리와 같은 쓰기 포트(copy_new)를 거친다(임시 파일 뒤 교체).
+case init-project-write-skill-fails
+arg /p
+stub ppg__port_dir_state 0 /p
+stub-out dir
+stub ppg__port_dir_state 0 /p/.tools
+stub-out absent
+stub ppg__port_dir_state 0 /p/.tools/project-path-gateway
+stub-out absent
+stub ppg__port_dir_state 0 /p/.agents
+stub-out absent
+stub ppg__port_dir_state 0 /p/.agents/skills
+stub-out absent
+stub ppg__port_dir_state 0 /p/.agents/skills/project-path-gateway
+stub-out absent
+stub ppg__port_file_state 0 /p/.tools/project-path-gateway/.project-path-gateway
+stub-out absent
+stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.conf
+stub-out absent
+stub ppg__port_file_state 0 /p/.tools/project-path-gateway/project-path-gateway.sh
+stub-out absent
+stub ppg__port_file_state 0 /p/.agents/skills/project-path-gateway/SKILL.md
+stub-out absent
+stub ppg__port_installed_source 0 share/project-path-gateway/project-path-gateway.sh
+stub-out-raw /pre/share/project-path-gateway/project-path-gateway.shx
+stub ppg__port_installed_source 0 share/project-path-gateway/SKILL.md
+stub-out-raw /pre/share/project-path-gateway/SKILL.mdx
+stub ppg__port_physical_dir 0 /p
+stub-out-raw /real/px
+stub ppg__port_ensure_dirs 0 /p
+stub ppg__port_write_new 0 /p/.tools/project-path-gateway/.project-path-gateway ppg__domain_marker_content
+stub ppg__port_write_new 0 /p/.tools/project-path-gateway/project-path-gateway.conf ppg__domain_data_template
+stub ppg__port_copy_new 0 /p/.tools/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
+stub ppg__port_copy_new 1 /p/.agents/skills/project-path-gateway/SKILL.md /pre/share/project-path-gateway/SKILL.md
+stub ppg__out_action 0 create .tools/project-path-gateway/.project-path-gateway
+stub ppg__out_action 0 create .tools/project-path-gateway/project-path-gateway.conf
+stub ppg__out_action 0 create .tools/project-path-gateway/project-path-gateway.sh
+stub ppg__out_failure 0 write /p/.agents/skills/project-path-gateway/SKILL.md
+stub ppg__port_cleanup_temp 0 /p/.tools/project-path-gateway
+stub ppg__port_cleanup_temp 0 /p/.agents/skills/project-path-gateway
+stub ppg__port_rollback_dirs 0
+status 12
+op port ppg__port_dir_state /p
+op port ppg__port_dir_state /p/.tools
+op port ppg__port_dir_state /p/.tools/project-path-gateway
+op port ppg__port_dir_state /p/.agents
+op port ppg__port_dir_state /p/.agents/skills
+op port ppg__port_dir_state /p/.agents/skills/project-path-gateway
+op port ppg__port_file_state /p/.tools/project-path-gateway/.project-path-gateway
+op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.conf
+op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.sh
+op port ppg__port_file_state /p/.agents/skills/project-path-gateway/SKILL.md
+op port ppg__port_installed_source share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_installed_source share/project-path-gateway/SKILL.md
+op port ppg__port_physical_dir /p
+op port ppg__port_ensure_dirs /p
+op port ppg__port_file_state /p/.tools/project-path-gateway/.project-path-gateway
+op port ppg__port_write_new /p/.tools/project-path-gateway/.project-path-gateway ppg__domain_marker_content
+op port ppg__out_action create .tools/project-path-gateway/.project-path-gateway
+op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.conf
+op port ppg__port_write_new /p/.tools/project-path-gateway/project-path-gateway.conf ppg__domain_data_template
+op port ppg__out_action create .tools/project-path-gateway/project-path-gateway.conf
+op port ppg__port_file_state /p/.tools/project-path-gateway/project-path-gateway.sh
+op port ppg__port_installed_source share/project-path-gateway/project-path-gateway.sh
+op port ppg__port_copy_new /p/.tools/project-path-gateway/project-path-gateway.sh /pre/share/project-path-gateway/project-path-gateway.sh
+op port ppg__out_action create .tools/project-path-gateway/project-path-gateway.sh
+op port ppg__port_file_state /p/.agents/skills/project-path-gateway/SKILL.md
+op port ppg__port_installed_source share/project-path-gateway/SKILL.md
+op port ppg__port_copy_new /p/.agents/skills/project-path-gateway/SKILL.md /pre/share/project-path-gateway/SKILL.md
+op port ppg__out_failure write /p/.agents/skills/project-path-gateway/SKILL.md
+op port ppg__port_cleanup_temp /p/.tools/project-path-gateway
+op port ppg__port_cleanup_temp /p/.agents/skills/project-path-gateway
+op port ppg__port_rollback_dirs

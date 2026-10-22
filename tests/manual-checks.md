@@ -124,8 +124,9 @@ grep -r -F -e "$WORK" -e "$HOME" "$WORK/project/.tools" || echo no-machine-value
 
 기대 결과:
 
-- 첫 실행 stdout `생성:` 세 줄과 `초기화 완료: <WORK>/project`, 도구 디렉터리에 세 파일만 있음(임시 파일 없음).
-- 재실행 stdout `유지:` 두 줄, `교체: .tools/project-path-gateway/project-path-gateway.sh`, 데이터 파일 inode가 같음.
+- 첫 실행 stdout `생성:` 네 줄(표식·데이터·라이브러리·`SKILL.md`)과 `초기화 완료: <WORK>/project`, 도구 디렉터리에 세 파일만 있음(임시 파일 없음).
+- 재실행 stdout `유지:` 두 줄, `교체: .tools/project-path-gateway/project-path-gateway.sh`,
+  `교체: .agents/skills/project-path-gateway/SKILL.md`, 데이터 파일 inode가 같음.
 - `no-machine-values` 출력.
 
 쓰기 실패(root가 아닌 사용자):
@@ -534,3 +535,54 @@ echo "임시파일 $(tmpcount)개"
 
 기대 결과: 조회와 갱신 경과 시간 차이가 1초 이하(SC-006, 초 단위 측정). 중단한 실행은 `status=143`(1초 안에 끝났으면 0)이고,
 데이터 파일은 `이전내용` 또는 `새내용`입니다. 중단 대상은 함수로 감싸지 않고 `"$SH" -c`를 직접 백그라운드로 띄워야 `kill`이 등록 프로세스에 닿습니다. 임시 파일은 0개 또는 1개(복사와 교체 사이에 중단된 경우만)이며 남으면 이름을 기록합니다.
+
+## 12. 기능 006 초기화 템플릿과 에이전트 스킬 (기능 006 SC-001~SC-003, SC-005)
+
+```sh
+"$SH" install.sh --prefix "$WORK/prefix" >/dev/null
+PPG="$WORK/prefix/bin/project-path-gateway"
+cat "$WORK/prefix/share/project-path-gateway/install-manifest"
+mkdir -p "$WORK/p6"
+"$PPG" init "$WORK/p6"
+find "$WORK/p6" -type f | LC_ALL=C sort
+cat "$WORK/p6/.tools/project-path-gateway/project-path-gateway.conf"
+diff "$WORK/prefix/share/project-path-gateway/SKILL.md" "$WORK/p6/.agents/skills/project-path-gateway/SKILL.md" &&
+	echo skill-same
+(cd "$WORK/p6" && "$SH" -c '. ./.tools/project-path-gateway/project-path-gateway.sh
+	project_path_gateway_init && project_path_gateway_verify &&
+	project_path_gateway_get PPG_TOOL_DIR && project_path_gateway_get AGENT_SKILLS_DIR')
+cp -R "$WORK/p6" "$WORK/p6-before"
+"$PPG" init "$WORK/p6"
+diff -r "$WORK/p6-before" "$WORK/p6" && echo rerun-same
+```
+
+기대 결과:
+
+- 설치 목록 다섯 줄(`share/project-path-gateway/SKILL.md` 포함).
+- 파일 네 개(표식, 데이터 파일, 라이브러리, `.agents/skills/project-path-gateway/SKILL.md`), 출력 `생성:` 네 줄 + `초기화 완료`.
+- 데이터 파일에 기본 항목 `PPG_TOOL_DIR=.tools/project-path-gateway`, `AGENT_SKILLS_DIR=.agents/skills`.
+- `skill-same`, `project-path-gateway: 검증 통과 2건`, 두 경로의 절대경로 출력.
+- 재실행은 `유지`·`유지`·`교체`·`교체` 네 줄이고 `rerun-same`.
+
+실패와 되돌리기(root가 아닌 사용자):
+
+```sh
+mkdir -p "$WORK/q6"; : >"$WORK/q6/.agents"
+"$PPG" init "$WORK/q6"; echo "status=$?"; ls -A "$WORK/q6"
+mkdir -p "$WORK/r6/.agents/skills"; chmod 555 "$WORK/r6/.agents/skills"
+"$PPG" init "$WORK/r6"; echo "status=$?"; ls -A "$WORK/r6" "$WORK/r6/.agents"
+chmod 755 "$WORK/r6/.agents/skills"
+mv "$WORK/prefix/share/project-path-gateway/SKILL.md" "$WORK/skill-away"
+mkdir -p "$WORK/s6"; "$PPG" init "$WORK/s6"; echo "status=$?"; ls -A "$WORK/s6"
+mv "$WORK/skill-away" "$WORK/prefix/share/project-path-gateway/SKILL.md"
+```
+
+기대 결과:
+
+- 첫째: stderr `디렉터리가 아닙니다: <WORK>/q6/.agents`, `status=2`, `.agents` 파일만 있고 `.tools` 없음.
+- 둘째: stderr `파일을 쓰지 못했습니다: <WORK>/r6/.agents/skills/project-path-gateway`, `status=1`,
+  이번 실행이 만든 `.tools`는 사라지고 원래 있던 `.agents/skills`는 그대로.
+- 셋째: stderr `스킬 원본을 찾지 못했습니다: ...SKILL.md. 설치 스크립트를 다시 실행하세요`, `status=1`, `<WORK>/s6`은 빈 디렉터리.
+
+스킬 문서 검토(SC-005): `share/SKILL.md`에 머리말 키 두 개(`name`, `description`), 공개 함수 다섯 개의 인자·반환 설명,
+데이터 파일 위치와 기본 항목, 금지 항목, 예시 두 개가 있는지 읽어서 확인합니다. 버전·날짜·절대경로는 없어야 합니다.

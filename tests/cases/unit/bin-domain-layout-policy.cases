@@ -1,0 +1,24 @@
+# 도메인 단위: 도구 배치 모델 - 이미 있을 때의 정책 (기능 006 FR-017, data-model 1.2)
+# 사용자 소유 파일은 유지(keep), 도구 소유 파일은 교체(replace)다. plan_action이 이 값을 쓴다.
+target bin-func ppg__domain_layout_policy
+layer domain
+
+case layout-policy-marker
+arg marker
+status 0
+out keep
+
+case layout-policy-data
+arg data
+status 0
+out keep
+
+case layout-policy-library
+arg library
+status 0
+out replace
+
+case layout-policy-skill
+arg skill
+status 0
+out replace

@@ -642,3 +642,22 @@ err project-path-gateway: 누락: TABBED=a\tb
 err project-path-gateway: 검증 실패 1건
 op returned project_path_gateway_init 0
 op returned project_path_gateway_verify 1
+
+# 기능 006 US1·SC-001: 초기화 템플릿이 넣은 기본 항목 두 개만 있는 데이터 파일은 검증을 통과한다.
+case verify-default-template-entries-pass
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
+content # project-path-gateway 데이터 파일
+content #
+content # 아래 두 항목은 초기화가 넣은 기본 항목입니다. 필요하지 않으면 지워도 됩니다.
+content PPG_TOOL_DIR=.tools/project-path-gateway
+content AGENT_SKILLS_DIR=.agents/skills
+content #
+content # 예:
+content # SOURCES_ROOT=sources
+fs dir /t/root/.agents/skills
+call project_path_gateway_init /t/root
+call project_path_gateway_verify
+status 0
+out project-path-gateway: 검증 통과 2건
+op returned project_path_gateway_init 0
+op returned project_path_gateway_verify 0

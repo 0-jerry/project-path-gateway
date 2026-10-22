@@ -21,3 +21,8 @@ case install-layout-mode-manifest
 arg manifest
 status 0
 out 644
+
+case install-layout-mode-skill
+arg skill
+status 0
+out 644

@@ -1,4 +1,5 @@
 # 도메인 단위: 파일별 처리 결정 (기능 001 cli_domain_plan_test_plan_action_table, data-model 2.2)
+# 이미 있을 때의 결과는 ppg__domain_layout_policy에서 온다 (기능 006 FR-017).
 target bin-func ppg__domain_plan_action
 layer domain
 
@@ -52,6 +53,24 @@ out replace
 
 case plan-library-other
 arg library
+arg other
+status 0
+out fail
+
+case plan-skill-absent
+arg skill
+arg absent
+status 0
+out create
+
+case plan-skill-file
+arg skill
+arg file
+status 0
+out replace
+
+case plan-skill-other
+arg skill
 arg other
 status 0
 out fail

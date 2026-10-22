@@ -18,7 +18,7 @@
 
 # 설치하는 파일 종류와 순서. 설치 목록(manifest)은 마지막에 따로 설치한다.
 ppg__domain_layout_kinds() {
-	printf 'bin library version\n'
+	printf 'bin library version skill\n'
 }
 
 # 종류별 원본 경로(저장소 기준).
@@ -27,6 +27,7 @@ ppg__domain_layout_source() {
 	bin) printf 'bin/project-path-gateway\n' ;;
 	library) printf 'lib/project-path-gateway.sh\n' ;;
 	version) printf 'VERSION\n' ;;
+	skill) printf 'share/SKILL.md\n' ;;
 	esac
 }
 
@@ -36,6 +37,7 @@ ppg__domain_layout_installed() {
 	bin) printf 'bin/project-path-gateway\n' ;;
 	library) printf 'share/project-path-gateway/project-path-gateway.sh\n' ;;
 	version) printf 'share/project-path-gateway/VERSION\n' ;;
+	skill) printf 'share/project-path-gateway/SKILL.md\n' ;;
 	manifest) printf 'share/project-path-gateway/install-manifest\n' ;;
 	esac
 }

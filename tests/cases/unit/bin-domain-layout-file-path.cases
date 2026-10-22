@@ -1,0 +1,24 @@
+# 도메인 단위: 도구 배치 모델 - 종류별 파일 경로 (기능 001 cli_domain_plan_test_names_and_paths, 기능 006 FR-017, data-model 1.2)
+# 대상 디렉터리 기준 상대경로다. 기존 bin-domain-tool-relpath.cases·bin-domain-file-name.cases를 대체한다.
+target bin-func ppg__domain_layout_file_path
+layer domain
+
+case layout-file-path-marker
+arg marker
+status 0
+out .tools/project-path-gateway/.project-path-gateway
+
+case layout-file-path-data
+arg data
+status 0
+out .tools/project-path-gateway/project-path-gateway.conf
+
+case layout-file-path-library
+arg library
+status 0
+out .tools/project-path-gateway/project-path-gateway.sh
+
+case layout-file-path-skill
+arg skill
+status 0
+out .agents/skills/project-path-gateway/SKILL.md
