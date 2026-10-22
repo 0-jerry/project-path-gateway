@@ -1,0 +1,208 @@
+# 공개 API 계약: 찾기 결과를 그대로 일괄 등록 목록으로 쓴다 (기능 008 US3, contracts/scan-output.md, contracts/library-api.md 2절)
+# 실제 사용처럼 project_path_gateway_scan 출력을 파이프로 project_path_gateway_add_list -에 넘긴다.
+# 가상 파일 시스템은 call 사이에 바뀐 상태를 이어 주지 않으므로, 등록 뒤 검증은 쓰인 원문을 데이터 파일로 둔 사례로 확인한다(수동 확인 14절은 실제 환경에서 한 번에 확인).
+target lib-session project_path_gateway
+layer api
+fs file /t/root/.tools/project-path-gateway/.project-path-gateway
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+content PPG_TOOL_DIR=.tools/project-path-gateway
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.files.conf
+
+# US3-1: 새 후보 두 개(디렉터리 1, 파일 1)와 이미 등록된 후보 한 개 → 새 후보 두 개만 등록되고 검증 통과
+
+case scan-register-unchanged-result-registers-new-only
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.files.conf
+content APP_CONFIG=config/app.json
+fs dir /t/root/src
+fs file /t/root/config/app.json
+fs file /t/root/assets/logo.png
+fs file /t/root/scripts/build.sh
+content ls src
+content cat config/app.json
+content cp assets/logo.png "$OUT"
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_scan
+call eval project_path_gateway_scan\s|\sproject_path_gateway_add_list\s-
+status 0
+out # project-path-gateway 찾기 결과 (루트: /t/root)
+out # 이 목록은 project_path_gateway_add_list 입력으로 쓸 수 있습니다. 등록하지 않을 줄은 지우고 키 이름은 고쳐도 됩니다.
+out # 요약: 스크립트 1개, 새 후보 2, 이미 등록 1, 등록 불가 0, 확인 필요 0, 루트 참조 0
+out
+out # == 새 후보 (2) ==
+out # 파일 assets/logo.png
+out #   scripts/build.sh:3: assets/logo.png
+out ASSETS_LOGO_PNG=assets/logo.png
+out # 디렉터리 src
+out #   scripts/build.sh:1: src
+out SRC=src
+out
+out # == 이미 등록 (1) ==
+out # 파일 config/app.json: project_path_gateway_file APP_CONFIG
+out #   scripts/build.sh:2: config/app.json
+out project-path-gateway: 일괄 등록: 디렉터리 1건, 파일 1건, 유지 0건
+op returned project_path_gateway_scan 0
+op copy-preserve /t/root/.tools/project-path-gateway/project-path-gateway.dirs.conf /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.dirs.conf
+op write /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.dirs.conf PPG_TOOL_DIR=.tools/project-path-gateway\nSRC=src\n
+op move /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.dirs.conf /t/root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op copy-preserve /t/root/.tools/project-path-gateway/project-path-gateway.files.conf /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.files.conf
+op write /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.files.conf APP_CONFIG=config/app.json\nASSETS_LOGO_PNG=assets/logo.png\n
+op move /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.files.conf /t/root/.tools/project-path-gateway/project-path-gateway.files.conf
+op returned eval 0
+
+case scan-register-written-data-files-pass-verify
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+content PPG_TOOL_DIR=.tools/project-path-gateway
+content SRC=src
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.files.conf
+content APP_CONFIG=config/app.json
+content ASSETS_LOGO_PNG=assets/logo.png
+fs dir /t/root/src
+fs file /t/root/config/app.json
+fs file /t/root/assets/logo.png
+fs file /t/root/scripts/build.sh
+content ls src
+content cat config/app.json
+content cp assets/logo.png "$OUT"
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_verify
+call eval project_path_gateway_scan\s|\sproject_path_gateway_add_list\s-
+status 0
+out project-path-gateway: 검증 통과 4건
+out project-path-gateway: 일괄 등록: 디렉터리 0건, 파일 0건, 유지 0건
+op returned project_path_gateway_verify 0
+op returned eval 0
+
+# US3-2: 등록 불가(파일 모양이 아닌 일반 파일, 디렉터리 모양이 아닌 디렉터리)·확인 필요·루트 참조는 주석이라 그대로 넘겨도 위반이 없다
+
+case scan-register-comments-make-no-violation
+fs file /t/root/Makefile
+fs dir /t/root/v1.2
+fs file /t/root/scripts/build.sh
+content cd "$(dirname "$0")/.."
+content make -f Makefile
+content ls v1.2/
+content cp a.txt build/out.txt
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_scan
+call eval project_path_gateway_scan\s|\sproject_path_gateway_add_list\s-
+status 0
+out # project-path-gateway 찾기 결과 (루트: /t/root)
+out # 이 목록은 project_path_gateway_add_list 입력으로 쓸 수 있습니다. 등록하지 않을 줄은 지우고 키 이름은 고쳐도 됩니다.
+out # 요약: 스크립트 1개, 새 후보 0, 이미 등록 0, 등록 불가 2, 확인 필요 1, 루트 참조 1
+out
+out # == 등록 불가 (2) ==
+out # 파일 Makefile: 파일 모양이 아닙니다(이름.확장자 또는 .으로 시작하는 이름). 상위 디렉터리를 디렉터리 항목으로 등록하고 이름을 붙여 쓰세요
+out #   scripts/build.sh:2: Makefile
+out # 디렉터리 v1.2: 디렉터리 모양이 아닙니다(확장자가 있거나 .으로 시작). 상위 디렉터리를 디렉터리 항목으로 등록하고 이름을 붙여 쓰세요
+out #   scripts/build.sh:3: v1.2/
+out
+out # == 확인 필요 (1) ==
+out # 파일(모양으로 추정) build/out.txt: 프로젝트에 없습니다. 등록하려면 아래 줄의 #을 지우세요
+out #   scripts/build.sh:4: build/out.txt
+out #BUILD_OUT_TXT=build/out.txt
+out
+out # == 루트 참조 (1) ==
+out # 루트 자체를 가리킵니다. 키로 등록하지 말고 project_path_gateway_init이 정한 PROJECT_PATH_GATEWAY_ROOT를 쓰세요
+out #   scripts/build.sh:1: "$(dirname "$0")/.."
+out project-path-gateway: 일괄 등록: 디렉터리 0건, 파일 0건, 유지 0건
+op returned project_path_gateway_scan 0
+op returned eval 0
+
+case scan-register-uncommented-missing-line-is-registered
+fs file /t/root/Makefile
+fs dir /t/root/v1.2
+fs file /t/root/scripts/build.sh
+content cd "$(dirname "$0")/.."
+content make -f Makefile
+content ls v1.2/
+content cp a.txt build/out.txt
+stdin # project-path-gateway 찾기 결과 (루트: /t/root)
+stdin # 이 목록은 project_path_gateway_add_list 입력으로 쓸 수 있습니다. 등록하지 않을 줄은 지우고 키 이름은 고쳐도 됩니다.
+stdin # 요약: 스크립트 1개, 새 후보 0, 이미 등록 0, 등록 불가 2, 확인 필요 1, 루트 참조 1
+stdin
+stdin # == 등록 불가 (2) ==
+stdin # 파일 Makefile: 파일 모양이 아닙니다(이름.확장자 또는 .으로 시작하는 이름). 상위 디렉터리를 디렉터리 항목으로 등록하고 이름을 붙여 쓰세요
+stdin #   scripts/build.sh:2: Makefile
+stdin # 디렉터리 v1.2: 디렉터리 모양이 아닙니다(확장자가 있거나 .으로 시작). 상위 디렉터리를 디렉터리 항목으로 등록하고 이름을 붙여 쓰세요
+stdin #   scripts/build.sh:3: v1.2/
+stdin
+stdin # == 확인 필요 (1) ==
+stdin # 파일(모양으로 추정) build/out.txt: 프로젝트에 없습니다. 등록하려면 아래 줄의 #을 지우세요
+stdin #   scripts/build.sh:4: build/out.txt
+stdin BUILD_OUT_TXT=build/out.txt
+stdin
+stdin # == 루트 참조 (1) ==
+stdin # 루트 자체를 가리킵니다. 키로 등록하지 말고 project_path_gateway_init이 정한 PROJECT_PATH_GATEWAY_ROOT를 쓰세요
+stdin #   scripts/build.sh:1: "$(dirname "$0")/.."
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_add_list -
+status 0
+out project-path-gateway: 일괄 등록: 디렉터리 0건, 파일 1건, 유지 0건
+op copy-preserve /t/root/.tools/project-path-gateway/project-path-gateway.files.conf /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.files.conf
+op write /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.files.conf BUILD_OUT_TXT=build/out.txt\n
+op move /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.files.conf /t/root/.tools/project-path-gateway/project-path-gateway.files.conf
+op returned project_path_gateway_add_list 0
+
+# US3-3: 제안 키는 결과 안에서도, 기존 데이터 파일 키와도 겹치지 않아 그대로 등록된다
+
+case scan-register-suggested-keys-avoid-collisions
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+content PPG_TOOL_DIR=.tools/project-path-gateway
+content SRC=source
+fs dir /t/root/source
+fs dir /t/root/src
+fs file /t/root/a-b/run.sh
+fs file /t/root/a_b/run.sh
+fs file /t/root/run-all.sh
+content sh a-b/run.sh
+content sh a_b/run.sh
+content ls src
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_scan
+call eval project_path_gateway_scan\s|\sproject_path_gateway_add_list\s-
+status 0
+out # project-path-gateway 찾기 결과 (루트: /t/root)
+out # 이 목록은 project_path_gateway_add_list 입력으로 쓸 수 있습니다. 등록하지 않을 줄은 지우고 키 이름은 고쳐도 됩니다.
+out # 요약: 스크립트 3개, 새 후보 3, 이미 등록 0, 등록 불가 0, 확인 필요 0, 루트 참조 0
+out
+out # == 새 후보 (3) ==
+out # 파일 a-b/run.sh
+out #   run-all.sh:1: a-b/run.sh
+out A_B_RUN_SH=a-b/run.sh
+out # 파일 a_b/run.sh
+out #   run-all.sh:2: a_b/run.sh
+out A_B_RUN_SH_2=a_b/run.sh
+out # 디렉터리 src
+out #   run-all.sh:3: src
+out SRC_2=src
+out project-path-gateway: 일괄 등록: 디렉터리 1건, 파일 2건, 유지 0건
+op returned project_path_gateway_scan 0
+op copy-preserve /t/root/.tools/project-path-gateway/project-path-gateway.dirs.conf /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.dirs.conf
+op write /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.dirs.conf PPG_TOOL_DIR=.tools/project-path-gateway\nSRC=source\nSRC_2=src\n
+op move /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.dirs.conf /t/root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op copy-preserve /t/root/.tools/project-path-gateway/project-path-gateway.files.conf /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.files.conf
+op write /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.files.conf A_B_RUN_SH=a-b/run.sh\nA_B_RUN_SH_2=a_b/run.sh\n
+op move /t/root/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.files.conf /t/root/.tools/project-path-gateway/project-path-gateway.files.conf
+op returned eval 0
+
+# US3-4: 루트를 찾는 표기는 키 후보가 아닌 루트 참조로 따로 알리고 project_path_gateway_init을 쓰라고 안내한다
+
+case scan-register-root-reference-is-not-a-candidate
+fs file /t/root/scripts/run.sh
+content cd "$(dirname "$0")/.."
+content ROOT=$(cd .. && pwd)
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_scan
+call eval project_path_gateway_scan\s|\sproject_path_gateway_add_list\s-
+status 0
+out # project-path-gateway 찾기 결과 (루트: /t/root)
+out # 이 목록은 project_path_gateway_add_list 입력으로 쓸 수 있습니다. 등록하지 않을 줄은 지우고 키 이름은 고쳐도 됩니다.
+out # 요약: 스크립트 1개, 새 후보 0, 이미 등록 0, 등록 불가 0, 확인 필요 0, 루트 참조 1
+out
+out # == 루트 참조 (1) ==
+out # 루트 자체를 가리킵니다. 키로 등록하지 말고 project_path_gateway_init이 정한 PROJECT_PATH_GATEWAY_ROOT를 쓰세요
+out #   scripts/run.sh:1: "$(dirname "$0")/.."
+out #   scripts/run.sh:2: ..
+out project-path-gateway: 일괄 등록: 디렉터리 0건, 파일 0건, 유지 0건
+op returned project_path_gateway_scan 0
+op returned eval 0
