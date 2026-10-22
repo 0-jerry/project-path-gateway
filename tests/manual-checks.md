@@ -91,9 +91,9 @@ ls -A "$PREFIX_DIR" "$PREFIX_DIR/bin"
 기대 결과:
 
 - 첫 설치 stdout 첫 줄 `project-path-gateway: 설치 완료: <WORK>/prefix (버전 <VERSION 내용>)`, PATH에 없으면 `export PATH=...` 안내.
-- 실행 파일 권한 `-rwxr-xr-x`, `share/project-path-gateway/` 세 파일 권한 `-rw-r--r--`.
-- 설치 목록 네 줄: `bin/project-path-gateway`, `share/project-path-gateway/project-path-gateway.sh`,
-  `share/project-path-gateway/VERSION`, `share/project-path-gateway/install-manifest`.
+- 실행 파일 권한 `-rwxr-xr-x`, `share/project-path-gateway/` 네 파일(`SKILL.md`, `VERSION`, `install-manifest`, 라이브러리) 권한 `-rw-r--r--`.
+- 설치 목록 다섯 줄: `bin/project-path-gateway`, `share/project-path-gateway/project-path-gateway.sh`,
+  `share/project-path-gateway/VERSION`, `share/project-path-gateway/SKILL.md`, `share/project-path-gateway/install-manifest`.
 - `replaced` 출력.
 - 제거 stdout `project-path-gateway: 제거 완료: <WORK>/prefix`, 이후 `ls` 결과는 `bin`(과 빈 `share`) 및 `other-tool`만.
 
@@ -115,18 +115,19 @@ PPG="$WORK/prefix/bin/project-path-gateway"
 mkdir -p "$WORK/project"
 "$PPG" init "$WORK/project"
 ls -A "$WORK/project/.tools/project-path-gateway"
-printf 'APP_CONFIG=config/app.json\n' >>"$WORK/project/.tools/project-path-gateway/project-path-gateway.conf"
-ls -i "$WORK/project/.tools/project-path-gateway/project-path-gateway.conf"
+printf 'APP_CONFIG=config/app.json\n' >>"$WORK/project/.tools/project-path-gateway/project-path-gateway.files.conf"
+ls -i "$WORK/project/.tools/project-path-gateway/project-path-gateway.files.conf"
 "$PPG" init "$WORK/project"
-ls -i "$WORK/project/.tools/project-path-gateway/project-path-gateway.conf"
+ls -i "$WORK/project/.tools/project-path-gateway/project-path-gateway.files.conf"
 grep -r -F -e "$WORK" -e "$HOME" "$WORK/project/.tools" || echo no-machine-values
 ```
 
 기대 결과:
 
-- 첫 실행 stdout `생성:` 네 줄(표식·데이터·라이브러리·`SKILL.md`)과 `초기화 완료: <WORK>/project`, 도구 디렉터리에 세 파일만 있음(임시 파일 없음).
-- 재실행 stdout `유지:` 두 줄, `교체: .tools/project-path-gateway/project-path-gateway.sh`,
-  `교체: .agents/skills/project-path-gateway/SKILL.md`, 데이터 파일 inode가 같음.
+- 첫 실행 stdout `생성:` 다섯 줄(표식·디렉터리 데이터·파일 데이터·라이브러리·`SKILL.md`)과 `초기화 완료: <WORK>/project`,
+  도구 디렉터리에 네 파일만 있음(임시 파일 없음). stderr 출력 없음(1.x 데이터 파일이 없으므로 안내 없음).
+- 재실행 stdout `유지:` 세 줄, `교체: .tools/project-path-gateway/project-path-gateway.sh`,
+  `교체: .agents/skills/project-path-gateway/SKILL.md`, 파일 데이터 파일 inode가 같음.
 - `no-machine-values` 출력.
 
 쓰기 실패(root가 아닌 사용자):
@@ -140,7 +141,7 @@ ls -A "$WORK/project/.tools/project-path-gateway"
 ```
 
 기대 결과: stderr `project-path-gateway: init: 파일을 쓰지 못했습니다: <WORK>/project/.tools/project-path-gateway/project-path-gateway.sh`,
-`status=1`, 표식·데이터 파일 유지, `.ppg-tmp.` 파일 없음. 공백·한글 경로(`"$WORK/내 프로젝트 폴더"`)로 한 번 더 반복합니다.
+`status=1`, 표식·두 데이터 파일 유지, `.ppg-tmp.` 파일 없음. 공백·한글 경로(`"$WORK/내 프로젝트 폴더"`)로 한 번 더 반복합니다.
 
 ## 4. 신호에 따른 임시 파일 정리
 
@@ -186,8 +187,9 @@ root가 아닌 사용자로 실행합니다.
 root="$WORK/root"
 mkdir -p "$root/.tools/project-path-gateway" "$root/locked"
 printf '%s\n' '# marker' 'format=1' >"$root/.tools/project-path-gateway/.project-path-gateway"
-printf 'LOCKED=locked/file\n' >"$root/.tools/project-path-gateway/project-path-gateway.conf"
-: >"$root/locked/file"
+: >"$root/.tools/project-path-gateway/project-path-gateway.dirs.conf"
+printf 'LOCKED=locked/file.txt\n' >"$root/.tools/project-path-gateway/project-path-gateway.files.conf"
+: >"$root/locked/file.txt"
 chmod 000 "$root/locked"
 "$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" && project_path_gateway_verify' _ "$REPO" "$root"; echo "status=$?"
 chmod 755 "$root/locked"
@@ -196,7 +198,7 @@ chmod 000 "$root/.tools/project-path-gateway/.project-path-gateway"
 chmod 644 "$root/.tools/project-path-gateway/.project-path-gateway"
 ```
 
-기대 결과: stderr `project-path-gateway: 누락: LOCKED=locked/file`, `project-path-gateway: 검증 실패 1건`, `status=1`.
+기대 결과: stderr `project-path-gateway: 누락: LOCKED=locked/file.txt`, `project-path-gateway: 검증 실패 1건`, `status=1`.
 읽을 수 없는 표식 파일도 루트로 인정되어 `<WORK>/root`가 출력됩니다.
 
 ## 6. clone·이동 후 동작
@@ -205,18 +207,18 @@ chmod 644 "$root/.tools/project-path-gateway/.project-path-gateway"
 "$SH" install.sh --prefix "$WORK/prefix" >/dev/null
 mkdir -p "$WORK/origin/config" && : >"$WORK/origin/config/app.json"
 "$WORK/prefix/bin/project-path-gateway" init "$WORK/origin" >/dev/null
-printf 'APP_CONFIG=config/app.json\n' >>"$WORK/origin/.tools/project-path-gateway/project-path-gateway.conf"
+printf 'APP_CONFIG=config/app.json\n' >>"$WORK/origin/.tools/project-path-gateway/project-path-gateway.files.conf"
 git -C "$WORK/origin" init -q && git -C "$WORK/origin" add -A &&
 	git -C "$WORK/origin" -c user.name=tester -c user.email=tester@example.invalid -c commit.gpgsign=false commit -q -m init
 git clone -q "$WORK/origin" "$WORK/clone/복제 위치"
 mv "$WORK/origin" "$WORK/moved"
 "$SH" uninstall.sh --prefix "$WORK/prefix" >/dev/null
 for p in "$WORK/clone/복제 위치" "$WORK/moved"; do
-	(cd "$p" && "$SH" -c '. ./.tools/project-path-gateway/project-path-gateway.sh && project_path_gateway_init && project_path_gateway_get APP_CONFIG && project_path_gateway_verify')
+	(cd "$p" && "$SH" -c '. ./.tools/project-path-gateway/project-path-gateway.sh && project_path_gateway_init && project_path_gateway_file APP_CONFIG && project_path_gateway_verify')
 done
 ```
 
-기대 결과: 위치마다 `<물리 경로>/config/app.json`과 `project-path-gateway: 검증 통과 1건`, 반환 0.
+기대 결과: 위치마다 `<물리 경로>/config/app.json`과 `project-path-gateway: 검증 통과 3건`(기본 디렉터리 항목 두 개 포함), 반환 0.
 
 ## 7. 설치된 다국어 로캘에서의 키 판정
 
@@ -244,7 +246,7 @@ mkdir -p "$repo/config" && : >"$repo/config/app.json"
 git init -q "$repo"
 "$SH" install.sh --prefix "$WORK/prefix" >/dev/null
 "$WORK/prefix/bin/project-path-gateway" init "$repo" >/dev/null
-printf 'APP_CONFIG=config/app.json\n' >>"$repo/.tools/project-path-gateway/project-path-gateway.conf"
+printf 'APP_CONFIG=config/app.json\n' >>"$repo/.tools/project-path-gateway/project-path-gateway.files.conf"
 awk '$0 == "<!-- example: pre-commit -->" { f = 1; next } f == 1 && $0 == "```sh" { f = 2; next } f == 2 && $0 == "```" { exit } f == 2' README.md >"$repo/.git/hooks/pre-commit"
 chmod 755 "$repo/.git/hooks/pre-commit"
 g() { git -C "$repo" -c core.hooksPath=.git/hooks -c commit.gpgsign=false -c user.name=tester -c user.email=tester@example.invalid "$@"; }
@@ -254,40 +256,58 @@ g commit -q -a -m '경로 삭제'; echo "second=$?"
 g rev-list --count HEAD
 ```
 
-기대 결과: 첫 커밋 stderr에 `project-path-gateway: 검증 통과 1건`, `first=0`. 두 번째 커밋 stderr에
+기대 결과: 첫 커밋 stderr에 `project-path-gateway: 검증 통과 3건`(기본 디렉터리 항목 두 개 포함), `first=0`. 두 번째 커밋 stderr에
 `project-path-gateway: 누락: APP_CONFIG=config/app.json`과 `project-path-gateway: 검증 실패 1건`, `second=1`, 커밋 수 `1`.
 훅은 `/bin/sh`로 실행되므로 `dash` 확인은 훅 첫 줄을 `#!/usr/bin/env dash`로 바꿔 반복합니다.
 
 ## 9. 항목 200개 처리 시간과 변경 전후 비교
 
 기능 005부터는 절대 시간(2초) 대신 변경 전 라이브러리와의 비교로 판정합니다(기능 005 SC-005). 변경 전 기준은 비교하려는 커밋의
-라이브러리입니다(기능 005는 `07f2122`). 두 라이브러리를 번갈아 5회씩 실행하고 중앙값을 비교합니다. 시간 측정에만 `perl`을 씁니다.
+라이브러리입니다(기능 005는 `07f2122`, 기능 007은 기능 005 최종 `0d52800`). 두 라이브러리를 번갈아 5회씩 실행하고 중앙값을 비교합니다.
+시간 측정에만 `perl`을 씁니다.
+
+기능 007부터 데이터 파일이 두 개이므로 변경 전(1.x)은 항목 200개를 데이터 파일 하나에, 변경 후(2.x)는 디렉터리 100개·파일 100개를
+두 데이터 파일에 나눠 담습니다. 조회·등록은 파일 항목(`KEY_199`, `dir/new.txt`)으로 잽니다.
 
 ```sh
-git show 07f2122:lib/project-path-gateway.sh >"$WORK/before.sh"
-root="$WORK/root200"
-mkdir -p "$root/.tools/project-path-gateway" "$root/dir"
-printf '%s\n' '# marker' 'format=1' >"$root/.tools/project-path-gateway/.project-path-gateway"
-i=0; while [ "$i" -lt 200 ]; do printf 'KEY_%s=dir/file_%s\n' "$i" "$i"; : >"$root/dir/file_$i"; i=$((i + 1)); done >"$root/.tools/project-path-gateway/project-path-gateway.conf"
-cp "$root/.tools/project-path-gateway/project-path-gateway.conf" "$WORK/conf.orig"
+BASE=0d52800
+git show "$BASE:lib/project-path-gateway.sh" >"$WORK/before.sh"
+old="$WORK/old200"; new="$WORK/new200"
+for r in "$old" "$new"; do
+	mkdir -p "$r/.tools/project-path-gateway" "$r/dir"
+	printf '%s\n' '# marker' 'format=1' >"$r/.tools/project-path-gateway/.project-path-gateway"
+done
+i=0; while [ "$i" -lt 200 ]; do printf 'KEY_%s=dir/file_%s\n' "$i" "$i"; : >"$old/dir/file_$i"; i=$((i + 1)); done >"$old/.tools/project-path-gateway/project-path-gateway.conf"
+i=0; while [ "$i" -lt 100 ]; do printf 'KEY_%s=dir/d_%s\n' "$i" "$i"; mkdir -p "$new/dir/d_$i"; i=$((i + 1)); done >"$new/.tools/project-path-gateway/project-path-gateway.dirs.conf"
+i=100; while [ "$i" -lt 200 ]; do printf 'KEY_%s=dir/file_%s.txt\n' "$i" "$i"; : >"$new/dir/file_$i.txt"; i=$((i + 1)); done >"$new/.tools/project-path-gateway/project-path-gateway.files.conf"
+cp "$old/.tools/project-path-gateway/project-path-gateway.conf" "$WORK/old.conf"
+cp "$new/.tools/project-path-gateway/project-path-gateway.files.conf" "$WORK/new.files.conf"
 now() { perl -MTime::HiRes=time -e 'printf "%.3f\n", time'; }
-run() { # $1 셸, $2 라이브러리, $3 동작
-	cp "$WORK/conf.orig" "$root/.tools/project-path-gateway/project-path-gateway.conf"
+run_old() { # $1 셸, $2 동작
+	cp "$WORK/old.conf" "$old/.tools/project-path-gateway/project-path-gateway.conf"
 	a=$(now)
 	"$1" -c '. "$1"; project_path_gateway_init "$2" || exit 2
-		case $3 in verify) project_path_gateway_verify ;; get) project_path_gateway_get KEY_199 ;; add) project_path_gateway_add NEW_KEY dir/new ;; esac' _ "$2" "$root" "$3" >/dev/null 2>&1
+		case $3 in verify) project_path_gateway_verify ;; get) project_path_gateway_get KEY_199 ;; add) project_path_gateway_add NEW_KEY dir/new ;; esac' _ "$WORK/before.sh" "$old" "$2" >/dev/null 2>&1
+	b=$(now); echo "$b - $a" | bc
+}
+run_new() { # $1 셸, $2 동작
+	cp "$WORK/new.files.conf" "$new/.tools/project-path-gateway/project-path-gateway.files.conf"
+	a=$(now)
+	"$1" -c '. "$1"; project_path_gateway_init "$2" || exit 2
+		case $3 in verify) project_path_gateway_verify ;; get) project_path_gateway_file KEY_199 ;; add) project_path_gateway_add_file NEW_KEY dir/new.txt ;; esac' _ "$REPO/lib/project-path-gateway.sh" "$new" "$2" >/dev/null 2>&1
 	b=$(now); echo "$b - $a" | bc
 }
 med() { LC_ALL=C sort -n | sed -n 3p; }
 for sh in /bin/sh dash; do for op in verify get add; do
 	: >"$WORK/b"; : >"$WORK/a"
-	n=0; while [ "$n" -lt 5 ]; do run "$sh" "$WORK/before.sh" "$op" >>"$WORK/b"; run "$sh" "$REPO/lib/project-path-gateway.sh" "$op" >>"$WORK/a"; n=$((n + 1)); done
+	n=0; while [ "$n" -lt 5 ]; do run_old "$sh" "$op" >>"$WORK/b"; run_new "$sh" "$op" >>"$WORK/a"; n=$((n + 1)); done
 	echo "$sh $op 변경 전 $(med <"$WORK/b") 변경 후 $(med <"$WORK/a")"
 done; done
 ```
 
-기대 결과: 여섯 줄(두 셸 × 초기화+검증·초기화+조회·초기화+등록) 모두 변경 후 중앙값이 변경 전 이하입니다. 초기화+검증의 stdout은
-`project-path-gateway: 검증 통과 200건`, 반환 0입니다. 2초를 넘는 값은 실패로 보지 않고 기록만 남깁니다.
+기대 결과: 여섯 줄(두 셸 × 초기화+검증·초기화+조회·초기화+등록). 판정 기준은 기능마다 정합니다. 기능 007은 조회·등록이 변경 전 이하,
+초기화+검증이 변경 전의 110% 이내입니다(기능 007 `perf.md`). 초기화+검증의 stdout은 `project-path-gateway: 검증 통과 200건`,
+반환 0입니다. 2초를 넘는 값은 실패로 보지 않고 기록만 남깁니다.
 
 기록 형식:
 
@@ -302,7 +322,8 @@ done; done
 root="$WORK/root"
 mkdir -p "$root/.tools/project-path-gateway" "$root/a" "$WORK/out"
 printf '%s\n' '# marker' 'format=1' >"$root/.tools/project-path-gateway/.project-path-gateway"
-printf 'A=a\nB=b\nC=c\n' >"$root/.tools/project-path-gateway/project-path-gateway.conf"
+printf 'A=a\nB=b\nC=c\n' >"$root/.tools/project-path-gateway/project-path-gateway.dirs.conf"
+: >"$root/.tools/project-path-gateway/project-path-gateway.files.conf"
 v() { "$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" || exit 2; shift 2; project_path_gateway_verify "$@"' _ "$REPO" "$root" "$@"; }
 ```
 
@@ -321,7 +342,7 @@ cat "$WORK/out/결과 리포트.txt"
 ### 10.2 통과 리포트와 덮어쓰기
 
 ```sh
-: >"$root/b"; : >"$root/c"
+mkdir "$root/b" "$root/c"
 v "$WORK/out/결과 리포트.txt"; echo "status=$?"
 cat "$WORK/out/결과 리포트.txt"
 ```
@@ -388,7 +409,8 @@ find "$WORK/out" -name '.ppg-report.*' | wc -l
 big="$WORK/root200"
 mkdir -p "$big/.tools/project-path-gateway" "$big/dir"
 printf '%s\n' '# marker' 'format=1' >"$big/.tools/project-path-gateway/.project-path-gateway"
-i=0; while [ "$i" -lt 200 ]; do printf 'KEY_%s=dir/file_%s\n' "$i" "$i"; : >"$big/dir/file_$i"; i=$((i + 1)); done >"$big/.tools/project-path-gateway/project-path-gateway.conf"
+: >"$big/.tools/project-path-gateway/project-path-gateway.dirs.conf"
+i=0; while [ "$i" -lt 200 ]; do printf 'KEY_%s=dir/file_%s.txt\n' "$i" "$i"; : >"$big/dir/file_$i.txt"; i=$((i + 1)); done >"$big/.tools/project-path-gateway/project-path-gateway.files.conf"
 vb() { "$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" || exit 2; shift 2; project_path_gateway_verify "$@"' _ "$REPO" "$big" "$@"; }
 t0=$(date +%s); vb >/dev/null; t1=$(date +%s); vb "$WORK/out/big.txt" >/dev/null; t2=$(date +%s)
 echo "미지정 $((t1 - t0))초, 리포트 지정 $((t2 - t1))초"
@@ -404,16 +426,20 @@ head -1 "$WORK/out/int.txt"; ls -A "$WORK/out" | grep '^\.ppg-report\.' || echo 
 
 ## 11. 경로 항목 등록·갱신 실제 쓰기
 
-기능 004(`project_path_gateway_add`, `project_path_gateway_update`)의 실제 파일 쓰기를 확인합니다. dry-run 사례는 호출 사이에 파일 상태가
-이어지지 않으므로, 등록·갱신 뒤 연속 조회·검증은 이 절에서 확인합니다. root가 아닌 사용자로 실행하고, 11.1부터 순서대로 실행합니다.
+기능 004의 실제 파일 쓰기를 확인합니다. 기능 007부터 등록·갱신은 종류별 함수(`project_path_gateway_add_dir`, `_add_file`,
+`_update_dir`, `_update_file`)이고, 11.2~11.7은 디렉터리 데이터 파일로, 11.8은 파일 데이터 파일과 종류 규칙으로 확인합니다. dry-run 사례는
+호출 사이에 파일 상태가 이어지지 않으므로, 등록·갱신 뒤 연속 조회·검증은 이 절에서 확인합니다. root가 아닌 사용자로 실행하고,
+11.1부터 순서대로 실행합니다.
 
 ```sh
 root="$WORK/root"
 tool="$root/.tools/project-path-gateway"
-conf="$tool/project-path-gateway.conf"
+conf="$tool/project-path-gateway.dirs.conf"
+fconf="$tool/project-path-gateway.files.conf"
 mkdir -p "$tool" "$root/docs"
 printf '%s\n' '# marker' 'format=1' >"$tool/.project-path-gateway"
 printf '# 경로 항목\n' >"$conf"
+: >"$fconf"
 g() { "$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" || exit 2; shift 2; "$@"' _ "$REPO" "$root" "$@"; }
 tmpcount() { ls -A "$tool" | grep -c '^\.ppg-tmp\.'; }
 ```
@@ -438,9 +464,9 @@ chmod 444 "$WORK/raw" && "$SH" -c '. "$1/lib/project-path-gateway.sh"; project_p
 ### 11.2 등록 뒤 연속 조회·검증 (US1, SC-001, SC-004)
 
 ```sh
-g project_path_gateway_add DOCS_DIR docs; echo "add=$?"
-g project_path_gateway_add NEW_DIR 'not yet'; echo "add2=$?"
-g project_path_gateway_get DOCS_DIR
+g project_path_gateway_add_dir DOCS_DIR docs; echo "add=$?"
+g project_path_gateway_add_dir NEW_DIR 'not yet'; echo "add2=$?"
+g project_path_gateway_dir DOCS_DIR
 g project_path_gateway_verify; echo "verify=$?"
 cat "$conf"
 ```
@@ -452,25 +478,26 @@ cat "$conf"
 
 ```sh
 before=$(cksum <"$conf")
-g project_path_gateway_add DOCS_DIR manual; echo "status=$?"
-g project_path_gateway_add DOCS_DIR docs; echo "status=$?"
+g project_path_gateway_add_dir DOCS_DIR manual; echo "status=$?"
+g project_path_gateway_add_file DOCS_DIR docs.txt; echo "status=$?"
 [ "$before" = "$(cksum <"$conf")" ] && echo 무변경
 ```
 
-기대 결과: 두 번 모두 stderr `project-path-gateway: project_path_gateway_add: 이미 등록된 키입니다: DOCS_DIR`와 `status=2`, `무변경`.
+기대 결과: stderr `project-path-gateway: project_path_gateway_add_dir: 이미 등록된 키입니다: DOCS_DIR`와 `status=2`,
+`project-path-gateway: project_path_gateway_add_file: 이미 등록된 키입니다: DOCS_DIR`와 `status=2`(키는 두 파일을 합쳐 유일), `무변경`.
 
 ### 11.4 가운데 키 갱신과 파일 끝 개행 유지 (US3, SC-003)
 
 ```sh
 printf '# 경로 항목\n\nA_DIR=a\nB_DIR=b\n\nC_DIR=c\n' >"$conf"
 printf '# 경로 항목\n\nA_DIR=a\nB_DIR=new/b\n\nC_DIR=c\n' >"$WORK/expected"
-g project_path_gateway_update B_DIR new/b; echo "status=$?"
+g project_path_gateway_update_dir B_DIR new/b; echo "status=$?"
 cmp "$conf" "$WORK/expected" && echo 대상줄만변경
-g project_path_gateway_get B_DIR
+g project_path_gateway_dir B_DIR
 printf 'A_DIR=a\nB_DIR=b' >"$conf"
-g project_path_gateway_update B_DIR x; echo "status=$?"
+g project_path_gateway_update_dir B_DIR x; echo "status=$?"
 od -c "$conf" | tail -2 | head -1
-g project_path_gateway_update X_DIR x; echo "status=$?"
+g project_path_gateway_update_dir X_DIR x; echo "status=$?"
 ```
 
 기대 결과: `status=0`, `대상줄만변경`, `<WORK>/root/new/b`, `status=0`, `od` 줄이 `x`로 끝나고 `\n` 없음,
@@ -481,19 +508,19 @@ stderr `등록되지 않은 키입니다: X_DIR`와 `status=2`.
 ```sh
 printf 'A_DIR=a\n' >"$conf" && chmod 640 "$conf"
 touch -t 200001010000 "$conf"
-g project_path_gateway_add B_DIR b; echo "status=$?"
+g project_path_gateway_add_dir B_DIR b; echo "status=$?"
 ls -l "$conf" | cut -c1-10; find "$conf" -newermt 2000-01-02 | grep -q . && echo 수정시각갱신
 chmod 444 "$conf"; before=$(cksum <"$conf")
-g project_path_gateway_add C_DIR c; echo "readonly=$?"
-g project_path_gateway_update A_DIR a; echo "same-path=$?"
+g project_path_gateway_add_dir C_DIR c; echo "readonly=$?"
+g project_path_gateway_update_dir A_DIR a; echo "same-path=$?"
 [ "$before" = "$(cksum <"$conf")" ] && echo 무변경
 chmod 644 "$conf"
 mv "$conf" "$root/real.conf" && ln -s ../../real.conf "$conf"
-g project_path_gateway_add C_DIR c; echo "link=$?"
+g project_path_gateway_add_dir C_DIR c; echo "link=$?"
 [ -L "$conf" ] && echo 링크유지
 rm "$conf" && mv "$root/real.conf" "$conf"
 chmod 555 "$tool"
-g project_path_gateway_add C_DIR c; echo "dir-readonly=$?"
+g project_path_gateway_add_dir C_DIR c; echo "dir-readonly=$?"
 chmod 755 "$tool"
 [ "$before" = "$(cksum <"$conf")" ] && echo 무변경
 echo "임시파일 $(tmpcount)개"
@@ -508,12 +535,12 @@ stderr `데이터 파일을 쓸 수 없습니다: <conf>`와 `dir-readonly=2`, `
 ```sh
 printf 'A_DIR=a\n' >"$conf"
 i=0; while [ "$i" -lt 10 ]; do
-	g project_path_gateway_add "P_$i" p & p1=$!
-	g project_path_gateway_add "Q_$i" q & p2=$!
+	g project_path_gateway_add_dir "P_$i" p & p1=$!
+	g project_path_gateway_add_dir "Q_$i" q & p2=$!
 	wait "$p1" "$p2"
 	i=$((i + 1))
 done
-g project_path_gateway_get A_DIR >/dev/null && echo 규칙유지
+g project_path_gateway_dir A_DIR >/dev/null && echo 규칙유지
 echo "항목 $(grep -c '=' "$conf")줄, 임시파일 $(tmpcount)개"
 ```
 
@@ -523,11 +550,11 @@ echo "항목 $(grep -c '=' "$conf")줄, 임시파일 $(tmpcount)개"
 
 ```sh
 i=1; while [ "$i" -le 200 ]; do printf 'KEY_%s=dir/%s\n' "$i" "$i"; i=$((i + 1)); done >"$conf"
-t0=$(date +%s); g project_path_gateway_get KEY_200 >/dev/null; t1=$(date +%s)
-g project_path_gateway_update KEY_200 moved/200; t2=$(date +%s)
+t0=$(date +%s); g project_path_gateway_dir KEY_200 >/dev/null; t1=$(date +%s)
+g project_path_gateway_update_dir KEY_200 moved/200; t2=$(date +%s)
 echo "조회 $((t1 - t0))초, 갱신 $((t2 - t1))초"
 cp "$conf" "$WORK/before.conf"
-"$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" || exit 2; project_path_gateway_add LAST_DIR last' _ "$REPO" "$root" & p=$!
+"$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" || exit 2; project_path_gateway_add_dir LAST_DIR last' _ "$REPO" "$root" & p=$!
 sleep 1; kill -TERM "$p" 2>/dev/null; wait "$p"; echo "status=$?"
 if cmp -s "$conf" "$WORK/before.conf"; then echo 이전내용; elif tail -1 "$conf" | grep -qx 'LAST_DIR=last'; then echo 새내용; fi
 echo "임시파일 $(tmpcount)개"
@@ -535,6 +562,37 @@ echo "임시파일 $(tmpcount)개"
 
 기대 결과: 조회와 갱신 경과 시간 차이가 1초 이하(SC-006, 초 단위 측정). 중단한 실행은 `status=143`(1초 안에 끝났으면 0)이고,
 데이터 파일은 `이전내용` 또는 `새내용`입니다. 중단 대상은 함수로 감싸지 않고 `"$SH" -c`를 직접 백그라운드로 띄워야 `kill`이 등록 프로세스에 닿습니다. 임시 파일은 0개 또는 1개(복사와 교체 사이에 중단된 경우만)이며 남으면 이름을 기록합니다.
+
+### 11.8 파일 항목과 종류 규칙 (기능 007 US1~US4)
+
+```sh
+printf 'A_DIR=a\n' >"$conf"; : >"$fconf"
+mkdir -p "$root/a" "$root/config" && : >"$root/config/app.json" && : >"$root/Makefile"
+g project_path_gateway_add_file APP_CONFIG config/app.json; echo "add_file=$?"
+g project_path_gateway_file APP_CONFIG
+g project_path_gateway_dir APP_CONFIG; echo "dir=$?"
+g project_path_gateway_file A_DIR; echo "file=$?"
+g project_path_gateway_add_file ROOT_MAKEFILE Makefile; echo "makefile=$?"
+g project_path_gateway_add_dir APP_JSON config/app.json; echo "dir-shape=$?"
+g project_path_gateway_update_file A_DIR a.txt; echo "update-kind=$?"
+g project_path_gateway_update_file APP_CONFIG config/app.yaml; echo "update=$?"
+cat "$conf" "$fconf"
+mkdir "$root/config/app.yaml"
+g project_path_gateway_verify; echo "verify=$?"
+echo "임시파일 $(tmpcount)개"
+```
+
+기대 결과:
+
+- `add_file=0`, `<WORK>/root/config/app.json`.
+- stderr `project-path-gateway: project_path_gateway_dir: 디렉터리 키가 아닙니다(파일 데이터 파일에 등록됨): APP_CONFIG`와 `dir=2`.
+- stderr `project-path-gateway: project_path_gateway_file: 파일 키가 아닙니다(디렉터리 데이터 파일에 등록됨): A_DIR`와 `file=2`.
+- stderr `project-path-gateway: project_path_gateway_add_file: 파일 경로가 파일 모양이 아닙니다(이름.확장자 또는 .으로 시작하는 이름, 끝 / 없음): Makefile`와 `makefile=2`.
+- stderr `project-path-gateway: project_path_gateway_add_dir: 디렉터리 경로가 파일 모양입니다(확장자가 있거나 .으로 시작): config/app.json`와 `dir-shape=2`.
+- stderr `project-path-gateway: project_path_gateway_update_file: 파일 키가 아닙니다(디렉터리 데이터 파일에 등록됨): A_DIR`와 `update-kind=2`.
+- `update=0`. 데이터 파일 내용은 `A_DIR=a`(디렉터리)와 `APP_CONFIG=config/app.yaml`(파일) 두 줄뿐입니다.
+- 검증 stderr `project-path-gateway: 종류 불일치: APP_CONFIG=config/app.yaml (일반 파일이 아님)`과
+  `project-path-gateway: 검증 실패 1건`, `verify=1`, `임시파일 0개`.
 
 ## 12. 기능 006 초기화 템플릿과 에이전트 스킬 (기능 006 SC-001~SC-003, SC-005)
 
@@ -545,12 +603,12 @@ cat "$WORK/prefix/share/project-path-gateway/install-manifest"
 mkdir -p "$WORK/p6"
 "$PPG" init "$WORK/p6"
 find "$WORK/p6" -type f | LC_ALL=C sort
-cat "$WORK/p6/.tools/project-path-gateway/project-path-gateway.conf"
+cat "$WORK/p6/.tools/project-path-gateway/project-path-gateway.dirs.conf" "$WORK/p6/.tools/project-path-gateway/project-path-gateway.files.conf"
 diff "$WORK/prefix/share/project-path-gateway/SKILL.md" "$WORK/p6/.agents/skills/project-path-gateway/SKILL.md" &&
 	echo skill-same
 (cd "$WORK/p6" && "$SH" -c '. ./.tools/project-path-gateway/project-path-gateway.sh
 	project_path_gateway_init && project_path_gateway_verify &&
-	project_path_gateway_get PPG_TOOL_DIR && project_path_gateway_get AGENT_SKILLS_DIR')
+	project_path_gateway_dir PPG_TOOL_DIR && project_path_gateway_dir AGENT_SKILLS_DIR')
 cp -R "$WORK/p6" "$WORK/p6-before"
 "$PPG" init "$WORK/p6"
 diff -r "$WORK/p6-before" "$WORK/p6" && echo rerun-same
@@ -559,10 +617,10 @@ diff -r "$WORK/p6-before" "$WORK/p6" && echo rerun-same
 기대 결과:
 
 - 설치 목록 다섯 줄(`share/project-path-gateway/SKILL.md` 포함).
-- 파일 네 개(표식, 데이터 파일, 라이브러리, `.agents/skills/project-path-gateway/SKILL.md`), 출력 `생성:` 네 줄 + `초기화 완료`.
-- 데이터 파일에 기본 항목 `PPG_TOOL_DIR=.tools/project-path-gateway`, `AGENT_SKILLS_DIR=.agents/skills`.
+- 파일 다섯 개(표식, 디렉터리·파일 데이터 파일, 라이브러리, `.agents/skills/project-path-gateway/SKILL.md`), 출력 `생성:` 다섯 줄 + `초기화 완료`.
+- 디렉터리 데이터 파일에 기본 항목 `PPG_TOOL_DIR=.tools/project-path-gateway`, `AGENT_SKILLS_DIR=.agents/skills`. 파일 데이터 파일은 주석뿐입니다(기능 007).
 - `skill-same`, `project-path-gateway: 검증 통과 2건`, 두 경로의 절대경로 출력.
-- 재실행은 `유지`·`유지`·`교체`·`교체` 네 줄이고 `rerun-same`.
+- 재실행은 `유지`·`유지`·`유지`·`교체`·`교체` 다섯 줄이고 `rerun-same`.
 
 실패와 되돌리기(root가 아닌 사용자):
 
@@ -584,5 +642,55 @@ mv "$WORK/skill-away" "$WORK/prefix/share/project-path-gateway/SKILL.md"
   이번 실행이 만든 `.tools`는 사라지고 원래 있던 `.agents/skills`는 그대로.
 - 셋째: stderr `스킬 원본을 찾지 못했습니다: ...SKILL.md. 설치 스크립트를 다시 실행하세요`, `status=1`, `<WORK>/s6`은 빈 디렉터리.
 
-스킬 문서 검토(SC-005): `share/SKILL.md`에 머리말 키 두 개(`name`, `description`), 공개 함수 다섯 개의 인자·반환 설명,
-데이터 파일 위치와 기본 항목, 금지 항목, 예시 두 개가 있는지 읽어서 확인합니다. 버전·날짜·절대경로는 없어야 합니다.
+스킬 문서 검토(SC-005): `share/SKILL.md`에 머리말 키 두 개(`name`, `description`), 공개 함수 여덟 개(기능 007)의 인자·반환 설명,
+데이터 파일 두 개의 위치와 기본 항목, 경로 모양 규칙, 금지 항목, 예시 두 개가 있는지 읽어서 확인합니다. 버전·날짜·절대경로는 없어야 합니다.
+
+## 13. 1.x 프로젝트 옮기기 (기능 007 US5, FR-030)
+
+1.x 데이터 파일 하나를 쓰던 프로젝트를 README "1.x 프로젝트 옮기기" 절차대로 옮깁니다. 1.x 라이브러리는 기능 006 최종 커밋 `015739d`에서 가져옵니다.
+
+```sh
+"$SH" install.sh --prefix "$WORK/prefix" >/dev/null
+PPG="$WORK/prefix/bin/project-path-gateway"
+m="$WORK/m7"; t7="$m/.tools/project-path-gateway"
+mkdir -p "$t7" "$m/config" "$m/src" && : >"$m/config/app.json" && : >"$m/Makefile"
+git show 015739d:lib/project-path-gateway.sh >"$t7/project-path-gateway.sh"
+printf '%s\n' '# marker' 'format=1' >"$t7/.project-path-gateway"
+printf 'APP_CONFIG=config/app.json\nSOURCES_ROOT=src\nROOT_MAKEFILE=Makefile\n' >"$t7/project-path-gateway.conf"
+cp "$t7/project-path-gateway.conf" "$WORK/legacy.orig"
+g7() { (cd "$m" && "$SH" -c '. ./.tools/project-path-gateway/project-path-gateway.sh; project_path_gateway_init || exit 2; "$@"' _ "$@"); }
+g7 project_path_gateway_get APP_CONFIG; echo "1x-get=$?"
+"$PPG" init "$m"; echo "init=$?"
+cmp "$WORK/legacy.orig" "$t7/project-path-gateway.conf" && echo 이전파일불변
+mv "$t7/project-path-gateway.dirs.conf" "$WORK/dirs.away"
+g7 true; echo "lib-init=$?"
+mv "$WORK/dirs.away" "$t7/project-path-gateway.dirs.conf"
+g7 project_path_gateway_get APP_CONFIG; echo "removed-get=$?"
+g7 project_path_gateway_add_file APP_CONFIG config/app.json; echo "move-file=$?"
+g7 project_path_gateway_add_dir SOURCES_ROOT src; echo "move-dir=$?"
+g7 project_path_gateway_add_file ROOT_MAKEFILE Makefile; echo "makefile=$?"
+g7 project_path_gateway_add_dir ROOT_DIR .; echo "root-dir=$?"
+g7 eval 'ls "$(project_path_gateway_dir ROOT_DIR)/Makefile"'
+g7 project_path_gateway_file APP_CONFIG
+g7 project_path_gateway_verify; echo "verify=$?"
+"$PPG" init "$m" >/dev/null; echo "rerun=$?"
+rm "$t7/project-path-gateway.conf"
+"$PPG" init "$m" >/dev/null; echo "after-rm=$?"
+```
+
+기대 결과:
+
+- `<WORK>/m7/config/app.json`과 `1x-get=0`(1.x 라이브러리로 동작하는 프로젝트).
+- `init` stdout `유지: .tools/project-path-gateway/.project-path-gateway`, `생성:` 디렉터리·파일 데이터 파일 두 줄,
+  `교체: .tools/project-path-gateway/project-path-gateway.sh`, `생성: .agents/skills/project-path-gateway/SKILL.md`, `초기화 완료: <WORK>/m7`.
+  stderr `project-path-gateway: init: 이전 형식 데이터 파일이 있습니다: .tools/project-path-gateway/project-path-gateway.conf. README의 "1.x 프로젝트 옮기기" 절차로 항목을 옮기세요`,
+  `init=0`, `이전파일불변`.
+- 새 데이터 파일 하나를 치운 상태의 런타임 초기화: stderr
+  `project-path-gateway: project_path_gateway_init: 데이터 파일을 읽을 수 없습니다: <WORK>/m7/.tools/project-path-gateway/project-path-gateway.dirs.conf`와
+  `project-path-gateway: project_path_gateway_init: 이전 형식 데이터 파일이 있습니다: <WORK>/m7/.tools/project-path-gateway/project-path-gateway.conf. README의 "1.x 프로젝트 옮기기" 절차로 항목을 옮기세요`,
+  `lib-init=2`.
+- 제거된 함수 호출은 셸의 명령 없음 오류(`/bin/sh`는 `command not found`, `dash`는 `not found`)와 `removed-get=127`.
+- `move-file=0`, `move-dir=0`. `Makefile`은 파일 모양 위반(`makefile=2`)이므로 `ROOT_DIR=.`(`root-dir=0`)로 대신하고,
+  `<WORK>/m7/./Makefile`이 출력됩니다(`ls` 결과. 조회 결과는 경로를 정규화하지 않으므로 `./`가 남습니다). 이어서 `<WORK>/m7/config/app.json`.
+- `project-path-gateway: 검증 통과 5건`(기본 디렉터리 항목 두 개 + 옮긴 항목 세 개), `verify=0`.
+- 이전 파일이 남아 있는 재실행은 같은 안내를 stderr에 다시 내고 `rerun=0`. 이전 파일을 지운 뒤에는 stderr 출력 없이 `after-rm=0`.
