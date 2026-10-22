@@ -47,6 +47,7 @@ project_path_gateway_init "$some_dir"     # 시작 디렉터리를 지정한다
 | `project_path_gateway_update_dir` | `KEY PATH` | 없음 | 0 갱신 / 2 인자 오류·미초기화·키 없음·파일 키·경로·종류 규칙 위반 |
 | `project_path_gateway_update_file` | `KEY PATH` | 없음 | 0 갱신 / 2 인자 오류·미초기화·키 없음·디렉터리 키·경로·종류 규칙 위반 |
 | `project_path_gateway_add_list` | `LIST` (목록 파일, `-`이면 표준 입력) | `project-path-gateway: 일괄 등록: 디렉터리 D건, 파일 F건, 유지 K건` | 0 등록 / 2 인자 오류·미초기화·목록 읽기 불가·목록 위반·쓰기 실패 |
+| `project_path_gateway_scan` | 없음 | 찾기 결과 목록(`add_list` 입력 형식, 읽기 전용) | 0 성공 / 2 인자 오류·미초기화·데이터 파일 오류 |
 
 - 오류는 모두 stderr에 `project-path-gateway: <함수 이름>: <원인>` 한 줄로 나온다.
 - 디렉터리 키를 `project_path_gateway_file`로, 파일 키를 `project_path_gateway_dir`로 조회하면 종류가 다르다는 오류(반환 2)다.
