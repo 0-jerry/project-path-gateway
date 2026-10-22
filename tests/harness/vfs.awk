@@ -2,7 +2,7 @@
 #
 # 반드시 LC_ALL=C로 실행한다. 입력은 모두 환경 변수다(awk -v는 역슬래시를 해석하므로 쓰지 않는다).
 #   PPGT_VFS     항목 표. 줄마다 "종류 TAB 경로 토큰 TAB 값 토큰"
-#                종류: dir, file(값=내용), link(값=대상), other, deny, readonly, mode(값=모드)
+#                종류: dir, file(값=내용), link(값=대상), other, deny, readonly, mode(값=모드, 사례 fs mode 또는 chmod)
 #   PPGT_FAULTS  실패 주입. 줄마다 "작업 종류 TAB 경로 토큰"
 #   PPGT_OP      연산 이름(시스템 포트 접미사 또는 init)
 #   PPGT_A1, PPGT_A2  포트 인자(바이트 그대로)
@@ -210,6 +210,28 @@ function sort_names(arr, n,   i, j, t) {
 	}
 }
 
+# find_scripts 제외: 루트 R 아래 상대경로 REL의 세그먼트 중 이름이 .git이거나 LF가 든 것이 있거나, 거쳐 가는 디렉터리가 거부 디렉터리이면 참
+# (실제 포트: find의 -prune과 읽을 수 없는 디렉터리, 기능 008 research R-02·R-10).
+function scan_pruned(r, rel,   n, segs, i, pre) {
+	n = split(rel, segs, "/")
+	pre = (r == "/") ? "" : r
+	for (i = 1; i <= n; i++) {
+		if (segs[i] == ".git" || index(segs[i], "\n")) return 1
+		if (i < n) {
+			pre = pre "/" segs[i]
+			if (deny[pre]) return 1
+		}
+	}
+	return 0
+}
+
+# 모드 문자열의 소유자 실행 비트(3자리는 첫 숫자, 4자리는 둘째 숫자가 홀수)
+function owner_exec(m,   d) {
+	if (m == "") return 0
+	d = (length(m) == 4) ? substr(m, 2, 1) : substr(m, 1, 1)
+	return (d + 0) % 2 == 1
+}
+
 BEGIN {
 	n = split(ENVIRON["PPGT_VFS"], lines, "\n")
 	for (i = 1; i <= n; i++) {
@@ -308,6 +330,39 @@ BEGIN {
 			}
 			sort_names(names, m)
 			for (i = 1; i <= m; i++) out = out names[i] "\n"
+		}
+	} else if (op == "find_scripts") {
+		record("find-scripts"); arg_rec(a1)
+		r = resolve(a1, 1)
+		if (rerr == "" && kind[r] == "dir" && !deny[r]) {
+			pre = (r == "/") ? "" : r
+			m = 0
+			for (p in kind) {
+				if (kind[p] != "file" || index(p, pre "/") != 1) continue
+				rel = substr(p, length(pre) + 2)
+				if (scan_pruned(r, rel)) continue
+				if (base(p) !~ /\.sh$/ && !owner_exec(mode[p])) continue
+				names[++m] = p
+			}
+			sort_names(names, m)
+			for (i = 1; i <= m; i++) out = out names[i] "\n"
+		}
+	} else if (op == "read_first_line") {
+		record("read-first-line"); arg_rec(a1)
+		r = resolve(a1, 1)
+		if (readable_file(r)) {
+			i = index(val[r], "\n")
+			out = (i ? substr(val[r], 1, i - 1) : val[r]) "x"
+		} else st = 1
+	} else if (op == "path_kinds") {
+		record("path-kinds"); arg_rec(a1)
+		m = split(a1, plist, "\n")
+		for (i = 1; i <= m; i++) {
+			if (plist[i] == "") { out = out "none\n"; continue }
+			r = resolve(plist[i], 1)
+			if (rerr != "" || kind[r] == "") out = out "none\n"
+			else if (kind[r] == "dir" || kind[r] == "file") out = out kind[r] "\n"
+			else out = out "other\n"
 		}
 	} else if (op == "mkdir") {
 		record("mkdir"); arg_rec(a1)
