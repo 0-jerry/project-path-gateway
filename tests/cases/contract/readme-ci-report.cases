@@ -1,12 +1,13 @@
-# 공개 API 계약: README CI 검증 리포트 사용 예 (기능 003 FR-031, US1·US2)
+# 공개 API 계약: README CI 검증 리포트 사용 예 (기능 003 FR-031, US1·US2 / 기능 007: 디렉터리 데이터 파일 항목을 먼저 검증)
 target readme-example ci-report
 layer api
 self scripts/check-paths.sh
 fs file /t/my\sproject/.tools/project-path-gateway/.project-path-gateway
 fs file /t/my\sproject/.tools/project-path-gateway/project-path-gateway.sh
-fs file /t/my\sproject/.tools/project-path-gateway/project-path-gateway.conf
-content APP_CONFIG=config/app.json
+fs file /t/my\sproject/.tools/project-path-gateway/project-path-gateway.dirs.conf
 content DOCS=docs
+fs file /t/my\sproject/.tools/project-path-gateway/project-path-gateway.files.conf
+content APP_CONFIG=config/app.json
 
 case readme-ci-report-passes
 fs file /t/my\sproject/config/app.json
@@ -21,9 +22,9 @@ op move ./.ppg-report.4242.path-report.txt path-report.txt
 case readme-ci-report-lists-all-missing-and-fails
 cwd /t/my\sproject
 status 1
-err project-path-gateway: 누락: APP_CONFIG=config/app.json
 err project-path-gateway: 누락: DOCS=docs
+err project-path-gateway: 누락: APP_CONFIG=config/app.json
 err project-path-gateway: 검증 실패 2건
 op source ./.tools/project-path-gateway/project-path-gateway.sh
-op write ./.ppg-report.4242.path-report.txt project-path-gateway:\s누락:\sAPP_CONFIG=config/app.json\nproject-path-gateway:\s누락:\sDOCS=docs\nproject-path-gateway:\s검증\s실패\s2건\n
+op write ./.ppg-report.4242.path-report.txt project-path-gateway:\s누락:\sDOCS=docs\nproject-path-gateway:\s누락:\sAPP_CONFIG=config/app.json\nproject-path-gateway:\s검증\s실패\s2건\n
 op move ./.ppg-report.4242.path-report.txt path-report.txt

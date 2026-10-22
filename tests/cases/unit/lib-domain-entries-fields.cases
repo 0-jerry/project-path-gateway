@@ -1,0 +1,34 @@
+# 도메인 단위: 항목 목록 모델 필드 줄 스트림 (기능 007 research R-09). 레코드마다 종류, 키, 경로를 한 줄씩 출력한다.
+target lib-func project_path_gateway__domain_entries_fields
+layer domain
+
+case entries-fields-two-records
+arg dir\t1\tSRC\tsrc\nfile\t3\tCONF\tconfig/app.json
+status 0
+out dir
+out SRC
+out src
+out file
+out CONF
+out config/app.json
+
+case entries-fields-path-keeps-tab-equal-and-spaces
+arg dir\t2\tA\t\sa\tb=c\s
+status 0
+out dir
+out A
+out  a\tb=c 
+
+case entries-fields-trailing-lf-and-empty-lines
+arg dir\t1\tA\ta\n\nfile\t2\tB\tb.txt\n
+status 0
+out dir
+out A
+out a
+out file
+out B
+out b.txt
+
+case entries-fields-empty-list
+arg \e
+status 0

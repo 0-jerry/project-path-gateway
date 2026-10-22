@@ -1,50 +1,50 @@
-# 도메인 단위: 경로 모델 위반 판정 (기능 001 domain_path_test, FR-015 / 기능 005 FR-003: line_feed 흡수)
+# 도메인 단위: 경로 모델 위반 판정 (기능 001 domain_path_test, FR-015 / 기능 005 FR-003: line_feed 흡수 / 기능 007: 위반이면 반환 1)
 target lib-func project_path_gateway__domain_path_violation
 layer domain
 
 case path-violation-empty
 arg \e
-status 0
+status 1
 out empty_path
 
 case path-violation-absolute-etc
 arg /etc
-status 0
+status 1
 out absolute_path
 
 case path-violation-absolute-root
 arg /
-status 0
+status 1
 out absolute_path
 
 case path-violation-parent-only
 arg ..
-status 0
+status 1
 out parent_segment
 
 case path-violation-parent-leading
 arg ../a
-status 0
+status 1
 out parent_segment
 
 case path-violation-parent-trailing
 arg a/..
-status 0
+status 1
 out parent_segment
 
 case path-violation-parent-middle
 arg a/../b
-status 0
+status 1
 out parent_segment
 
 case path-violation-cr-trailing
 arg a\r
-status 0
+status 1
 out carriage_return
 
 case path-violation-cr-middle
 arg a\rb
-status 0
+status 1
 out carriage_return
 
 case path-allowed-space
@@ -97,17 +97,17 @@ status 0
 
 case path-line-feed
 arg a\nb
-status 0
+status 1
 out line_feed
 
 case path-carriage-return-before-line-feed
 arg a\r\nb
-status 0
+status 1
 out carriage_return
 
 case path-line-feed-at-end
 arg a\n
-status 0
+status 1
 out line_feed
 
 # 기능 007 FR-016·FR-017: 종류 인자 KIND가 있으면 기존 위반 뒤에 경로 모양을 판정한다
@@ -121,7 +121,7 @@ status 0
 case path-kind-file-single-dot
 arg .
 arg file
-status 0
+status 1
 out not_file_path
 
 case path-kind-dir-dot-segment
@@ -132,7 +132,7 @@ status 0
 case path-kind-file-dot-segment
 arg dir/.
 arg file
-status 0
+status 1
 out not_file_path
 
 case path-kind-dir-dot-slash
@@ -143,13 +143,13 @@ status 0
 case path-kind-file-dot-slash
 arg ./
 arg file
-status 0
+status 1
 out not_file_path
 
 case path-kind-dir-dotfile
 arg .gitignore
 arg dir
-status 0
+status 1
 out not_dir_path
 
 case path-kind-file-dotfile
@@ -160,7 +160,7 @@ status 0
 case path-kind-dir-dotdir-name
 arg .github
 arg dir
-status 0
+status 1
 out not_dir_path
 
 case path-kind-file-dotdir-name
@@ -171,7 +171,7 @@ status 0
 case path-kind-dir-dotenv-local
 arg .env.local
 arg dir
-status 0
+status 1
 out not_dir_path
 
 case path-kind-file-dotenv-local
@@ -182,7 +182,7 @@ status 0
 case path-kind-dir-extension
 arg build.sh
 arg dir
-status 0
+status 1
 out not_dir_path
 
 case path-kind-file-extension
@@ -193,7 +193,7 @@ status 0
 case path-kind-dir-double-extension
 arg archive.tar.gz
 arg dir
-status 0
+status 1
 out not_dir_path
 
 case path-kind-file-double-extension
@@ -204,7 +204,7 @@ status 0
 case path-kind-dir-version-name
 arg v1.2
 arg dir
-status 0
+status 1
 out not_dir_path
 
 case path-kind-file-version-name
@@ -220,7 +220,7 @@ status 0
 case path-kind-file-plain-name
 arg src
 arg file
-status 0
+status 1
 out not_file_path
 
 case path-kind-dir-trailing-dot-name
@@ -231,7 +231,7 @@ status 0
 case path-kind-file-trailing-dot-name
 arg b.
 arg file
-status 0
+status 1
 out not_file_path
 
 case path-kind-dir-no-extension-name
@@ -242,13 +242,13 @@ status 0
 case path-kind-file-no-extension-name
 arg Makefile
 arg file
-status 0
+status 1
 out not_file_path
 
 case path-kind-file-trailing-slash
 arg a.txt/
 arg file
-status 0
+status 1
 out not_file_path
 
 case path-kind-dir-trailing-slash
@@ -259,47 +259,47 @@ status 0
 case path-kind-dir-dotdir-trailing-slash
 arg .github/
 arg dir
-status 0
+status 1
 out not_dir_path
 
 case path-kind-dir-nested-file-shape
 arg src/build.sh
 arg dir
-status 0
+status 1
 out not_dir_path
 
 case path-kind-file-nested-dir-shape
 arg src/lib
 arg file
-status 0
+status 1
 out not_file_path
 
 case path-kind-existing-violation-comes-first
 arg /a.txt
 arg dir
-status 0
+status 1
 out absolute_path
 
 case path-kind-existing-violation-before-file-shape
 arg ..
 arg file
-status 0
+status 1
 out parent_segment
 
 case path-kind-empty-path-before-shape
 arg \e
 arg file
-status 0
+status 1
 out empty_path
 
 case path-kind-cr-before-shape
 arg a.txt\r
 arg dir
-status 0
+status 1
 out carriage_return
 
 case path-kind-line-feed-before-shape
 arg src\n
 arg file
-status 0
+status 1
 out line_feed

@@ -1,150 +1,231 @@
-# 도메인 단위: 항목 모델 줄 해석 (기능 001 domain_line_test, FR-012~FR-016, data-model 1.5 / 기능 005 FR-004, data-model 1.4)
-# 반환 0: 유효(레코드 줄), 1: 위반(원인 코드 줄), 2: 무시(출력 없음). 첫 인자는 줄 번호.
+# 도메인 단위: 항목 모델 줄 해석 (기능 001 domain_line_test, FR-012~FR-016, data-model 1.5 / 기능 005 FR-004, data-model 1.4 / 기능 007 FR-012)
+# 반환 0: 유효(레코드 줄), 1: 위반(원인 코드 줄), 2: 무시(출력 없음). 인자는 종류, 줄 번호, 줄 (기능 007 data-model 1.4).
 target lib-func project_path_gateway__domain_entry_parse_line
 layer domain
 
 case classify-ignore-empty
+arg dir
 arg 7
 arg \e
 status 2
 
 case classify-ignore-comment
+arg dir
 arg 7
 arg #x
 status 2
 
 case classify-ignore-hash-only
+arg dir
 arg 7
 arg #
 status 2
 
 case classify-ignore-comment-with-entry
+arg dir
 arg 7
 arg #\sA=/etc
 status 2
 
 case classify-ignore-comment-with-cr
+arg dir
 arg 7
 arg #x\r
 status 2
 
 case classify-violation-space-only
+arg dir
 arg 7
 arg \s
 status 1
 out no_separator
 
 case classify-violation-tab-only
+arg dir
 arg 7
 arg \t
 status 1
 out no_separator
 
 case classify-violation-indented-comment
+arg dir
 arg 7
 arg \s#x
 status 1
 out no_separator
 
 case classify-violation-no-equal
+arg dir
 arg 7
 arg abc
 status 1
 out no_separator
 
 case classify-violation-cr-only
+arg dir
 arg 7
 arg \r
 status 1
 out no_separator
 
 case classify-violation-lowercase-key
+arg dir
 arg 7
 arg a=b
 status 1
 out invalid_key
 
 case classify-violation-space-before-equal
+arg dir
 arg 7
 arg A\s=b
 status 1
 out invalid_key
 
 case classify-violation-empty-key
+arg dir
 arg 7
 arg =b
 status 1
 out invalid_key
 
 case classify-violation-cr-in-key
+arg dir
 arg 7
 arg A\r=b
 status 1
 out invalid_key
 
 case classify-violation-empty-path
+arg dir
 arg 7
 arg A=
 status 1
 out empty_path
 
 case classify-violation-absolute-path
+arg dir
 arg 7
 arg A=/etc/hosts
 status 1
 out absolute_path
 
 case classify-violation-parent-segment
+arg dir
 arg 7
 arg A=a/../b
 status 1
 out parent_segment
 
 case classify-violation-cr-in-path
+arg dir
 arg 7
 arg A=b\r
 status 1
 out carriage_return
 
 case classify-entry-simple
+arg dir
 arg 7
 arg A=b
 status 0
-out 7\tA\tb
+out dir\t7\tA\tb
 
 case classify-entry-leading-space-path
+arg dir
 arg 7
 arg A=\sb
 status 0
-out 7\tA\t b
+out dir\t7\tA\t b
 
 case classify-entry-equal-in-path
+arg dir
 arg 7
 arg A=b=c
 status 0
-out 7\tA\tb=c
+out dir\t7\tA\tb=c
 
 case classify-entry-app-config
+arg file
 arg 7
 arg APP_CONFIG=config/app.json
 status 0
-out 7\tAPP_CONFIG\tconfig/app.json
+out file\t7\tAPP_CONFIG\tconfig/app.json
 
 # 기능 001 line-path 사례를 옮김: 경로는 첫 = 뒤 전체이며 앞뒤 공백을 보존한다.
 case line-path-keeps-leading-space
+arg dir
 arg 7
 arg A=\sb
 status 0
-out 7\tA\t b
+out dir\t7\tA\t b
 
 case line-path-after-first-equal
+arg dir
 arg 7
 arg A=b=c
 status 0
-out 7\tA\tb=c
+out dir\t7\tA\tb=c
 
 case line-path-keeps-trailing-space
+arg dir
 arg 7
 arg A=b\s
 status 0
-out 7\tA\tb 
+out dir\t7\tA\tb 
+
+# 기능 007: 종류 규칙은 키·경로 규칙 뒤에 판정한다. 무시 줄은 종류와 무관하다.
+case classify-kind-dir-file-shape
+arg dir
+arg 3
+arg DOCS=docs/index.md
+status 1
+out not_dir_path
+
+case classify-kind-file-dir-shape
+arg file
+arg 2
+arg SRC=src
+status 1
+out not_file_path
+
+case classify-kind-file-trailing-slash
+arg file
+arg 2
+arg CONF=app.json/
+status 1
+out not_file_path
+
+case classify-kind-file-dotfile
+arg file
+arg 4
+arg ENV_FILE=.env
+status 0
+out file\t4\tENV_FILE\t.env
+
+case classify-kind-dir-dot-middle-segment
+arg dir
+arg 5
+arg WORKFLOWS_DIR=.github/workflows
+status 0
+out dir\t5\tWORKFLOWS_DIR\t.github/workflows
+
+case classify-kind-key-before-kind
+arg file
+arg 1
+arg src=src
+status 1
+out invalid_key
+
+case classify-kind-path-before-kind
+arg dir
+arg 1
+arg A=/a.txt
+status 1
+out absolute_path
+
+case classify-kind-file-ignores-comment
+arg file
+arg 1
+arg #\sSRC=src
+status 2

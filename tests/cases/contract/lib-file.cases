@@ -1,0 +1,111 @@
+# 공개 API 계약: project_path_gateway_file KEY (기능 001 library_get_contract_test, contracts/library-api.md 4절 / 기능 007 contracts/library-api.md 2절)
+target lib-session project_path_gateway
+layer api
+fs file /t/root/.tools/project-path-gateway/.project-path-gateway
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+content SOURCES_ROOT=src
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.files.conf
+content APP_CONFIG=config/app.json
+
+
+case file-not-initialized
+call project_path_gateway_file APP_CONFIG
+status 2
+err project-path-gateway: project_path_gateway_file: 초기화되지 않았습니다. project_path_gateway_init을 먼저 호출하세요
+op returned project_path_gateway_file 2
+
+
+case file-success-prints-absolute-path
+call project_path_gateway_init /t/root
+call project_path_gateway_file APP_CONFIG
+status 0
+out /t/root/config/app.json
+op returned project_path_gateway_init 0
+op returned project_path_gateway_file 0
+
+
+case file-path-existence-is-not-checked
+fs dir /t/root/config
+call project_path_gateway_init /t/root
+call project_path_gateway_file APP_CONFIG
+status 0
+out /t/root/config/app.json
+op returned project_path_gateway_init 0
+op returned project_path_gateway_file 0
+
+
+# 초기화 뒤 데이터 파일 변경·삭제, 루트 삭제 (기능 001 test_data_file_changes_after_init, test_root_deleted_after_init):
+# 가상 파일 시스템은 call 사이에 바뀌지 않으므로, 초기화가 남긴 호출 셸 변수를 caller-var로 주고 바뀐 뒤의 파일 상태로 조회한다.
+case file-after-init-reads-changed-data-file
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/changed
+fs file /t/changed/.tools/project-path-gateway/.project-path-gateway
+fs file /t/changed/.tools/project-path-gateway/project-path-gateway.dirs.conf
+fs file /t/changed/.tools/project-path-gateway/project-path-gateway.files.conf
+content APP_CONFIG=config/new.json
+call project_path_gateway_file APP_CONFIG
+status 0
+out /t/changed/config/new.json
+op returned project_path_gateway_file 0
+
+
+case file-after-init-data-file-deleted
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/changed
+fs file /t/changed/.tools/project-path-gateway/.project-path-gateway
+call project_path_gateway_file APP_CONFIG
+status 2
+err project-path-gateway: project_path_gateway_file: 데이터 파일을 읽을 수 없습니다: /t/changed/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op returned project_path_gateway_file 2
+
+
+case file-after-init-root-deleted
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/deleted
+call project_path_gateway_file APP_CONFIG
+status 2
+err project-path-gateway: project_path_gateway_file: 데이터 파일을 읽을 수 없습니다: /t/deleted/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op returned project_path_gateway_file 2
+
+# 기능 007 US1-2·US1-3·US1-4
+case file-with-dir-key-is-kind-mismatch
+call project_path_gateway_init /t/root
+call project_path_gateway_file SOURCES_ROOT
+status 2
+err project-path-gateway: project_path_gateway_file: 파일 키가 아닙니다(디렉터리 데이터 파일에 등록됨): SOURCES_ROOT
+op returned project_path_gateway_init 0
+op returned project_path_gateway_file 2
+
+case file-argument-count
+call project_path_gateway_init /t/root
+call project_path_gateway_file
+call project_path_gateway_file A B
+status 2
+err project-path-gateway: project_path_gateway_file: 인자는 KEY 1개여야 합니다
+err project-path-gateway: project_path_gateway_file: 인자는 KEY 1개여야 합니다
+op returned project_path_gateway_init 0
+op returned project_path_gateway_file 2
+op returned project_path_gateway_file 2
+
+case file-unknown-key-in-both-files
+call project_path_gateway_init /t/root
+call project_path_gateway_file NOPE
+status 2
+err project-path-gateway: project_path_gateway_file: 등록되지 않은 키입니다: NOPE
+op returned project_path_gateway_init 0
+op returned project_path_gateway_file 2
+
+case file-dot-names-are-files
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.files.conf
+content ENV_FILE=.env
+content GITIGNORE=.gitignore
+content ARCHIVE=dist/app.tar.gz
+call project_path_gateway_init /t/root
+call project_path_gateway_file ENV_FILE
+call project_path_gateway_file GITIGNORE
+call project_path_gateway_file ARCHIVE
+status 0
+out /t/root/.env
+out /t/root/.gitignore
+out /t/root/dist/app.tar.gz
+op returned project_path_gateway_init 0
+op returned project_path_gateway_file 0
+op returned project_path_gateway_file 0
+op returned project_path_gateway_file 0

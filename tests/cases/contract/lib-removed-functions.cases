@@ -1,0 +1,23 @@
+# 공개 API 계약: 1.x 공개 함수 제거 (기능 007 FR-021, contracts/library-api.md 1절)
+# 라이브러리를 불러온 뒤 project_path_gateway_get·_add·_update는 정의되어 있지 않다(호환 별칭 없음).
+# 확인용 반복 변수 f는 호출 셸 변수이므로 op changed로 기록된다.
+target lib-session project_path_gateway
+layer api
+fs file /t/root/.tools/project-path-gateway/.project-path-gateway
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.files.conf
+
+case removed-functions-are-not-defined
+call eval for\sf\sin\sproject_path_gateway_get\sproject_path_gateway_add\sproject_path_gateway_update;\sdo\sif\scommand\s-v\s"$f"\s>/dev/null\s2>&1;\sthen\secho\s"$f=defined";\selse\secho\s"$f=undefined";\sfi;\sdone
+status 0
+out project_path_gateway_get=undefined
+out project_path_gateway_add=undefined
+out project_path_gateway_update=undefined
+op returned eval 0
+op changed var:f
+
+case new-functions-are-defined
+call eval for\sf\sin\sproject_path_gateway_init\sproject_path_gateway_verify\sproject_path_gateway_dir\sproject_path_gateway_file\sproject_path_gateway_add_dir\sproject_path_gateway_add_file\sproject_path_gateway_update_dir\sproject_path_gateway_update_file;\sdo\scommand\s-v\s"$f"\s>/dev/null\s2>&1\s||\secho\s"$f=undefined";\sdone
+status 0
+op returned eval 0
+op changed var:f

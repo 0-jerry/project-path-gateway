@@ -1,0 +1,162 @@
+# 공개 API 계약: project_path_gateway_dir KEY (기능 001 library_get_contract_test, contracts/library-api.md 4절 / 기능 007 contracts/library-api.md 2·3절)
+target lib-session project_path_gateway
+layer api
+fs file /t/root/.tools/project-path-gateway/.project-path-gateway
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+content SOURCES_ROOT=src
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.files.conf
+content APP_CONFIG=config/app.json
+
+case dir-argument-count
+call project_path_gateway_init /t/root
+call project_path_gateway_dir
+call project_path_gateway_dir A B
+status 2
+err project-path-gateway: project_path_gateway_dir: 인자는 KEY 1개여야 합니다
+err project-path-gateway: project_path_gateway_dir: 인자는 KEY 1개여야 합니다
+op returned project_path_gateway_init 0
+op returned project_path_gateway_dir 2
+op returned project_path_gateway_dir 2
+
+
+case dir-unknown-key
+call project_path_gateway_init /t/root
+call project_path_gateway_dir NOPE
+status 2
+err project-path-gateway: project_path_gateway_dir: 등록되지 않은 키입니다: NOPE
+op returned project_path_gateway_init 0
+op returned project_path_gateway_dir 2
+
+
+case dir-paths-are-joined-verbatim
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+content SPACE=a b/c d
+content KOREAN=한글/경로
+content EQUAL=a=b
+content DASH=-x
+content DOT=./a
+content TRAIL=dir/
+content EMPTYSEG=a//b
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.files.conf
+call project_path_gateway_init /t/root
+call project_path_gateway_dir SPACE
+call project_path_gateway_dir KOREAN
+call project_path_gateway_dir EQUAL
+call project_path_gateway_dir DASH
+call project_path_gateway_dir DOT
+call project_path_gateway_dir TRAIL
+call project_path_gateway_dir EMPTYSEG
+status 0
+out /t/root/a b/c d
+out /t/root/한글/경로
+out /t/root/a=b
+out /t/root/-x
+out /t/root/./a
+out /t/root/dir/
+out /t/root/a//b
+op returned project_path_gateway_init 0
+op returned project_path_gateway_dir 0
+op returned project_path_gateway_dir 0
+op returned project_path_gateway_dir 0
+op returned project_path_gateway_dir 0
+op returned project_path_gateway_dir 0
+op returned project_path_gateway_dir 0
+op returned project_path_gateway_dir 0
+
+
+case dir-after-init-data-file-violation
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/changed
+fs file /t/changed/.tools/project-path-gateway/.project-path-gateway
+fs file /t/changed/.tools/project-path-gateway/project-path-gateway.dirs.conf
+content bad line
+fs file /t/changed/.tools/project-path-gateway/project-path-gateway.files.conf
+call project_path_gateway_dir APP_CONFIG
+status 2
+err project-path-gateway: /t/changed/.tools/project-path-gateway/project-path-gateway.dirs.conf:1: KEY=경로 형식이 아닙니다
+op returned project_path_gateway_dir 2
+
+
+# 기능 005 보호 사례(US1): 리팩터링이 건드리는 레코드 경계. 경로의 TAB은 잘리지 않고, 앞부분이 같은 키는 정확히 일치하는 키만 찾는다.
+case dir-path-with-tab-is-kept
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+content TABBED=a\tb/c
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.files.conf
+call project_path_gateway_init /t/root
+call project_path_gateway_dir TABBED
+status 0
+out /t/root/a\tb/c
+op returned project_path_gateway_init 0
+op returned project_path_gateway_dir 0
+
+
+case dir-prefix-key-exact-match
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+content DOCS_DIR=two
+content DOC=one
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.files.conf
+call project_path_gateway_init /t/root
+call project_path_gateway_dir DOC
+call project_path_gateway_dir DOCS_DIR
+status 0
+out /t/root/one
+out /t/root/two
+op returned project_path_gateway_init 0
+op returned project_path_gateway_dir 0
+op returned project_path_gateway_dir 0
+
+
+# 기능 006 US1·FR-005: 기본 항목 두 개는 조회로 루트 기준 절대경로를 낸다.
+case dir-default-template-entries
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+content PPG_TOOL_DIR=.tools/project-path-gateway
+content AGENT_SKILLS_DIR=.agents/skills
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.files.conf
+fs dir /t/root/.agents/skills
+call project_path_gateway_init /t/root
+call project_path_gateway_dir PPG_TOOL_DIR
+call project_path_gateway_dir AGENT_SKILLS_DIR
+status 0
+out /t/root/.tools/project-path-gateway
+out /t/root/.agents/skills
+op returned project_path_gateway_init 0
+op returned project_path_gateway_dir 0
+op returned project_path_gateway_dir 0
+
+# 기능 007 US1-1·US1-3: 디렉터리 키는 절대경로, 파일 키는 종류 불일치(반환 2)
+case dir-success-prints-absolute-path
+call project_path_gateway_init /t/root
+call project_path_gateway_dir SOURCES_ROOT
+status 0
+out /t/root/src
+op returned project_path_gateway_init 0
+op returned project_path_gateway_dir 0
+
+case dir-with-file-key-is-kind-mismatch
+call project_path_gateway_init /t/root
+call project_path_gateway_dir APP_CONFIG
+status 2
+err project-path-gateway: project_path_gateway_dir: 디렉터리 키가 아닙니다(파일 데이터 파일에 등록됨): APP_CONFIG
+op returned project_path_gateway_init 0
+op returned project_path_gateway_dir 2
+
+# 기능 007 FR-031·library-api 3절: 새 데이터 파일을 읽을 수 없고 1.x 데이터 파일이 있으면 안내 줄을 덧붙인다
+case dir-data-file-missing-with-legacy-data-file
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/old
+fs file /t/old/.tools/project-path-gateway/.project-path-gateway
+fs file /t/old/.tools/project-path-gateway/project-path-gateway.conf
+content SOURCES_ROOT=src
+call project_path_gateway_dir SOURCES_ROOT
+status 2
+err project-path-gateway: project_path_gateway_dir: 데이터 파일을 읽을 수 없습니다: /t/old/.tools/project-path-gateway/project-path-gateway.dirs.conf
+err project-path-gateway: project_path_gateway_dir: 이전 형식 데이터 파일이 있습니다: /t/old/.tools/project-path-gateway/project-path-gateway.conf. README의 "1.x 프로젝트 옮기기" 절차로 항목을 옮기세요
+op returned project_path_gateway_dir 2
+
+case dir-files-data-file-missing-reports-files-data-file
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/half
+fs file /t/half/.tools/project-path-gateway/.project-path-gateway
+fs file /t/half/.tools/project-path-gateway/project-path-gateway.dirs.conf
+content SOURCES_ROOT=src
+call project_path_gateway_dir SOURCES_ROOT
+status 2
+err project-path-gateway: project_path_gateway_dir: 데이터 파일을 읽을 수 없습니다: /t/half/.tools/project-path-gateway/project-path-gateway.files.conf
+op returned project_path_gateway_dir 2

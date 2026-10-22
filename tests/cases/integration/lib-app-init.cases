@@ -1,5 +1,6 @@
-# 애플리케이션 통합: 런타임 초기화 흐름 (기능 001 library_init_contract_test, contracts/library-api.md 2절)
-# 포트 호출 순서 is_dir → physical_dir → find_root → readable_file → read_lines와 반환값별 끝 표지 상세 값을 확인한다.
+# 애플리케이션 통합: 런타임 초기화 흐름 (기능 001 library_init_contract_test, contracts/library-api.md 2절 / 기능 007 research R-07)
+# 포트 호출 순서 is_dir → physical_dir → find_root → 두 데이터 파일 readable_file → read_lines와 반환값별 끝 표지 상세 값을 확인한다.
+# 데이터 파일을 읽을 수 없으면 읽지 못한 파일 경로를 상세로 내고, 1.x 데이터 파일이 있으면 15를 낸다.
 target lib-func project_path_gateway__app_init
 layer app
 
@@ -38,12 +39,50 @@ stub project_path_gateway__port_physical_dir 0 /root/sub
 stub-out-raw /root/subx
 stub project_path_gateway__port_find_root 0 /root/sub .tools/project-path-gateway/.project-path-gateway
 stub-out-raw /rootx
+stub project_path_gateway__port_readable_file 1 /root/.tools/project-path-gateway/project-path-gateway.dirs.conf
 stub project_path_gateway__port_readable_file 1 /root/.tools/project-path-gateway/project-path-gateway.conf
 status 4
-out-raw /root/.tools/project-path-gateway/project-path-gateway.confx
+out-raw /root/.tools/project-path-gateway/project-path-gateway.dirs.confx
 op port project_path_gateway__port_is_dir /root/sub
 op port project_path_gateway__port_physical_dir /root/sub
 op port project_path_gateway__port_find_root /root/sub .tools/project-path-gateway/.project-path-gateway
+op port project_path_gateway__port_readable_file /root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /root/.tools/project-path-gateway/project-path-gateway.conf
+
+case init-files-data-file-unreadable
+arg /root
+stub project_path_gateway__port_is_dir 0 /root
+stub project_path_gateway__port_physical_dir 0 /root
+stub-out-raw /rootx
+stub project_path_gateway__port_find_root 0 /root .tools/project-path-gateway/.project-path-gateway
+stub-out-raw /rootx
+stub project_path_gateway__port_readable_file 0 /root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 1 /root/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_readable_file 1 /root/.tools/project-path-gateway/project-path-gateway.conf
+status 4
+out-raw /root/.tools/project-path-gateway/project-path-gateway.files.confx
+op port project_path_gateway__port_is_dir /root
+op port project_path_gateway__port_physical_dir /root
+op port project_path_gateway__port_find_root /root .tools/project-path-gateway/.project-path-gateway
+op port project_path_gateway__port_readable_file /root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /root/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_readable_file /root/.tools/project-path-gateway/project-path-gateway.conf
+
+case init-data-file-unreadable-with-legacy-data-file
+arg /root
+stub project_path_gateway__port_is_dir 0 /root
+stub project_path_gateway__port_physical_dir 0 /root
+stub-out-raw /rootx
+stub project_path_gateway__port_find_root 0 /root .tools/project-path-gateway/.project-path-gateway
+stub-out-raw /rootx
+stub project_path_gateway__port_readable_file 1 /root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /root/.tools/project-path-gateway/project-path-gateway.conf
+status 15
+out-raw /root/.tools/project-path-gateway/project-path-gateway.dirs.confx
+op port project_path_gateway__port_is_dir /root
+op port project_path_gateway__port_physical_dir /root
+op port project_path_gateway__port_find_root /root .tools/project-path-gateway/.project-path-gateway
+op port project_path_gateway__port_readable_file /root/.tools/project-path-gateway/project-path-gateway.dirs.conf
 op port project_path_gateway__port_readable_file /root/.tools/project-path-gateway/project-path-gateway.conf
 
 case init-data-file-violation-has-no-detail
@@ -53,17 +92,21 @@ stub project_path_gateway__port_physical_dir 0 /root
 stub-out-raw /rootx
 stub project_path_gateway__port_find_root 0 /root .tools/project-path-gateway/.project-path-gateway
 stub-out-raw /rootx
-stub project_path_gateway__port_readable_file 0 /root/.tools/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /root/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /root/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /root/.tools/project-path-gateway/project-path-gateway.dirs.conf
 stub-out bad
-stub project_path_gateway__out_violation 0 /root/.tools/project-path-gateway/project-path-gateway.conf 1 no_separator \e \e 0
+stub project_path_gateway__port_read_lines 0 /root/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__out_violation 0 /root/.tools/project-path-gateway/project-path-gateway.dirs.conf 1 no_separator \e \e 0 dir
 status 3
 op port project_path_gateway__port_is_dir /root
 op port project_path_gateway__port_physical_dir /root
 op port project_path_gateway__port_find_root /root .tools/project-path-gateway/.project-path-gateway
-op port project_path_gateway__port_readable_file /root/.tools/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /root/.tools/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__out_violation /root/.tools/project-path-gateway/project-path-gateway.conf 1 no_separator \e \e 0
+op port project_path_gateway__port_readable_file /root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /root/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__out_violation /root/.tools/project-path-gateway/project-path-gateway.dirs.conf 1 no_separator \e \e 0 dir
+op port project_path_gateway__port_read_lines /root/.tools/project-path-gateway/project-path-gateway.files.conf
 
 case init-success-prints-root
 arg rel/dir
@@ -72,16 +115,21 @@ stub project_path_gateway__port_physical_dir 0 rel/dir
 stub-out-raw /root/rel/dirx
 stub project_path_gateway__port_find_root 0 /root/rel/dir .tools/project-path-gateway/.project-path-gateway
 stub-out-raw /rootx
-stub project_path_gateway__port_readable_file 0 /root/.tools/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /root/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /root/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /root/.tools/project-path-gateway/project-path-gateway.dirs.conf
 stub-out A=a
+stub project_path_gateway__port_read_lines 0 /root/.tools/project-path-gateway/project-path-gateway.files.conf
+stub-out B=b.txt
 status 0
 out-raw /rootx
 op port project_path_gateway__port_is_dir rel/dir
 op port project_path_gateway__port_physical_dir rel/dir
 op port project_path_gateway__port_find_root /root/rel/dir .tools/project-path-gateway/.project-path-gateway
-op port project_path_gateway__port_readable_file /root/.tools/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /root/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /root/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /root/.tools/project-path-gateway/project-path-gateway.files.conf
 
 case init-success-root-with-newline-in-name
 arg /r
@@ -92,13 +140,17 @@ stub-out-raw yx
 stub project_path_gateway__port_find_root 0 /x\ny .tools/project-path-gateway/.project-path-gateway
 stub-out /x
 stub-out-raw yx
-stub project_path_gateway__port_readable_file 0 /x\ny/.tools/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /x\ny/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /x\ny/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /x\ny/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /x\ny/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_read_lines 0 /x\ny/.tools/project-path-gateway/project-path-gateway.files.conf
 status 0
 out /x
 out-raw yx
 op port project_path_gateway__port_is_dir /r
 op port project_path_gateway__port_physical_dir /r
 op port project_path_gateway__port_find_root /x\ny .tools/project-path-gateway/.project-path-gateway
-op port project_path_gateway__port_readable_file /x\ny/.tools/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /x\ny/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /x\ny/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /x\ny/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /x\ny/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /x\ny/.tools/project-path-gateway/project-path-gateway.files.conf

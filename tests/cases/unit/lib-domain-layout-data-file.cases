@@ -1,7 +1,13 @@
-# 도메인 단위: 도구 배치 모델 - 데이터 파일 상대경로 (기능 005 research R-05, data-model 1.6)
+# 도메인 단위: 도구 배치 모델 - 종류별 데이터 파일 상대경로 (기능 005 research R-05 / 기능 007 research R-01, data-model 1.6)
 target lib-func project_path_gateway__domain_layout_data_file
 layer domain
 
-case layout-data-file-relpath
+case layout-data-file-dir
+arg dir
 status 0
-out-raw .tools/project-path-gateway/project-path-gateway.conf
+out-raw .tools/project-path-gateway/project-path-gateway.dirs.conf
+
+case layout-data-file-file
+arg file
+status 0
+out-raw .tools/project-path-gateway/project-path-gateway.files.conf
