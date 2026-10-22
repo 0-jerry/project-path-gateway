@@ -3,7 +3,8 @@
 target lib-session project_path_gateway
 layer api
 fs file /t/root/.tools/project-path-gateway/.project-path-gateway
-fs file /t/root/.tools/project-path-gateway/project-path-gateway.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.dirs.conf
+fs file /t/root/.tools/project-path-gateway/project-path-gateway.files.conf
 content APP_CONFIG=config/app.json
 
 case init-without-argument-at-root
@@ -37,7 +38,7 @@ case init-fails-without-data-file
 fs file /t/nodata/.tools/project-path-gateway/.project-path-gateway
 call project_path_gateway_init /t/nodata
 status 2
-err project-path-gateway: project_path_gateway_init: 데이터 파일을 읽을 수 없습니다: /t/nodata/.tools/project-path-gateway/project-path-gateway.conf
+err project-path-gateway: project_path_gateway_init: 데이터 파일을 읽을 수 없습니다: /t/nodata/.tools/project-path-gateway/project-path-gateway.dirs.conf
 op returned project_path_gateway_init 2
 
 case init-fails-for-non-directory-argument
@@ -69,7 +70,8 @@ op returned eval 0
 
 case init-successful-reinit-replaces-root
 fs file /t/other/.tools/project-path-gateway/.project-path-gateway
-fs file /t/other/.tools/project-path-gateway/project-path-gateway.conf
+fs file /t/other/.tools/project-path-gateway/project-path-gateway.dirs.conf
+fs file /t/other/.tools/project-path-gateway/project-path-gateway.files.conf
 call project_path_gateway_init /t/root
 call project_path_gateway_init /t/other
 call eval printf\s'%s\\n'\s"$PROJECT_PATH_GATEWAY_ROOT"
@@ -90,45 +92,46 @@ case init-working-directory-change-after-init
 cwd /t/root
 call project_path_gateway_init
 call eval PPGT_VFS_CWD=/t
-call project_path_gateway_get APP_CONFIG
+call project_path_gateway_file APP_CONFIG
 status 0
 out /t/root/config/app.json
 op returned project_path_gateway_init 0
 op returned eval 0
-op returned project_path_gateway_get 0
+op returned project_path_gateway_file 0
 
 case init-non-git-directory
 cwd /t/root
 call project_path_gateway_init
-call project_path_gateway_get APP_CONFIG
+call project_path_gateway_file APP_CONFIG
 status 0
 out /t/root/config/app.json
 op returned project_path_gateway_init 0
-op returned project_path_gateway_get 0
+op returned project_path_gateway_file 0
 
 case init-nested-working-directory
 fs dir /t/root/a/b
 cwd /t/root/a/b
 call project_path_gateway_init
-call project_path_gateway_get APP_CONFIG
+call project_path_gateway_file APP_CONFIG
 status 0
 out /t/root/config/app.json
 op returned project_path_gateway_init 0
-op returned project_path_gateway_get 0
+op returned project_path_gateway_file 0
 
 case init-outside-working-directory-with-argument
 fs dir /t/root/a
 cwd /t
 call project_path_gateway_init /t/root/a
-call project_path_gateway_get APP_CONFIG
+call project_path_gateway_file APP_CONFIG
 status 0
 out /t/root/config/app.json
 op returned project_path_gateway_init 0
-op returned project_path_gateway_get 0
+op returned project_path_gateway_file 0
 
 case init-nearest-nested-project-wins
 fs file /t/root/sub/.tools/project-path-gateway/.project-path-gateway
-fs file /t/root/sub/.tools/project-path-gateway/project-path-gateway.conf
+fs file /t/root/sub/.tools/project-path-gateway/project-path-gateway.dirs.conf
+fs file /t/root/sub/.tools/project-path-gateway/project-path-gateway.files.conf
 content APP_CONFIG=config/app.json
 fs dir /t/root/sub/x
 cwd /t/root/sub/x
@@ -141,17 +144,18 @@ op returned eval 0
 
 case init-root-is-not-recalculated
 fs file /t/elsewhere/.tools/project-path-gateway/.project-path-gateway
-fs file /t/elsewhere/.tools/project-path-gateway/project-path-gateway.conf
+fs file /t/elsewhere/.tools/project-path-gateway/project-path-gateway.dirs.conf
 content APP_CONFIG=other
+fs file /t/elsewhere/.tools/project-path-gateway/project-path-gateway.files.conf
 cwd /t/root
 call project_path_gateway_init
 call eval PPGT_VFS_CWD=/t/elsewhere
-call project_path_gateway_get APP_CONFIG
+call project_path_gateway_file APP_CONFIG
 status 0
 out /t/root/config/app.json
 op returned project_path_gateway_init 0
 op returned eval 0
-op returned project_path_gateway_get 0
+op returned project_path_gateway_file 0
 
 case init-inside-tool-directory
 cwd /t/root/.tools/project-path-gateway
@@ -164,28 +168,29 @@ op returned eval 0
 
 case init-root-with-space-and-korean
 fs file /t/내\s프로젝트\s폴더/.tools/project-path-gateway/.project-path-gateway
-fs file /t/내\s프로젝트\s폴더/.tools/project-path-gateway/project-path-gateway.conf
+fs file /t/내\s프로젝트\s폴더/.tools/project-path-gateway/project-path-gateway.dirs.conf
+fs file /t/내\s프로젝트\s폴더/.tools/project-path-gateway/project-path-gateway.files.conf
 content APP_CONFIG=config/app.json
 fs dir /t/내\s프로젝트\s폴더/하위\s디렉터리
 cwd /t/내\s프로젝트\s폴더/하위\s디렉터리
 call project_path_gateway_init
-call project_path_gateway_get APP_CONFIG
+call project_path_gateway_file APP_CONFIG
 status 0
 out /t/내 프로젝트 폴더/config/app.json
 op returned project_path_gateway_init 0
-op returned project_path_gateway_get 0
+op returned project_path_gateway_file 0
 
 case init-symlink-start-uses-physical-root
 fs link /t/link /t/root
 call project_path_gateway_init /t/link
 call eval printf\s'%s\\n'\s"$PROJECT_PATH_GATEWAY_ROOT"
-call project_path_gateway_get APP_CONFIG
+call project_path_gateway_file APP_CONFIG
 status 0
 out /t/root
 out /t/root/config/app.json
 op returned project_path_gateway_init 0
 op returned eval 0
-op returned project_path_gateway_get 0
+op returned project_path_gateway_file 0
 
 case init-relative-argument-rejected
 call project_path_gateway_init t/root

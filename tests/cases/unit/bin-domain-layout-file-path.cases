@@ -8,10 +8,15 @@ arg marker
 status 0
 out .tools/project-path-gateway/.project-path-gateway
 
-case layout-file-path-data
-arg data
+case layout-file-path-dirs
+arg dirs
 status 0
-out .tools/project-path-gateway/project-path-gateway.conf
+out .tools/project-path-gateway/project-path-gateway.dirs.conf
+
+case layout-file-path-files
+arg files
+status 0
+out .tools/project-path-gateway/project-path-gateway.files.conf
 
 case layout-file-path-library
 arg library

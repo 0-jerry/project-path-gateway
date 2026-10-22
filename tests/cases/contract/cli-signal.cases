@@ -40,7 +40,8 @@ arg init
 arg /t/공백\s있는\s대상
 status 0
 out project-path-gateway: 생성: .tools/project-path-gateway/.project-path-gateway
-out project-path-gateway: 생성: .tools/project-path-gateway/project-path-gateway.conf
+out project-path-gateway: 생성: .tools/project-path-gateway/project-path-gateway.dirs.conf
+out project-path-gateway: 생성: .tools/project-path-gateway/project-path-gateway.files.conf
 out project-path-gateway: 생성: .tools/project-path-gateway/project-path-gateway.sh
 out project-path-gateway: 생성: .agents/skills/project-path-gateway/SKILL.md
 out project-path-gateway: 초기화 완료: /t/공백 있는 대상
@@ -53,9 +54,12 @@ op mkdir /t/공백\s있는\s대상/.agents/skills/project-path-gateway
 op write /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway #\sproject-path-gateway\s루트\s표식\s파일입니다.\s이\s파일을\s담은\s.tools/\s디렉터리의\s상위\s디렉터리가\s프로젝트\s루트입니다.\nformat=1\n
 op link /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway /t/공백\s있는\s대상/.tools/project-path-gateway/.project-path-gateway
 op remove /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242..project-path-gateway
-op write /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf #\sproject-path-gateway\s데이터\s파일\n#\s한\s줄에\sKEY=경로\s형식으로\s적습니다.\s경로는\s프로젝트\s루트(.tools/의\s상위\s디렉터리)\s기준\s상대경로입니다.\n#\s키:\s대문자로\s시작하고\s대문자·숫자·_만\s사용합니다.\s파일\s안에서\s중복될\s수\s없습니다.\n#\s경로:\s/로\s시작할\s수\s없고\s..\s세그먼트를\s쓸\s수\s없습니다.\s=\s앞뒤\s공백은\s제거되지\s않습니다.\n#\s빈\s줄과\s#으로\s시작하는\s줄은\s무시합니다.\n#\n#\s아래\s두\s항목은\s초기화가\s넣은\s기본\s항목입니다.\s필요하지\s않으면\s지워도\s됩니다.\nPPG_TOOL_DIR=.tools/project-path-gateway\nAGENT_SKILLS_DIR=.agents/skills\n#\n#\s예:\n#\sSOURCES_ROOT=sources\n#\sBUILD_SCRIPT=scripts/build.sh\n
-op link /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf /t/공백\s있는\s대상/.tools/project-path-gateway/project-path-gateway.conf
-op remove /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.conf
+op write /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.dirs.conf #\sproject-path-gateway\s디렉터리\s데이터\s파일\n#\s한\s줄에\sKEY=경로\s형식으로\s디렉터리를\s적습니다.\s경로는\s프로젝트\s루트(.tools/의\s상위\s디렉터리)\s기준\s상대경로입니다.\n#\s키:\s대문자로\s시작하고\s대문자·숫자·_만\s사용합니다.\s파일\s데이터\s파일과\s합쳐\s중복될\s수\s없습니다.\n#\s경로:\s/로\s시작할\s수\s없고\s..\s세그먼트를\s쓸\s수\s없습니다.\s마지막\s이름에\s확장자가\s있거나\s.으로\s시작하면\s파일로\s보므로\s적을\s수\s없습니다.\n#\s빈\s줄과\s#으로\s시작하는\s줄은\s무시합니다.\n#\n#\s아래\s두\s항목은\s초기화가\s넣은\s기본\s항목입니다.\s필요하지\s않으면\s지워도\s됩니다.\nPPG_TOOL_DIR=.tools/project-path-gateway\nAGENT_SKILLS_DIR=.agents/skills\n#\n#\s예:\n#\sSOURCES_ROOT=sources\n#\sWORKFLOWS_DIR=.github/workflows\n
+op link /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.dirs.conf /t/공백\s있는\s대상/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op remove /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.dirs.conf
+op write /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.files.conf #\sproject-path-gateway\s파일\s데이터\s파일\n#\s한\s줄에\sKEY=경로\s형식으로\s파일을\s적습니다.\s경로는\s프로젝트\s루트(.tools/의\s상위\s디렉터리)\s기준\s상대경로입니다.\n#\s키:\s대문자로\s시작하고\s대문자·숫자·_만\s사용합니다.\s디렉터리\s데이터\s파일과\s합쳐\s중복될\s수\s없습니다.\n#\s경로:\s/로\s시작할\s수\s없고\s..\s세그먼트를\s쓸\s수\s없습니다.\s마지막\s이름은\s이름.확장자\s모양이거나\s.으로\s시작해야\s하며\s/로\s끝날\s수\s없습니다.\n#\s빈\s줄과\s#으로\s시작하는\s줄은\s무시합니다.\n#\n#\s예:\n#\sBUILD_SCRIPT=scripts/build.sh\n#\sENV_FILE=.env\n
+op link /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.files.conf /t/공백\s있는\s대상/.tools/project-path-gateway/project-path-gateway.files.conf
+op remove /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.files.conf
 op copy /t/prefix/bin/../share/project-path-gateway/project-path-gateway.sh /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh
 op link /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh /t/공백\s있는\s대상/.tools/project-path-gateway/project-path-gateway.sh
 op remove /t/공백\s있는\s대상/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.sh

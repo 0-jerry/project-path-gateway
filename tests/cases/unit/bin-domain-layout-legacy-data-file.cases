@@ -1,0 +1,8 @@
+# 도메인 단위: 도구 배치 모델 - 1.x 데이터 파일 경로 (기능 007 contracts/cli-init.md 2절, data-model 1.7)
+# 대상 디렉터리 기준 상대경로다. 초기화는 이 파일이 일반 파일이면 안내만 한다.
+target bin-func ppg__domain_layout_legacy_data_file
+layer domain
+
+case layout-legacy-data-file
+status 0
+out .tools/project-path-gateway/project-path-gateway.conf

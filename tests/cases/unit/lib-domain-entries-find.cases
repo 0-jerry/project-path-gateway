@@ -1,27 +1,28 @@
-# 도메인 단위: 항목 목록 모델 찾기 (기능 005 FR-004, data-model 1.5). 키가 정확히 같은 첫 레코드를 끝 LF 없이 출력한다. 없으면 반환 1.
+# 도메인 단위: 항목 목록 모델 찾기 (기능 005 FR-004, data-model 1.5 / 기능 007 data-model 1.5). 키가 정확히 같은 첫 레코드를 끝 LF 없이 출력한다. 없으면 반환 1.
+# 목록은 두 데이터 파일의 레코드를 dir → file 순서로 이은 것이며, 키는 목록 전체에서 유일하다고 가정한다.
 target lib-func project_path_gateway__domain_entries_find
 layer domain
 
 case entries-find-first-match
-arg 1\tA\ta\n2\tB\tb\n3\tC\tc
+arg dir\t1\tA\ta\ndir\t2\tB\tb\ndir\t3\tC\tc
 arg B
 status 0
-out-raw 2\tB\tb
+out-raw dir\t2\tB\tb
 
 case entries-find-prefix-key-exact
-arg 1\tDOCS_DIR\ttwo\n2\tDOC\tone
+arg dir\t1\tDOCS_DIR\ttwo\ndir\t2\tDOC\tone
 arg DOC
 status 0
-out-raw 2\tDOC\tone
+out-raw dir\t2\tDOC\tone
 
 case entries-find-longer-key-exact
-arg 1\tDOC\tone\n2\tDOCS_DIR\ttwo
+arg dir\t1\tDOC\tone\ndir\t2\tDOCS_DIR\ttwo
 arg DOCS_DIR
 status 0
-out-raw 2\tDOCS_DIR\ttwo
+out-raw dir\t2\tDOCS_DIR\ttwo
 
 case entries-find-missing
-arg 1\tA\ta\n2\tB\tb
+arg dir\t1\tA\ta\nfile\t2\tB\tb.txt
 arg C
 status 1
 
@@ -31,13 +32,24 @@ arg A
 status 1
 
 case entries-find-path-with-tab
-arg 1\tA\ta\tb=c\n2\tB\tb
+arg dir\t1\tA\ta\tb=c\ndir\t2\tB\tb
 arg A
 status 0
-out-raw 1\tA\ta\tb=c
+out-raw dir\t1\tA\ta\tb=c
 
 case entries-find-last-without-lf
-arg 1\tA\ta\n5\tZ\tz
+arg dir\t1\tA\ta\nfile\t5\tZ\tz.txt
 arg Z
 status 0
-out-raw 5\tZ\tz
+out-raw file\t5\tZ\tz.txt
+
+case entries-find-across-kinds
+arg dir\t1\tSRC\tsrc\nfile\t1\tCONF\tconfig/app.json
+arg CONF
+status 0
+out-raw file\t1\tCONF\tconfig/app.json
+
+case entries-find-kind-word-is-not-key
+arg dir\t1\tSRC\tsrc
+arg dir
+status 1

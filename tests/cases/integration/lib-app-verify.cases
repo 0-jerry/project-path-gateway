@@ -1,47 +1,65 @@
-# 애플리케이션 통합: 전체 검증 흐름 (기능 001 library_verify_contract_test, contracts/library-api.md 4절)
-# 항목마다 exists → resolve_physical → 루트 내부 판정 순서로 보고, 누락 항목은 루트 밖 검사를 하지 않는다.
+# 애플리케이션 통합: 전체 검증 흐름 (기능 001 library_verify_contract_test, contracts/library-api.md 4절 / 기능 007 research R-08)
+# 항목마다 exists → resolve_physical → 루트 내부 판정 → port_kind 종류 판정 순서로 보고, 앞 단계에서 실패한 항목은 뒤 단계를 보지 않는다.
+# 항목 순서는 디렉터리 데이터 파일 → 파일 데이터 파일이다.
 target lib-func project_path_gateway__app_verify
 layer app
 
 case verify-all-pass
 arg /r
-stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
 stub-out A=a
-stub-out B=b/c
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub-out B=b/c.txt
 stub project_path_gateway__port_exists 0 /r/a
 stub project_path_gateway__port_resolve_physical 0 /r/a
 stub-out-raw /r/ax
-stub project_path_gateway__port_exists 0 /r/b/c
-stub project_path_gateway__port_resolve_physical 0 /r/b/c
-stub-out-raw /r/b/cx
+stub project_path_gateway__port_kind 0 /r/a
+stub-out dir
+stub project_path_gateway__port_exists 0 /r/b/c.txt
+stub project_path_gateway__port_resolve_physical 0 /r/b/c.txt
+stub-out-raw /r/b/c.txtx
+stub project_path_gateway__port_kind 0 /r/b/c.txt
+stub-out file
 status 0
 out ok 2
-op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
 op port project_path_gateway__port_exists /r/a
 op port project_path_gateway__port_resolve_physical /r/a
-op port project_path_gateway__port_exists /r/b/c
-op port project_path_gateway__port_resolve_physical /r/b/c
+op port project_path_gateway__port_kind /r/a
+op port project_path_gateway__port_exists /r/b/c.txt
+op port project_path_gateway__port_resolve_physical /r/b/c.txt
+op port project_path_gateway__port_kind /r/b/c.txt
 
 case verify-no-entries
 arg /r
-stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub-out # 주석
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
 stub-out # 주석
 status 0
 out ok 0
-op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
 
 case verify-missing-and-outside-in-file-order
 arg /r
-stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
 stub-out MISS=m
 stub-out OUT=link
 stub-out OK=ok
 stub-out BROKEN=b
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
 stub project_path_gateway__port_exists 1 /r/m
 stub project_path_gateway__out_missing 0 MISS m
 stub project_path_gateway__port_exists 0 /r/link
@@ -51,13 +69,17 @@ stub project_path_gateway__out_outside 0 OUT link /elsewhere
 stub project_path_gateway__port_exists 0 /r/ok
 stub project_path_gateway__port_resolve_physical 0 /r/ok
 stub-out-raw /r/okx
+stub project_path_gateway__port_kind 0 /r/ok
+stub-out dir
 stub project_path_gateway__port_exists 0 /r/b
 stub project_path_gateway__port_resolve_physical 1 /r/b
 stub project_path_gateway__out_missing 0 BROKEN b
 status 1
 out fail 3
-op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
 op port project_path_gateway__port_exists /r/m
 op port project_path_gateway__out_missing MISS m
 op port project_path_gateway__port_exists /r/link
@@ -65,46 +87,214 @@ op port project_path_gateway__port_resolve_physical /r/link
 op port project_path_gateway__out_outside OUT link /elsewhere
 op port project_path_gateway__port_exists /r/ok
 op port project_path_gateway__port_resolve_physical /r/ok
+op port project_path_gateway__port_kind /r/ok
 op port project_path_gateway__port_exists /r/b
 op port project_path_gateway__port_resolve_physical /r/b
 op port project_path_gateway__out_missing BROKEN b
 
 case verify-root-itself-and-similar-prefix
 arg /r
-stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
 stub-out SELF=.
 stub-out SIB=x
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
 stub project_path_gateway__port_exists 0 /r/.
 stub project_path_gateway__port_resolve_physical 0 /r/.
 stub-out-raw /rx
+stub project_path_gateway__port_kind 0 /r
+stub-out dir
 stub project_path_gateway__port_exists 0 /r/x
 stub project_path_gateway__port_resolve_physical 0 /r/x
 stub-out-raw /r2/xx
 stub project_path_gateway__out_outside 0 SIB x /r2/x
 status 1
 out fail 1
-op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
 op port project_path_gateway__port_exists /r/.
 op port project_path_gateway__port_resolve_physical /r/.
+op port project_path_gateway__port_kind /r
 op port project_path_gateway__port_exists /r/x
 op port project_path_gateway__port_resolve_physical /r/x
 op port project_path_gateway__out_outside SIB x /r2/x
 
+case verify-dir-entry-is-file
+arg /r
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub-out SRC=src
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_exists 0 /r/src
+stub project_path_gateway__port_resolve_physical 0 /r/src
+stub-out-raw /r/srcx
+stub project_path_gateway__port_kind 0 /r/src
+stub-out file
+stub project_path_gateway__out_kind_mismatch 0 SRC src dir
+status 1
+out fail 1
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_exists /r/src
+op port project_path_gateway__port_resolve_physical /r/src
+op port project_path_gateway__port_kind /r/src
+op port project_path_gateway__out_kind_mismatch SRC src dir
+
+case verify-file-entry-is-dir
+arg /r
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub-out CONF=conf.d
+stub project_path_gateway__port_exists 0 /r/conf.d
+stub project_path_gateway__port_resolve_physical 0 /r/conf.d
+stub-out-raw /r/conf.dx
+stub project_path_gateway__port_kind 0 /r/conf.d
+stub-out dir
+stub project_path_gateway__out_kind_mismatch 0 CONF conf.d file
+status 1
+out fail 1
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_exists /r/conf.d
+op port project_path_gateway__port_resolve_physical /r/conf.d
+op port project_path_gateway__port_kind /r/conf.d
+op port project_path_gateway__out_kind_mismatch CONF conf.d file
+
+case verify-file-entry-is-other
+arg /r
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub-out SOCK=run/app.sock
+stub project_path_gateway__port_exists 0 /r/run/app.sock
+stub project_path_gateway__port_resolve_physical 0 /r/run/app.sock
+stub-out-raw /r/run/app.sockx
+stub project_path_gateway__port_kind 0 /r/run/app.sock
+stub-out other
+stub project_path_gateway__out_kind_mismatch 0 SOCK run/app.sock file
+status 1
+out fail 1
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_exists /r/run/app.sock
+op port project_path_gateway__port_resolve_physical /r/run/app.sock
+op port project_path_gateway__port_kind /r/run/app.sock
+op port project_path_gateway__out_kind_mismatch SOCK run/app.sock file
+
+case verify-kind-uses-physical-path-of-link
+arg /r
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub-out LINKED=l.txt
+stub project_path_gateway__port_exists 0 /r/l.txt
+stub project_path_gateway__port_resolve_physical 0 /r/l.txt
+stub-out-raw /r/real/targetx
+stub project_path_gateway__port_kind 0 /r/real/target
+stub-out file
+status 0
+out ok 1
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_exists /r/l.txt
+op port project_path_gateway__port_resolve_physical /r/l.txt
+op port project_path_gateway__port_kind /r/real/target
+
+case verify-outside-skips-kind-check
+arg /r
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub-out OUT=out.txt
+stub project_path_gateway__port_exists 0 /r/out.txt
+stub project_path_gateway__port_resolve_physical 0 /r/out.txt
+stub-out-raw /elsewhere/dirx
+stub project_path_gateway__out_outside 0 OUT out.txt /elsewhere/dir
+status 1
+out fail 1
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_exists /r/out.txt
+op port project_path_gateway__port_resolve_physical /r/out.txt
+op port project_path_gateway__out_outside OUT out.txt /elsewhere/dir
+
+case verify-dirs-entries-before-files-entries
+arg /r
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub-out Z=z
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub-out A=a.txt
+stub project_path_gateway__port_exists 0 /r/z
+stub project_path_gateway__port_resolve_physical 0 /r/z
+stub-out-raw /r/zx
+stub project_path_gateway__port_kind 0 /r/z
+stub-out dir
+stub project_path_gateway__port_exists 1 /r/a.txt
+stub project_path_gateway__out_missing 0 A a.txt
+status 1
+out fail 1
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_exists /r/z
+op port project_path_gateway__port_resolve_physical /r/z
+op port project_path_gateway__port_kind /r/z
+op port project_path_gateway__port_exists /r/a.txt
+op port project_path_gateway__out_missing A a.txt
+
 case verify-violation-in-data-file
 arg /r
-stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
-stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
 stub-out A=..
-stub project_path_gateway__out_violation 0 /r/.tools/project-path-gateway/project-path-gateway.conf 1 parent_segment A \e 0
+stub project_path_gateway__port_read_lines 0 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__out_violation 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf 1 parent_segment A \e 0 dir
 status 3
-op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.conf
-op port project_path_gateway__out_violation /r/.tools/project-path-gateway/project-path-gateway.conf 1 parent_segment A \e 0
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__out_violation /r/.tools/project-path-gateway/project-path-gateway.dirs.conf 1 parent_segment A \e 0 dir
+op port project_path_gateway__port_read_lines /r/.tools/project-path-gateway/project-path-gateway.files.conf
 
 case verify-unreadable-data-file
 arg /r
+stub project_path_gateway__port_readable_file 1 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
 stub project_path_gateway__port_readable_file 1 /r/.tools/project-path-gateway/project-path-gateway.conf
 status 4
+out-raw /r/.tools/project-path-gateway/project-path-gateway.dirs.confx
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf
+
+case verify-unreadable-with-legacy-data-file
+arg /r
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+stub project_path_gateway__port_readable_file 1 /r/.tools/project-path-gateway/project-path-gateway.files.conf
+stub project_path_gateway__port_readable_file 0 /r/.tools/project-path-gateway/project-path-gateway.conf
+status 15
+out-raw /r/.tools/project-path-gateway/project-path-gateway.files.confx
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.files.conf
 op port project_path_gateway__port_readable_file /r/.tools/project-path-gateway/project-path-gateway.conf

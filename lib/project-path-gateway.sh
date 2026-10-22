@@ -1,15 +1,20 @@
-# project-path-gateway 1.1.0
+# project-path-gateway 2.0.0
 #
 # 프로젝트 경로 게이트웨이 라이브러리.
-# 호출 셸에서 이 파일을 불러온(source) 뒤 공개 함수 다섯 개를 사용한다.
+# 호출 셸에서 이 파일을 불러온(source) 뒤 공개 함수 여덟 개를 사용한다.
 #
 #   project_path_gateway_init [START_DIR]         루트 표식 파일을 찾아 루트를 한 번 계산한다
-#   project_path_gateway_get KEY                  키에 등록된 경로를 루트 기준 절대경로로 출력한다
-#   project_path_gateway_verify [REPORT_FILE]     등록된 모든 경로의 존재와 루트 내부 여부를 확인한다
-#   project_path_gateway_add KEY PATH             새 키와 경로를 데이터 파일 끝에 등록한다(키가 있으면 오류)
-#   project_path_gateway_update KEY PATH          등록된 키의 경로를 바꾼다(키가 없으면 오류)
+#   project_path_gateway_verify [REPORT_FILE]     등록된 모든 경로의 존재, 루트 내부 여부, 실제 종류를 확인한다
+#   project_path_gateway_dir KEY                  디렉터리 키의 경로를 루트 기준 절대경로로 출력한다
+#   project_path_gateway_file KEY                 파일 키의 경로를 루트 기준 절대경로로 출력한다
+#   project_path_gateway_add_dir KEY PATH         디렉터리 데이터 파일 끝에 새 키와 경로를 등록한다(키가 있으면 오류)
+#   project_path_gateway_add_file KEY PATH        파일 데이터 파일 끝에 새 키와 경로를 등록한다(키가 있으면 오류)
+#   project_path_gateway_update_dir KEY PATH      디렉터리 키의 경로를 바꾼다(키가 없거나 파일 키이면 오류)
+#   project_path_gateway_update_file KEY PATH     파일 키의 경로를 바꾼다(키가 없거나 디렉터리 키이면 오류)
 #
-# 반환값: 0 성공, 1 검증 실패, 2 인자 오류·미초기화·루트 오류·데이터 파일 오류·미등록 키·이미 등록된 키·파일 쓰기 실패.
+# 데이터 파일은 .tools/project-path-gateway/ 아래 두 개다: project-path-gateway.dirs.conf(디렉터리), project-path-gateway.files.conf(파일).
+# 키는 두 파일을 합쳐 유일하고, 경로 모양(마지막 이름의 확장자 유무, .으로 시작 여부)이 파일 종류와 맞아야 한다.
+# 반환값: 0 성공, 1 검증 실패, 2 인자 오류·미초기화·루트 오류·데이터 파일 오류·미등록 키·종류 불일치·이미 등록된 키·파일 쓰기 실패.
 #
 # 구조: 도메인 → 애플리케이션 → 인프라 → 인터페이스 네 구획으로 나눈다.
 # 도메인은 모델별 소제목(# --- 모델: ... ---)으로 나누고, 애플리케이션 구획 머리에 포트 목록(# 입력 포트:, # 출력 포트:)을 둔다.
@@ -21,7 +26,8 @@
 # 경로를 명령 치환으로 전달하는 함수는 끝 개행이 사라지지 않도록 값 뒤에 표지 문자 x를 붙인다.
 # 내부 결과 코드: 3 데이터 파일 규칙 위반, 4 데이터 파일 읽기 불가, 5 경로 확인 실패,
 # 6 루트 표식 파일 없음, 7 미등록 키, 8 디렉터리가 아님, 9 등록·갱신 인자 규칙 위반, 10 이미 등록된 키,
-# 11 데이터 파일이 링크, 12 데이터 파일 쓰기 권한 없음, 13 데이터 파일 교체 실패.
+# 11 데이터 파일이 링크, 12 데이터 파일 쓰기 권한 없음, 13 데이터 파일 교체 실패,
+# 14 종류 불일치(조회·갱신 대상 키가 다른 종류), 15 데이터 파일 읽기 불가이고 1.x 데이터 파일이 있음.
 
 # === 계층: 도메인 ===
 
@@ -44,8 +50,9 @@ project_path_gateway__domain_key_is_valid() (
 
 # --- 모델: 경로 ---
 
-# 경로 규칙 위반 원인 코드를 출력한다. 위반이 없으면 아무것도 출력하지 않는다.
-# 순서: empty_path, absolute_path, parent_segment, carriage_return, line_feed. 경로 규칙을 판정하는 곳은 이 함수뿐이다 (기능 005 FR-003).
+# 경로 규칙 위반 원인 코드를 출력하고 반환 1. 위반이 없으면 아무것도 출력하지 않고 반환 0. 인자는 PATH [KIND](KIND는 dir 또는 file).
+# 순서: empty_path, absolute_path, parent_segment, carriage_return, line_feed, 종류 위반(not_dir_path, not_file_path).
+# 종류 위반은 KIND가 있을 때만 본다. 경로 규칙과 경로 모양을 판정하는 곳은 이 함수뿐이다 (기능 005 FR-003, 기능 007 FR-016·FR-017, research R-03).
 project_path_gateway__domain_path_violation() (
 	set +e +u +f
 	IFS=' 	''
@@ -58,36 +65,92 @@ project_path_gateway__domain_path_violation() (
 	case $1 in
 	'')
 		printf 'empty_path\n'
-		return 0
+		return 1
 		;;
 	/*)
 		printf 'absolute_path\n'
-		return 0
+		return 1
 		;;
 	esac
 	case /$1/ in
 	*/../*)
 		printf 'parent_segment\n'
-		return 0
+		return 1
 		;;
 	esac
 	case $1 in
-	*"$cr"*) printf 'carriage_return\n' ;;
-	*"$nl"*) printf 'line_feed\n' ;;
+	*"$cr"*)
+		printf 'carriage_return\n'
+		return 1
+		;;
+	*"$nl"*)
+		printf 'line_feed\n'
+		return 1
+		;;
+	esac
+	if [ $# -lt 2 ]; then
+		return 0
+	fi
+	# 끝 `/`를 모두 뗀 뒤 마지막 세그먼트의 모양을 본다. 끝 `/`가 있던 경로는 파일이 될 수 없다 (research R-03).
+	trimmed=$1
+	while :; do
+		case $trimmed in
+		?*/) trimmed=${trimmed%/} ;;
+		*) break ;;
+		esac
+	done
+	segment=${trimmed##*/}
+	case $segment in
+	.) shape='dir' ;;
+	.*) shape='file' ;;
+	?*.?*) shape='file' ;;
+	*) shape='dir' ;;
+	esac
+	case $2 in
+	file)
+		if [ "$shape" = dir ]; then
+			printf 'not_file_path\n'
+			return 1
+		fi
+		case $1 in
+		*/)
+			printf 'not_file_path\n'
+			return 1
+			;;
+		esac
+		;;
+	dir)
+		if [ "$shape" = file ]; then
+			printf 'not_dir_path\n'
+			return 1
+		fi
+		;;
 	esac
 	return 0
 )
 
 # --- 모델: 항목 ---
-# 항목 레코드 표현 "줄번호<TAB>키<TAB>경로"는 이 소구획의 함수만 안다 (기능 005 FR-006, research R-01).
+# 항목 레코드 표현 "종류<TAB>줄번호<TAB>키<TAB>경로"는 이 소구획의 함수만 안다 (기능 005 FR-006, 기능 007 FR-003·research R-02).
+# 종류는 dir 또는 file이며 항목이 적힌 데이터 파일로 정해진다.
 
-# 항목 레코드를 만들어 출력한다(끝 LF 포함).
+# 항목 레코드를 만들어 출력한다(끝 LF 포함). 인자: KIND LINENO KEY PATH.
 project_path_gateway__domain_entry_new() (
 	set +e +u +f
 	IFS=' 	''
 '
 	unset CDPATH
-	printf '%s\t%s\t%s\n' "$1" "$2" "$3"
+	printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4"
+	return 0
+)
+
+# 레코드의 종류를 출력한다(끝 LF 없음).
+project_path_gateway__domain_entry_kind() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	tab='	'
+	printf '%s' "${1%%"$tab"*}"
 	return 0
 )
 
@@ -98,7 +161,8 @@ project_path_gateway__domain_entry_lineno() (
 '
 	unset CDPATH
 	tab='	'
-	printf '%s' "${1%%"$tab"*}"
+	rest=${1#*"$tab"}
+	printf '%s' "${rest%%"$tab"*}"
 	return 0
 )
 
@@ -110,11 +174,12 @@ project_path_gateway__domain_entry_key() (
 	unset CDPATH
 	tab='	'
 	rest=${1#*"$tab"}
+	rest=${rest#*"$tab"}
 	printf '%s' "${rest%%"$tab"*}"
 	return 0
 )
 
-# 레코드의 경로를 출력한다(끝 LF 없음). 둘째 TAB 뒤 전체이므로 경로 안 TAB을 보존한다.
+# 레코드의 경로를 출력한다(끝 LF 없음). 셋째 TAB 뒤 전체이므로 경로 안 TAB을 보존한다.
 project_path_gateway__domain_entry_path() (
 	set +e +u +f
 	IFS=' 	''
@@ -122,6 +187,7 @@ project_path_gateway__domain_entry_path() (
 	unset CDPATH
 	tab='	'
 	rest=${1#*"$tab"}
+	rest=${rest#*"$tab"}
 	printf '%s' "${rest#*"$tab"}"
 	return 0
 )
@@ -136,29 +202,29 @@ project_path_gateway__domain_entry_to_line() (
 	return 0
 )
 
-# 등록·갱신 인자 KEY·PATH의 첫 위반 코드를 출력한다. 위반이 없으면 아무것도 출력하지 않는다 (기능 004 research R-02).
-# 순서: 키 모델, 경로 모델.
+# 등록·갱신 인자 KIND·KEY·PATH의 첫 위반 코드를 출력하고 반환 1. 위반이 없으면 아무것도 출력하지 않고 반환 0 (기능 004 research R-02).
+# 순서: 키 모델, 경로 모델(경로 규칙 → 종류 규칙, 기능 007 FR-012).
 project_path_gateway__domain_entry_violation() (
 	set +e +u +f
 	IFS=' 	''
 '
 	unset CDPATH
-	if ! project_path_gateway__domain_key_is_valid "$1"; then
+	if ! project_path_gateway__domain_key_is_valid "$2"; then
 		printf 'invalid_key\n'
-		return 0
+		return 1
 	fi
-	project_path_gateway__domain_path_violation "$2"
+	project_path_gateway__domain_path_violation "$3" "$1"
 )
 
-# 데이터 파일 한 줄을 해석한다 (기능 005 data-model 1.4). $1: 줄 번호, $2: 줄.
+# 데이터 파일 한 줄을 해석한다 (기능 005 data-model 1.4, 기능 007 data-model 1.4). $1: 종류, $2: 줄 번호, $3: 줄.
 # 반환 0: 유효 항목(레코드 출력), 1: 규칙 위반(원인 코드 출력), 2: 빈 줄·주석(출력 없음).
-# 중복 키 검사는 파일 전체 상태가 필요하므로 seen_register로 따로 한다.
+# 중복 키 검사는 두 파일 전체 상태가 필요하므로 seen_register로 따로 한다.
 project_path_gateway__domain_entry_parse_line() (
 	set +e +u +f
 	IFS=' 	''
 '
 	unset CDPATH
-	case $2 in
+	case $3 in
 	'' | '#'*) return 2 ;;
 	*=*) ;;
 	*)
@@ -166,19 +232,16 @@ project_path_gateway__domain_entry_parse_line() (
 		return 1
 		;;
 	esac
-	key=${2%%=*}
-	path=${2#*=}
+	key=${3%%=*}
+	path=${3#*=}
 	if ! project_path_gateway__domain_key_is_valid "$key"; then
 		printf 'invalid_key\n'
 		return 1
 	fi
-	violation=$(project_path_gateway__domain_path_violation "$path")
-	if [ -n "$violation" ]; then
-		printf '%s\n' "$violation"
-		return 1
-	fi
+	# 위반 코드는 경로 모델이 바로 이 함수의 출력으로 쓴다. 줄마다 명령 치환 한 번을 줄인다 (기능 007 research R-09).
+	project_path_gateway__domain_path_violation "$path" "$1" || return 1
 	# entry_new와 같은 표현. 줄마다 호출 한 번을 줄이려고 여기서 바로 만든다 (기능 005 research R-06).
-	printf '%s\t%s\t%s\n' "$1" "$key" "$path"
+	printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$key" "$path"
 	return 0
 )
 
@@ -210,16 +273,18 @@ project_path_gateway__domain_entry_line_has_cr() (
 
 # --- 모델: 항목 목록 ---
 
-# 본 키 목록 SEEN(":KEY=줄번호:" 연결)에 레코드의 키를 등록한다.
-# 처음 본 키이면 새 목록을 출력하고 반환 0, 이미 본 키이면 처음 정의된 줄 번호를 출력하고 반환 1.
+# 본 키 목록 SEEN(":KEY=종류/줄번호:" 연결)에 레코드의 키를 등록한다 (기능 007 research R-06).
+# 처음 본 키이면 새 목록을 출력하고 반환 0, 이미 본 키이면 처음 정의된 위치 "종류/줄번호"를 출력하고 반환 1.
 project_path_gateway__domain_seen_register() (
 	set +e +u +f
 	IFS=' 	''
 '
 	unset CDPATH
 	tab='	'
-	lineno=${2%%"$tab"*}
+	kind=${2%%"$tab"*}
 	rest=${2#*"$tab"}
+	lineno=$kind/${rest%%"$tab"*}
+	rest=${rest#*"$tab"}
 	key=${rest%%"$tab"*}
 	case $1 in
 	*":$key="*)
@@ -258,12 +323,43 @@ project_path_gateway__domain_entries_find() (
 			;;
 		esac
 		key=${record#*"$tab"}
+		key=${key#*"$tab"}
 		if [ "${key%%"$tab"*}" = "$2" ]; then
 			printf '%s' "$record"
 			return 0
 		fi
 	done
 	return 1
+)
+
+# 항목 목록 RECORDS의 레코드마다 종류, 키, 경로를 한 줄씩(LF로 끝나게) 차례로 출력한다 (기능 007 research R-09).
+# 경로에는 LF가 없으므로(경로 모델) 받는 쪽은 레코드마다 세 줄을 읽으면 된다. 레코드마다 필드 접근 함수를 부르지 않으려고 쓴다.
+project_path_gateway__domain_entries_fields() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	tab='	'
+	nl='
+'
+	rest=$1
+	while [ -n "$rest" ]; do
+		case $rest in
+		*"$nl"*)
+			record=${rest%%"$nl"*}
+			rest=${rest#*"$nl"}
+			;;
+		*)
+			record=$rest
+			rest=
+			;;
+		esac
+		[ -n "$record" ] || continue
+		field=${record#*"$tab"}
+		field=${field#*"$tab"}
+		printf '%s\n%s\n%s\n' "${record%%"$tab"*}" "${field%%"$tab"*}" "${field#*"$tab"}"
+	done
+	return 0
 )
 
 # --- 모델: 도구 배치 ---
@@ -278,8 +374,31 @@ project_path_gateway__domain_layout_marker() (
 	return 0
 )
 
-# 데이터 파일의 루트 기준 상대경로를 출력한다(끝 LF 없음).
+# 종류 KIND(dir, file)의 데이터 파일 루트 기준 상대경로를 출력한다(끝 LF 없음) (기능 007 research R-01).
 project_path_gateway__domain_layout_data_file() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	case $1 in
+	file) printf '%s' .tools/project-path-gateway/project-path-gateway.files.conf ;;
+	*) printf '%s' .tools/project-path-gateway/project-path-gateway.dirs.conf ;;
+	esac
+	return 0
+)
+
+# 데이터 파일 종류를 읽는 순서대로 출력한다(끝 LF 없음) (기능 007 FR-002).
+project_path_gateway__domain_layout_kinds() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	printf '%s' 'dir file'
+	return 0
+)
+
+# 1.x 데이터 파일의 루트 기준 상대경로를 출력한다(끝 LF 없음). 라이브러리는 이 파일을 읽지 않는다 (기능 007 FR-031).
+project_path_gateway__domain_layout_legacy_data_file() (
 	set +e +u +f
 	IFS=' 	''
 '
@@ -371,34 +490,37 @@ project_path_gateway__domain_is_inside() (
 # 입력 포트: project_path_gateway__port_is_dir project_path_gateway__port_physical_dir project_path_gateway__port_readable_file
 # 입력 포트: project_path_gateway__port_read_lines project_path_gateway__port_find_root project_path_gateway__port_exists
 # 입력 포트: project_path_gateway__port_resolve_physical project_path_gateway__port_write_report project_path_gateway__port_read_file
-# 입력 포트: project_path_gateway__port_replace_data_file
+# 입력 포트: project_path_gateway__port_replace_data_file project_path_gateway__port_kind
 # 출력 포트: project_path_gateway__out_violation project_path_gateway__out_missing project_path_gateway__out_outside
+# 출력 포트: project_path_gateway__out_kind_mismatch
 
-# 데이터 파일 절대경로를 출력한다.
+# 종류 KIND(dir, file)의 데이터 파일 절대경로를 출력한다.
 project_path_gateway__app_data_file() (
 	set +e +u +f
 	IFS=' 	''
 '
 	unset CDPATH
-	project_path_gateway__domain_join "$1" "$(project_path_gateway__domain_layout_data_file)"
+	project_path_gateway__domain_join "$1" "$(project_path_gateway__domain_layout_data_file "$2")"
 )
 
-# 데이터 파일을 읽고 검증한다. 유효한 항목마다 "줄번호<TAB>키<TAB>경로" 한 줄을 파일 순서로 출력한다.
-# 위반은 끝까지 모두 보고 포트로 보고한다. 반환: 0 유효, 3 규칙 위반, 4 읽기 불가.
-project_path_gateway__app_load_entries() (
+# 데이터 파일들을 차례로 읽고 검증한다. $1: 앞 데이터 파일까지의 본 키 목록, 나머지: 종류와 데이터 파일 경로의 쌍을 읽는 순서대로.
+# 유효한 항목마다 레코드 한 줄을 읽은 순서로 출력하고, 위반은 끝까지 모두 보고 포트로 보고한다. 반환: 0 유효, 3 규칙 위반.
+# 파이프라인 오른쪽은 서브셸이라 본 키 목록을 밖으로 돌려줄 수 없으므로, 한 파일을 다 읽은 그 자리에서 다음 쌍을 같은 방식으로 이어 읽는다.
+project_path_gateway__app_load_files() (
 	set +e +u +f
 	IFS=' 	''
 '
 	unset CDPATH
-	file=$(project_path_gateway__app_data_file "$1")
-	project_path_gateway__port_readable_file "$file" || return 4
+	seen=$1
+	kind=$2
+	file=$3
+	shift 3
 	project_path_gateway__port_read_lines "$file" | {
 		lineno=0
 		bad=0
-		seen=
 		while IFS= read -r line; do
 			lineno=$((lineno + 1))
-			record=$(project_path_gateway__domain_entry_parse_line "$lineno" "$line")
+			record=$(project_path_gateway__domain_entry_parse_line "$kind" "$lineno" "$line")
 			status=$?
 			case $status in
 			2) continue ;;
@@ -420,17 +542,44 @@ project_path_gateway__app_load_entries() (
 			if project_path_gateway__domain_entry_line_has_cr "$line"; then
 				has_cr=1
 			fi
-			project_path_gateway__out_violation "$file" "$lineno" "$code" "$key" "$first" "$has_cr"
+			project_path_gateway__out_violation "$file" "$lineno" "$code" "$key" "$first" "$has_cr" "$kind"
 			bad=1
 		done
+		if [ "$#" -gt 0 ]; then
+			project_path_gateway__app_load_files "$seen" "$@" || bad=1
+		fi
 		[ "$bad" -eq 0 ]
 	} || return 3
 	return 0
 )
 
+# 두 데이터 파일을 도구 배치의 종류 순서(디렉터리 → 파일)로 읽고 검증한다 (기능 007 research R-06).
+# 유효한 항목마다 레코드 한 줄을 읽은 순서로 출력한다. 키 유일성은 두 파일을 합쳐 판정하고, 위반은 두 파일 모두 끝까지 보고한다.
+# 읽기 전에 두 파일을 모두 확인하며, 읽을 수 없는 데이터 파일이 있으면 먼저 확인한 쪽의 경로를 끝 표지 방식으로 출력한다.
+# 반환: 0 유효, 3 규칙 위반, 4 읽기 불가, 15 읽기 불가이고 1.x 데이터 파일이 있음 (research R-07).
+project_path_gateway__app_load_entries() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	root=$1
+	set --
+	for kind in $(project_path_gateway__domain_layout_kinds); do
+		file=$(project_path_gateway__app_data_file "$root" "$kind")
+		if ! project_path_gateway__port_readable_file "$file"; then
+			printf '%sx' "$file"
+			legacy=$(project_path_gateway__domain_join "$root" "$(project_path_gateway__domain_layout_legacy_data_file)")
+			project_path_gateway__port_readable_file "$legacy" && return 15
+			return 4
+		fi
+		set -- "$@" "$kind" "$file"
+	done
+	project_path_gateway__app_load_files '' "$@"
+)
+
 # 런타임 초기화 흐름. 성공하면 루트를, 실패하면 문구에 쓸 상세 값을 끝 표지 방식으로 출력한다.
 # 반환: 0 성공, 8 디렉터리 아님(상세: START_DIR), 5 경로 확인 실패(상세: START_DIR),
-# 6 루트 표식 없음(상세: 물리 시작 디렉터리), 4 데이터 파일 읽기 불가(상세: 데이터 파일 경로), 3 규칙 위반(상세 없음).
+# 6 루트 표식 없음(상세: 물리 시작 디렉터리), 4·15 데이터 파일 읽기 불가(상세: 읽지 못한 데이터 파일 경로), 3 규칙 위반(상세 없음).
 project_path_gateway__app_init() (
 	set +e +u +f
 	IFS=' 	''
@@ -451,61 +600,76 @@ project_path_gateway__app_init() (
 		return 6
 	fi
 	root=${root%x}
-	project_path_gateway__app_load_entries "$root" >/dev/null
+	records=$(project_path_gateway__app_load_entries "$root")
 	status=$?
 	case $status in
 	0)
 		printf '%sx' "$root"
 		return 0
 		;;
-	4)
-		printf '%sx' "$(project_path_gateway__app_data_file "$root")"
-		return 4
+	4 | 15)
+		printf '%s' "$records"
+		return "$status"
 		;;
 	esac
 	return 3
 )
 
-# 키에 등록된 경로를 루트와 결합해 출력한다. 반환: 0 성공, 3·4 데이터 파일 오류, 7 미등록 키.
+# 키에 등록된 경로를 루트와 결합해 출력한다. $1: 루트, $2: 종류, $3: KEY.
+# 반환: 0 성공, 3 규칙 위반, 4·15 읽기 불가(상세: 데이터 파일 경로), 7 미등록 키, 14 다른 종류의 키.
 project_path_gateway__app_lookup() (
 	set +e +u +f
 	IFS=' 	''
 '
 	unset CDPATH
-	records=$(project_path_gateway__app_load_entries "$1") || return $?
-	record=$(project_path_gateway__domain_entries_find "$records" "$2") || return 7
+	records=$(project_path_gateway__app_load_entries "$1")
+	status=$?
+	if [ "$status" -ne 0 ]; then
+		[ "$status" -eq 3 ] || printf '%s' "$records"
+		return "$status"
+	fi
+	record=$(project_path_gateway__domain_entries_find "$records" "$3") || return 7
+	[ "$(project_path_gateway__domain_entry_kind "$record")" = "$2" ] || return 14
 	project_path_gateway__domain_join "$1" "$(project_path_gateway__domain_entry_path "$record")"
 )
 
-# 모든 항목의 존재(V-1)와 루트 내부 여부(V-2)를 파일 순서대로 판정한다. 실패 항목은 보고 포트로 보고하고,
-# 끝에 "ok <통과 수>" 또는 "fail <실패 수>" 한 줄을 출력한다. 반환: 0 모두 통과, 1 실패 있음, 3·4 데이터 파일 오류.
+# 모든 항목의 존재(V-1), 루트 내부 여부(V-2), 실제 종류(V-3)를 읽은 순서대로 판정한다 (기능 007 research R-08).
+# 앞 단계에서 실패한 항목은 뒤 단계를 보지 않고, 실패 항목은 보고 포트로 한 줄씩 보고한다.
+# 끝에 "ok <통과 수>" 또는 "fail <실패 수>" 한 줄을 출력한다. 반환: 0 모두 통과, 1 실패 있음, 3·4·15 데이터 파일 오류(4·15 상세: 데이터 파일 경로).
 project_path_gateway__app_verify() (
 	set +e +u +f
 	IFS=' 	''
 '
 	unset CDPATH
-	records=$(project_path_gateway__app_load_entries "$1") || return $?
-	printf '%s\n' "$records" | {
+	records=$(project_path_gateway__app_load_entries "$1")
+	status=$?
+	if [ "$status" -ne 0 ]; then
+		[ "$status" -eq 3 ] || printf '%s' "$records"
+		return "$status"
+	fi
+	project_path_gateway__domain_entries_fields "$records" | {
 		passed=0
 		failed=0
-		while IFS= read -r record; do
-			[ -n "$record" ] || continue
-			key=$(project_path_gateway__domain_entry_key "$record")
-			path=$(project_path_gateway__domain_entry_path "$record")
+		while IFS= read -r kind && IFS= read -r key && IFS= read -r path; do
 			full=$(project_path_gateway__domain_join "$1" "$path")
-			if project_path_gateway__port_exists "$full" &&
-				physical=$(project_path_gateway__port_resolve_physical "$full"); then
-				physical=${physical%x}
-				if project_path_gateway__domain_is_inside "$1" "$physical"; then
-					passed=$((passed + 1))
-				else
-					project_path_gateway__out_outside "$key" "$path" "$physical"
-					failed=$((failed + 1))
-				fi
-			else
+			if ! project_path_gateway__port_exists "$full" ||
+				! physical=$(project_path_gateway__port_resolve_physical "$full"); then
 				project_path_gateway__out_missing "$key" "$path"
 				failed=$((failed + 1))
+				continue
 			fi
+			physical=${physical%x}
+			if ! project_path_gateway__domain_is_inside "$1" "$physical"; then
+				project_path_gateway__out_outside "$key" "$path" "$physical"
+				failed=$((failed + 1))
+				continue
+			fi
+			if [ "$(project_path_gateway__port_kind "$physical")" != "$kind" ]; then
+				project_path_gateway__out_kind_mismatch "$key" "$path" "$kind"
+				failed=$((failed + 1))
+				continue
+			fi
+			passed=$((passed + 1))
 		done
 		if [ "$failed" -gt 0 ]; then
 			printf 'fail %s\n' "$failed"
@@ -516,33 +680,42 @@ project_path_gateway__app_verify() (
 	}
 )
 
-# 등록(add)·갱신(update) 흐름 (기능 004 research R-01). 인자 규칙 위반이면 위반 코드를 출력한다.
-# 반환: 0 성공, 9 인자 규칙 위반, 3·4 데이터 파일 오류, 10 이미 등록된 키, 7 미등록 키,
+# 등록(add)·갱신(update) 흐름 (기능 004 research R-01, 기능 007 research R-04·R-05). $1: add 또는 update, $2: 종류, $3: 루트, $4: KEY, $5: PATH.
+# 쓰기 대상은 종류의 데이터 파일 하나이고 다른 데이터 파일은 키 유일성 확인에만 읽는다 (기능 007 FR-023).
+# 인자 규칙 위반이면 위반 코드를, 그 밖의 실패면 관련 데이터 파일 경로를 끝 표지 방식으로 출력한다.
+# 반환: 0 성공, 9 인자 규칙 위반, 3·4·15 데이터 파일 오류, 10 이미 등록된 키, 7 미등록 키, 14 다른 종류의 키,
 # 11 데이터 파일이 링크, 12 쓰기 권한 없음, 13 교체 실패.
 project_path_gateway__app_edit() (
 	set +e +u +f
 	IFS=' 	''
 '
 	unset CDPATH
-	violation=$(project_path_gateway__domain_entry_violation "$3" "$4")
+	violation=$(project_path_gateway__domain_entry_violation "$2" "$4" "$5")
 	if [ -n "$violation" ]; then
 		printf '%s\n' "$violation"
 		return 9
 	fi
-	records=$(project_path_gateway__app_load_entries "$2") || return $?
-	file=$(project_path_gateway__app_data_file "$2")
-	line=$(project_path_gateway__domain_entry_to_line "$3" "$4")
+	records=$(project_path_gateway__app_load_entries "$3")
+	status=$?
+	if [ "$status" -ne 0 ]; then
+		[ "$status" -eq 3 ] || printf '%s' "$records"
+		return "$status"
+	fi
+	file=$(project_path_gateway__app_data_file "$3" "$2")
+	printf '%sx' "$file"
+	line=$(project_path_gateway__domain_entry_to_line "$4" "$5")
 	case $1 in
 	add)
-		if record=$(project_path_gateway__domain_entries_find "$records" "$3"); then
+		if record=$(project_path_gateway__domain_entries_find "$records" "$4"); then
 			return 10
 		fi
 		content=$(project_path_gateway__port_read_file "$file") || return 4
 		content=$(project_path_gateway__domain_append_entry "${content%x}" "$line")
 		;;
 	update)
-		record=$(project_path_gateway__domain_entries_find "$records" "$3") || return 7
-		[ "$(project_path_gateway__domain_entry_path "$record")" = "$4" ] && return 0
+		record=$(project_path_gateway__domain_entries_find "$records" "$4") || return 7
+		[ "$(project_path_gateway__domain_entry_kind "$record")" = "$2" ] || return 14
+		[ "$(project_path_gateway__domain_entry_path "$record")" = "$5" ] && return 0
 		lineno=$(project_path_gateway__domain_entry_lineno "$record")
 		content=$(project_path_gateway__port_read_file "$file") || return 4
 		content=$(project_path_gateway__domain_replace_line "${content%x}" "$lineno" "$line") || return 13
@@ -634,6 +807,22 @@ project_path_gateway__port_exists() (
 '
 	unset CDPATH
 	project_path_gateway__sys_exists "$1"
+)
+
+# 경로의 종류를 한 줄로 출력한다: 디렉터리 dir, 일반 파일 file, 그 밖 other. 링크는 최종 대상으로 판정한다 (기능 007 research R-08).
+project_path_gateway__port_kind() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	if project_path_gateway__sys_is_dir "$1"; then
+		printf 'dir\n'
+	elif project_path_gateway__sys_is_file "$1"; then
+		printf 'file\n'
+	else
+		printf 'other\n'
+	fi
+	return 0
 )
 
 # 심볼릭 링크를 모두 따라간 최종 물리 경로를 끝 표지 방식으로 출력한다. 실패하면 반환 1 (research R-05).
@@ -881,7 +1070,7 @@ project_path_gateway__sys_remove() (
 
 # === 계층: 인터페이스 ===
 # 공개 함수 본문은 입력 검사 → 유스케이스 호출 → 결과 매핑(if_*_result) 순서다 (기능 005 FR-043).
-# 출력 포트 구현(out_*)은 애플리케이션이 호출하는 보고 문구를 정한다.
+# 종류별 공개 함수는 같은 흐름을 종류 인자로 공유한다(if_lookup, if_edit). 출력 포트 구현(out_*)은 애플리케이션이 호출하는 보고 문구를 정한다.
 
 # 공통 오류 출력: project-path-gateway: FUNC: MESSAGE
 project_path_gateway__if_error() (
@@ -892,7 +1081,23 @@ project_path_gateway__if_error() (
 	printf 'project-path-gateway: %s: %s\n' "$1" "$2" >&2
 )
 
-# 출력 포트 구현: 데이터 파일 위반 보고 (contracts/library-api.md 6절).
+# 종류 위반 원인 코드의 문구를 출력한다(끝 LF 없음). 데이터 파일 위반 보고와 등록·갱신 인자 오류가 같이 쓴다 (기능 007 contracts/data-files.md 3절).
+# $1: 원인 코드, $2: 문구 끝에 붙일 값. 종류 위반이 아니면 반환 1.
+project_path_gateway__if_kind_violation_message() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	case $1 in
+	not_dir_path) printf '디렉터리 경로가 파일 모양입니다(확장자가 있거나 .으로 시작): %s' "$2" ;;
+	not_file_path) printf '파일 경로가 파일 모양이 아닙니다(이름.확장자 또는 .으로 시작하는 이름, 끝 / 없음): %s' "$2" ;;
+	*) return 1 ;;
+	esac
+	return 0
+)
+
+# 출력 포트 구현: 데이터 파일 위반 보고 (기능 001 contracts/library-api.md 6절, 기능 007 contracts/data-files.md 3절).
+# $1: 데이터 파일, $2: 줄 번호, $3: 원인 코드, $4: 줄의 키, $5: 중복 키가 처음 정의된 위치(종류/줄번호), $6: CR 있음(1), $7: 이 데이터 파일의 종류.
 project_path_gateway__out_violation() (
 	set +e +u +f
 	IFS=' 	''
@@ -905,7 +1110,16 @@ project_path_gateway__out_violation() (
 	absolute_path) message="경로는 /로 시작할 수 없습니다: $4" ;;
 	parent_segment) message="경로에 .. 세그먼트를 쓸 수 없습니다: $4" ;;
 	carriage_return) message='CR 문자가 포함되어 있습니다(CRLF 줄 끝인지 확인하세요)' ;;
-	duplicate_key) message="중복된 키입니다($5번째 줄에서 정의됨): $4" ;;
+	not_dir_path | not_file_path) message=$(project_path_gateway__if_kind_violation_message "$3" "$4") ;;
+	duplicate_key)
+		first_kind=${5%%/*}
+		if [ "$first_kind" = "$7" ]; then
+			message="중복된 키입니다(${5#*/}번째 줄에서 정의됨): $4"
+		else
+			first_file=$(project_path_gateway__domain_layout_data_file "$first_kind")
+			message="중복된 키입니다(${first_file##*/} ${5#*/}번째 줄에서 정의됨): $4"
+		fi
+		;;
 	*) message="알 수 없는 위반입니다: $3" ;;
 	esac
 	if [ "$6" = 1 ] && [ "$3" != carriage_return ]; then
@@ -932,6 +1146,19 @@ project_path_gateway__out_outside() (
 	printf 'project-path-gateway: 루트 밖: %s=%s -> %s\n' "$1" "$2" "$3" >&2
 )
 
+# 출력 포트 구현: 검증 종류 불일치 보고 (기능 007 contracts/library-api.md 5절). $1: KEY, $2: PATH, $3: 항목 종류.
+project_path_gateway__out_kind_mismatch() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	if [ "$3" = file ]; then
+		printf 'project-path-gateway: 종류 불일치: %s=%s (일반 파일이 아님)\n' "$1" "$2" >&2
+	else
+		printf 'project-path-gateway: 종류 불일치: %s=%s (디렉터리가 아님)\n' "$1" "$2" >&2
+	fi
+)
+
 # 미초기화이면 문구를 출력하고 반환 1. $1: 공개 함수 이름.
 project_path_gateway__if_require_init() (
 	set +e +u +f
@@ -945,16 +1172,38 @@ project_path_gateway__if_require_init() (
 	return 0
 )
 
-# 데이터 파일 오류 문구를 출력한다. $1: 공개 함수 이름, $2: 내부 코드, $3: 루트.
+# 데이터 파일 읽기 불가 문구를 출력한다 (기능 007 contracts/library-api.md 2·3절).
+# $1: 공개 함수 이름, $2: 내부 코드(4 또는 15), $3: 끝 표지가 붙은 읽지 못한 데이터 파일 경로. 다른 코드면 출력하지 않는다.
+# 15이면 같은 도구 디렉터리의 1.x 데이터 파일을 옮기라는 안내 줄을 덧붙인다.
 project_path_gateway__if_data_file_fail() (
 	set +e +u +f
 	IFS=' 	''
 '
 	unset CDPATH
-	if [ "$2" = 4 ]; then
-		project_path_gateway__if_error "$1" "데이터 파일을 읽을 수 없습니다: $(project_path_gateway__app_data_file "$3")"
+	case $2 in
+	4 | 15) ;;
+	*) return 0 ;;
+	esac
+	file=${3%x}
+	project_path_gateway__if_error "$1" "데이터 파일을 읽을 수 없습니다: $file"
+	if [ "$2" = 15 ]; then
+		legacy=$(project_path_gateway__domain_layout_legacy_data_file)
+		project_path_gateway__if_error "$1" "이전 형식 데이터 파일이 있습니다: ${file%/*}/${legacy##*/}. README의 \"1.x 프로젝트 옮기기\" 절차로 항목을 옮기세요"
 	fi
 	return 0
+)
+
+# 종류 불일치(내부 코드 14) 문구를 출력한다 (기능 007 contracts/library-api.md 2·4절). $1: 공개 함수 이름, $2: 함수 종류, $3: KEY.
+project_path_gateway__if_kind_mismatch() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	if [ "$2" = file ]; then
+		project_path_gateway__if_error "$1" "파일 키가 아닙니다(디렉터리 데이터 파일에 등록됨): $3"
+	else
+		project_path_gateway__if_error "$1" "디렉터리 키가 아닙니다(파일 데이터 파일에 등록됨): $3"
+	fi
 )
 
 # 결과 매핑: 런타임 초기화 실패 문구를 출력하고 반환 2. $1: 내부 코드, $2: 끝 표지가 붙은 상세 값.
@@ -968,32 +1217,51 @@ project_path_gateway__if_init_result() (
 	8) project_path_gateway__if_error project_path_gateway_init "디렉터리가 아닙니다: $detail" ;;
 	5) project_path_gateway__if_error project_path_gateway_init "경로를 확인할 수 없습니다: $detail" ;;
 	6) project_path_gateway__if_error project_path_gateway_init "루트 표식 파일($(project_path_gateway__domain_layout_marker))을 찾지 못했습니다: ${detail}부터 /까지" ;;
-	4) project_path_gateway__if_error project_path_gateway_init "데이터 파일을 읽을 수 없습니다: $detail" ;;
+	4 | 15) project_path_gateway__if_data_file_fail project_path_gateway_init "$1" "$2" ;;
 	3) ;;
 	*) project_path_gateway__if_error project_path_gateway_init "알 수 없는 오류입니다(코드 $1)" ;;
 	esac
 	return 2
 )
 
-# 결과 매핑: 조회. $1: 내부 코드, $2: 결과 경로, $3: KEY, $4: 루트. 반환 0 또는 2.
-project_path_gateway__if_get_result() (
+# 결과 매핑: 조회. $1: 공개 함수 이름, $2: 함수 종류, $3: 내부 코드, $4: 결과(경로 또는 상세 값), $5: KEY. 반환 0 또는 2.
+project_path_gateway__if_lookup_result() (
 	set +e +u +f
 	IFS=' 	''
 '
 	unset CDPATH
-	case $1 in
+	case $3 in
 	0)
-		printf '%s\n' "$2"
+		printf '%s\n' "$4"
 		return 0
 		;;
-	7) project_path_gateway__if_error project_path_gateway_get "등록되지 않은 키입니다: $3" ;;
-	*) project_path_gateway__if_data_file_fail project_path_gateway_get "$1" "$4" ;;
+	7) project_path_gateway__if_error "$1" "등록되지 않은 키입니다: $5" ;;
+	14) project_path_gateway__if_kind_mismatch "$1" "$2" "$5" ;;
+	*) project_path_gateway__if_data_file_fail "$1" "$3" "$4" ;;
 	esac
 	return 2
 )
 
+# 조회 공개 함수 공통 흐름 (기능 007 contracts/library-api.md 2절). $1: 공개 함수 이름, $2: 함수 종류, 나머지: 공개 함수 인자.
+project_path_gateway__if_lookup() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	func=$1
+	kind=$2
+	shift 2
+	if [ "$#" -ne 1 ]; then
+		project_path_gateway__if_error "$func" '인자는 KEY 1개여야 합니다'
+		return 2
+	fi
+	project_path_gateway__if_require_init "$func" || return 2
+	result=$(project_path_gateway__app_lookup "$PROJECT_PATH_GATEWAY_ROOT" "$kind" "$1")
+	project_path_gateway__if_lookup_result "$func" "$kind" "$?" "$result" "$1"
+)
+
 # 결과 매핑: 검증 (기능 003 research R-02, 기능 005 research R-08). $1: 내부 코드, $2: 애플리케이션의 stdout·stderr를 합친 출력,
-# $3: 루트, $4(있으면): 리포트 파일. 통과 문구는 stdout, 누락·루트 밖·실패 문구는 stderr로 내고 리포트에 같은 줄을 저장한다.
+# $3: 루트, $4(있으면): 리포트 파일. 통과 문구는 stdout, 누락·루트 밖·종류 불일치·실패 문구는 stderr로 내고 리포트에 같은 줄을 저장한다.
 # 반환: 0 통과, 1 검증 실패, 2 오류.
 project_path_gateway__if_verify_result() (
 	set +e +u +f
@@ -1014,9 +1282,12 @@ project_path_gateway__if_verify_result() (
 		body="${last%"$summary"}project-path-gateway: 검증 실패 ${summary#fail }건$nl"
 		printf '%s' "$body" >&2
 		;;
+	4 | 15)
+		project_path_gateway__if_data_file_fail project_path_gateway_verify "$1" "$2"
+		return 2
+		;;
 	*)
 		printf '%s' "$2" >&2
-		project_path_gateway__if_data_file_fail project_path_gateway_verify "$1" "$3"
 		return 2
 		;;
 	esac
@@ -1028,38 +1299,67 @@ project_path_gateway__if_verify_result() (
 	return 1
 )
 
-# 결과 매핑: 등록·갱신 (기능 004 contracts/library-api-add-update.md 2절). 성공이면 반환 0, 실패면 문구를 출력하고 반환 2.
-# $1: 공개 함수 이름, $2: 내부 코드, $3: 상세(위반 코드), $4: 루트, $5: KEY, $6: PATH.
+# 결과 매핑: 등록·갱신 (기능 004 contracts/library-api-add-update.md 2절, 기능 007 contracts/library-api.md 4절).
+# 성공이면 반환 0, 실패면 문구를 출력하고 반환 2.
+# $1: 공개 함수 이름, $2: 함수 종류, $3: 내부 코드, $4: 상세(위반 코드 또는 끝 표지가 붙은 데이터 파일 경로), $5: KEY, $6: PATH.
 project_path_gateway__if_edit_result() (
 	set +e +u +f
 	IFS=' 	''
 '
 	unset CDPATH
-	[ "$2" = 0 ] && return 0
-	file=$(project_path_gateway__app_data_file "$4")
-	case $2 in
+	[ "$3" = 0 ] && return 0
+	file=${4%x}
+	case $3 in
 	9)
-		case $3 in
+		case $4 in
 		invalid_key) message="키 형식이 잘못되었습니다(대문자로 시작, 대문자·숫자·_만 허용): $5" ;;
 		empty_path) message='경로가 비어 있습니다' ;;
 		absolute_path) message="경로는 /로 시작할 수 없습니다: $6" ;;
 		parent_segment) message="경로에 .. 세그먼트를 쓸 수 없습니다: $6" ;;
 		carriage_return) message='경로에 CR 문자를 쓸 수 없습니다' ;;
 		line_feed) message='경로에 LF 문자를 쓸 수 없습니다' ;;
-		*) message="알 수 없는 위반입니다: $3" ;;
+		not_dir_path | not_file_path) message=$(project_path_gateway__if_kind_violation_message "$4" "$6") ;;
+		*) message="알 수 없는 위반입니다: $4" ;;
 		esac
 		;;
 	3) return 2 ;;
-	4) message="데이터 파일을 읽을 수 없습니다: $file" ;;
+	4 | 15)
+		project_path_gateway__if_data_file_fail "$1" "$3" "$4"
+		return 2
+		;;
 	7) message="등록되지 않은 키입니다: $5" ;;
 	10) message="이미 등록된 키입니다: $5" ;;
+	14)
+		project_path_gateway__if_kind_mismatch "$1" "$2" "$5"
+		return 2
+		;;
 	11) message="데이터 파일이 심볼릭 링크라 바꿀 수 없습니다: $file" ;;
 	12) message="데이터 파일에 쓰기 권한이 없습니다: $file" ;;
 	13) message="데이터 파일을 쓸 수 없습니다: $file" ;;
-	*) message="알 수 없는 오류입니다(코드 $2)" ;;
+	*) message="알 수 없는 오류입니다(코드 $3)" ;;
 	esac
 	project_path_gateway__if_error "$1" "$message"
 	return 2
+)
+
+# 등록·갱신 공개 함수 공통 흐름 (기능 004, 기능 007 contracts/library-api.md 4절).
+# $1: add 또는 update, $2: 공개 함수 이름, $3: 함수 종류, 나머지: 공개 함수 인자.
+project_path_gateway__if_edit() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	op=$1
+	func=$2
+	kind=$3
+	shift 3
+	if [ "$#" -ne 2 ]; then
+		project_path_gateway__if_error "$func" '인자는 KEY와 PATH 2개여야 합니다'
+		return 2
+	fi
+	project_path_gateway__if_require_init "$func" || return 2
+	detail=$(project_path_gateway__app_edit "$op" "$kind" "$PROJECT_PATH_GATEWAY_ROOT" "$1" "$2")
+	project_path_gateway__if_edit_result "$func" "$kind" "$?" "$detail" "$1" "$2"
 )
 
 # 공개 함수: 런타임 초기화 (contracts/library-api.md 3절).
@@ -1092,22 +1392,7 @@ project_path_gateway_init() {
 	return "$1"
 }
 
-# 공개 함수: 키로 절대경로 조회 (contracts/library-api.md 4절).
-project_path_gateway_get() (
-	set +e +u +f
-	IFS=' 	''
-'
-	unset CDPATH
-	if [ "$#" -ne 1 ]; then
-		project_path_gateway__if_error project_path_gateway_get '인자는 KEY 1개여야 합니다'
-		return 2
-	fi
-	project_path_gateway__if_require_init project_path_gateway_get || return 2
-	result=$(project_path_gateway__app_lookup "$PROJECT_PATH_GATEWAY_ROOT" "$1")
-	project_path_gateway__if_get_result "$?" "$result" "$1" "$PROJECT_PATH_GATEWAY_ROOT"
-)
-
-# 공개 함수: 등록 경로 검증 (contracts/library-api.md 5절, 기능 003 REPORT_FILE 선택 인자).
+# 공개 함수: 등록 경로 검증 (contracts/library-api.md 5절, 기능 003 REPORT_FILE 선택 인자, 기능 007 종류 확인).
 project_path_gateway_verify() (
 	set +e +u +f
 	IFS=' 	''
@@ -1127,32 +1412,56 @@ project_path_gateway_verify() (
 	project_path_gateway__if_verify_result "${captured##*x}" "${captured%x*}" "$PROJECT_PATH_GATEWAY_ROOT" "$@"
 )
 
-# 공개 함수: 새 경로 항목 등록 (기능 004). 키가 이미 있으면 반환 2.
-project_path_gateway_add() (
+# 공개 함수: 디렉터리 키를 절대경로로 조회 (기능 007 contracts/library-api.md 2절).
+project_path_gateway_dir() (
 	set +e +u +f
 	IFS=' 	''
 '
 	unset CDPATH
-	if [ "$#" -ne 2 ]; then
-		project_path_gateway__if_error project_path_gateway_add '인자는 KEY와 PATH 2개여야 합니다'
-		return 2
-	fi
-	project_path_gateway__if_require_init project_path_gateway_add || return 2
-	detail=$(project_path_gateway__app_edit add "$PROJECT_PATH_GATEWAY_ROOT" "$1" "$2")
-	project_path_gateway__if_edit_result project_path_gateway_add "$?" "$detail" "$PROJECT_PATH_GATEWAY_ROOT" "$1" "$2"
+	project_path_gateway__if_lookup project_path_gateway_dir dir "$@"
 )
 
-# 공개 함수: 등록된 키의 경로 갱신 (기능 004). 키가 없으면 반환 2.
-project_path_gateway_update() (
+# 공개 함수: 파일 키를 절대경로로 조회 (기능 007 contracts/library-api.md 2절).
+project_path_gateway_file() (
 	set +e +u +f
 	IFS=' 	''
 '
 	unset CDPATH
-	if [ "$#" -ne 2 ]; then
-		project_path_gateway__if_error project_path_gateway_update '인자는 KEY와 PATH 2개여야 합니다'
-		return 2
-	fi
-	project_path_gateway__if_require_init project_path_gateway_update || return 2
-	detail=$(project_path_gateway__app_edit update "$PROJECT_PATH_GATEWAY_ROOT" "$1" "$2")
-	project_path_gateway__if_edit_result project_path_gateway_update "$?" "$detail" "$PROJECT_PATH_GATEWAY_ROOT" "$1" "$2"
+	project_path_gateway__if_lookup project_path_gateway_file file "$@"
+)
+
+# 공개 함수: 디렉터리 항목 등록 (기능 007 contracts/library-api.md 4절). 키가 어느 데이터 파일에든 있으면 반환 2.
+project_path_gateway_add_dir() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	project_path_gateway__if_edit add project_path_gateway_add_dir dir "$@"
+)
+
+# 공개 함수: 파일 항목 등록 (기능 007 contracts/library-api.md 4절). 키가 어느 데이터 파일에든 있으면 반환 2.
+project_path_gateway_add_file() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	project_path_gateway__if_edit add project_path_gateway_add_file file "$@"
+)
+
+# 공개 함수: 디렉터리 항목 갱신 (기능 007 contracts/library-api.md 4절). 키가 없거나 파일 키이면 반환 2.
+project_path_gateway_update_dir() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	project_path_gateway__if_edit update project_path_gateway_update_dir dir "$@"
+)
+
+# 공개 함수: 파일 항목 갱신 (기능 007 contracts/library-api.md 4절). 키가 없거나 디렉터리 키이면 반환 2.
+project_path_gateway_update_file() (
+	set +e +u +f
+	IFS=' 	''
+'
+	unset CDPATH
+	project_path_gateway__if_edit update project_path_gateway_update_file file "$@"
 )

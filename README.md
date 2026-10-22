@@ -1,9 +1,11 @@
 # project-path-gateway
 
-프로젝트에서 쓰는 경로를 데이터 파일 한 곳에 정의하고, 셸 스크립트와 Git 훅이 키 이름으로 프로젝트 루트 기준
+프로젝트에서 쓰는 경로를 데이터 파일에 정의하고, 셸 스크립트와 Git 훅이 키 이름으로 프로젝트 루트 기준
 절대경로를 얻게 하는 POSIX `sh` 라이브러리입니다.
 
-- 경로를 옮기거나 지울 때 데이터 파일 한 곳만 고치면 모든 스크립트가 새 경로를 씁니다.
+- 디렉터리와 파일을 서로 다른 데이터 파일·함수로 다룹니다. 디렉터리를 기대하는 자리에 파일 경로가 들어가는 실수를
+  조회·등록·검증 시점에 잡습니다.
+- 경로를 옮기거나 지울 때 데이터 파일 한 줄만 고치면 모든 스크립트가 새 경로를 씁니다.
 - 등록한 경로가 실제로 있는지 pre-commit 훅에서 커밋 전에 확인할 수 있습니다.
 - 개발자 PC에는 전역 프로그램을 한 번 설치하고, 프로젝트에는 라이브러리 파일을 함께 커밋합니다.
   저장소를 clone한 다른 환경은 전역 프로그램 없이 조회·검증을 사용합니다.
@@ -39,32 +41,34 @@ sh project-path-gateway/uninstall.sh [--prefix DIR]
 project-path-gateway init [TARGET_DIR]
 ```
 
-`TARGET_DIR`(생략하면 현재 작업 디렉터리)이 프로젝트 루트가 되고, 그 아래에 파일 네 개를 만듭니다.
+`TARGET_DIR`(생략하면 현재 작업 디렉터리)이 프로젝트 루트가 되고, 그 아래에 파일 다섯 개를 만듭니다.
 
 ```text
 <루트>/
 ├── .tools/
 │   └── project-path-gateway/
-│       ├── .project-path-gateway        # 루트 표식 파일
-│       ├── project-path-gateway.conf    # 데이터 파일
-│       └── project-path-gateway.sh      # 라이브러리
+│       ├── .project-path-gateway              # 루트 표식 파일
+│       ├── project-path-gateway.dirs.conf     # 디렉터리 데이터 파일 (2.0.0부터)
+│       ├── project-path-gateway.files.conf    # 파일 데이터 파일 (2.0.0부터)
+│       └── project-path-gateway.sh            # 라이브러리
 └── .agents/
     └── skills/
         └── project-path-gateway/
-            └── SKILL.md                 # 에이전트 스킬 (1.1.0부터)
+            └── SKILL.md                       # 에이전트 스킬 (1.1.0부터)
 ```
 
 | 파일 | 없을 때 | 있을 때 |
 |---|---|---|
 | 루트 표식 파일 | 생성 | 유지(내용·수정 시각 그대로) |
-| 데이터 파일 | 생성(설명 주석과 기본 항목 두 개) | 유지(내용·수정 시각 그대로) |
+| 디렉터리 데이터 파일 | 생성(설명 주석과 기본 항목 두 개) | 유지(내용·수정 시각 그대로) |
+| 파일 데이터 파일 | 생성(설명 주석) | 유지(내용·수정 시각 그대로) |
 | 라이브러리 | 생성 | 전역 프로그램에 포함된 버전으로 교체 |
 | 에이전트 스킬 | 생성 | 설치된 버전으로 교체 |
 
 - 파일마다 `생성`, `유지`, `교체` 중 무엇을 했는지 출력하고, 마지막 줄에 `초기화 완료: <루트 물리 경로>`를 출력합니다.
 - 어떤 파일에도 루트 절대경로, 사용자 이름, 날짜를 기록하지 않습니다. clone 위치가 달라도 그대로 동작합니다.
 - `.tools/`와 `.agents/skills/` 안의 다른 항목은 건드리지 않습니다. Git 저장소인지는 확인하지 않습니다.
-- 새 데이터 파일에는 `init`이 만드는 두 경로가 기본 항목으로 들어갑니다. 그래서 초기화 직후
+- 새 디렉터리 데이터 파일에는 `init`이 만드는 두 디렉터리가 기본 항목으로 들어갑니다. 그래서 초기화 직후
   `project_path_gateway_verify`가 바로 통과합니다. 필요하지 않으면 지워도 됩니다.
 
   ```text
@@ -72,12 +76,45 @@ project-path-gateway init [TARGET_DIR]
   AGENT_SKILLS_DIR=.agents/skills
   ```
 
-- 대상이 디렉터리가 아니거나, 만들어야 하는 디렉터리 자리에 디렉터리가 아닌 것이 있거나, 네 파일 중 형태가 맞지 않는 것이
+- 1.x 데이터 파일(`.tools/project-path-gateway/project-path-gateway.conf`)이 있으면 읽거나 바꾸지 않고, 모든 쓰기가 끝난 뒤
+  stderr에 아래 "1.x 프로젝트 옮기기" 절차로 항목을 옮기라는 안내 한 줄을 출력합니다. 반환값은 그대로 0입니다.
+- 대상이 디렉터리가 아니거나, 만들어야 하는 디렉터리 자리에 디렉터리가 아닌 것이 있거나, 다섯 파일 중 형태가 맞지 않는 것이
   있으면 아무 파일도 만들지 않고 반환 2로 끝납니다. 설치된 라이브러리·스킬 원본을 찾지 못하면 아무것도 만들지 않고 반환 1입니다
   (설치 스크립트를 다시 실행하세요). 쓰기 중 실패하면 반환 1이며, 처리 중이던 파일은 이전 상태로 남고 이번 실행에서 만든
   디렉터리만 안쪽부터 지웁니다.
 - **`.tools/project-path-gateway/`는 반드시 프로젝트와 함께 커밋하세요.** `.gitignore`에 넣으면 clone한 환경에서
   라이브러리와 데이터 파일을 찾을 수 없습니다.
+
+### 1.x 프로젝트 옮기기
+
+2.0.0부터 데이터 파일이 디렉터리 데이터 파일과 파일 데이터 파일 두 개로 나뉘고, 조회·등록·갱신 함수가 종류별로 바뀌었습니다.
+2.0.0 라이브러리는 1.x 데이터 파일 `project-path-gateway.conf`를 읽지 않습니다. 옮기는 도구는 없으며 아래 절차를 손으로 따릅니다.
+
+1. 전역 프로그램을 2.0.0으로 다시 설치합니다(`sh install.sh`).
+2. 프로젝트에서 `project-path-gateway init`을 실행합니다. 새 데이터 파일 두 개가 `생성`되고 라이브러리가 `교체`되며,
+   이전 데이터 파일이 있다는 안내가 stderr에 나옵니다. 이전 데이터 파일은 그대로 남습니다.
+3. 이전 데이터 파일의 항목마다 종류를 정해 옮겨 적습니다. 디렉터리는 `project-path-gateway.dirs.conf`, 파일은
+   `project-path-gateway.files.conf`입니다. 아래 "데이터 파일 규칙"의 경로 모양 규칙을 따라야 합니다.
+   - `Makefile`, `LICENSE`처럼 확장자가 없고 `.`으로 시작하지 않는 파일은 파일 항목이 될 수 없습니다. 이름을 바꿀 수 없으면
+     그 파일이 있는 디렉터리를 디렉터리 항목으로 등록하고 스크립트에서 파일 이름을 붙여 씁니다
+     (`ROOT_DIR=.` 뒤 `"$(project_path_gateway_dir ROOT_DIR)/Makefile"`).
+   - `v1.2`, `node.js`처럼 점이 들어간 디렉터리 이름은 디렉터리 항목이 될 수 없습니다. 그 안의 하위 디렉터리나 상위 디렉터리를 등록합니다.
+   - `.github`처럼 `.`으로 시작하는 디렉터리는 마지막 이름이 아닐 때만 디렉터리 항목이 됩니다(`.github/workflows`).
+4. 스크립트의 함수 호출을 바꿉니다.
+
+   | 1.x | 2.0.0 |
+   |---|---|
+   | `project_path_gateway_get KEY` | 디렉터리 키는 `project_path_gateway_dir KEY`, 파일 키는 `project_path_gateway_file KEY` |
+   | `project_path_gateway_add KEY PATH` | `project_path_gateway_add_dir KEY PATH` 또는 `project_path_gateway_add_file KEY PATH` |
+   | `project_path_gateway_update KEY PATH` | `project_path_gateway_update_dir KEY PATH` 또는 `project_path_gateway_update_file KEY PATH` |
+
+   이전 함수는 라이브러리에서 제거되었으므로 바꾸지 않은 호출은 셸의 명령 없음 오류(반환 127)가 납니다.
+5. `project_path_gateway_verify`로 확인합니다. 항목이 실제 종류와 맞지 않으면 `종류 불일치`로 보고합니다.
+6. 이전 데이터 파일이 더는 필요 없으면 지웁니다(`git rm .tools/project-path-gateway/project-path-gateway.conf`).
+   남겨 두어도 라이브러리는 읽지 않지만, `init`은 실행할 때마다 안내를 다시 출력합니다.
+
+새 데이터 파일이 없는 상태(라이브러리만 손으로 바꾼 경우 등)에서 라이브러리를 초기화하면 데이터 파일을 읽을 수 없다는 오류 뒤에
+이전 데이터 파일을 옮기라는 안내 줄이 붙습니다.
 
 ### 1.0.0 이전 프로젝트 옮기기
 
@@ -92,14 +129,14 @@ git mv .tool/project-path-gateway .tools/project-path-gateway
 project-path-gateway init .
 ```
 
-- `init`은 루트 표식 파일과 데이터 파일을 유지하고 라이브러리만 1.0.0으로 교체합니다.
+- `init`은 루트 표식 파일과 데이터 파일을 유지하고 라이브러리만 교체합니다. 2.0.0 전역 프로그램이면 이어서 위 "1.x 프로젝트 옮기기"를 따릅니다.
 - `.tool/` 안에 다른 도구가 없으면 빈 `.tool/` 디렉터리를 지웁니다.
 - 스크립트나 훅이 `.tool/project-path-gateway/project-path-gateway.sh`를 직접 불러오고 있으면 `.tools/`로 고칩니다.
 
 ### 에이전트 스킬
 
 `init`은 `<루트>/.agents/skills/project-path-gateway/SKILL.md`에 이 라이브러리 사용법을 담은 스킬 문서를 둡니다.
-Claude Code, Codex 등 `.agents/skills/`를 읽는 코딩 에이전트가 경로를 하드코딩하지 않고 키로 조회·검증·등록하도록
+Claude Code, Codex 등 `.agents/skills/`를 읽는 코딩 에이전트가 경로를 하드코딩하지 않고 종류별 함수로 키를 조회·검증·등록하도록
 안내하는 문서입니다.
 
 - 내용은 설치된 원본(`<PREFIX>/share/project-path-gateway/SKILL.md`)을 그대로 복사한 것입니다. 프로젝트마다 다르지 않습니다.
@@ -121,24 +158,49 @@ Claude Code, Codex 등 `.agents/skills/`를 읽는 코딩 에이전트가 경로
 
 ## 데이터 파일 규칙
 
-`<루트>/.tools/project-path-gateway/project-path-gateway.conf`
+데이터 파일은 두 개입니다. 항목의 종류는 어느 파일에 적었는지로 정해집니다.
+
+| 파일 | 종류 |
+|---|---|
+| `<루트>/.tools/project-path-gateway/project-path-gateway.dirs.conf` | 디렉터리 |
+| `<루트>/.tools/project-path-gateway/project-path-gateway.files.conf` | 파일 |
 
 ```text
-# 주석
+# project-path-gateway.dirs.conf
+SOURCES_ROOT=sources
+WORKFLOWS_DIR=.github/workflows
+```
+
+```text
+# project-path-gateway.files.conf
 APP_CONFIG=config/app.json
 BUILD_SCRIPT=scripts/build.sh
+ENV_FILE=.env
 ```
 
 - 한 줄에 `KEY=경로` 하나. 첫 번째 `=`가 구분자이고 그 뒤 전체가 경로입니다. 공백은 어디에서도 제거하지 않습니다.
 - 빈 줄(문자가 하나도 없는 줄)과 첫 문자가 `#`인 줄은 무시합니다. 공백만 있는 줄, 공백 뒤 `#`인 줄은 오류입니다.
-- 키: 대문자로 시작하고 대문자·숫자·`_`만 사용하며, 파일 안에서 중복될 수 없습니다.
+- 키: 대문자로 시작하고 대문자·숫자·`_`만 사용하며, **두 파일을 합쳐** 중복될 수 없습니다. 디렉터리 데이터 파일을 먼저 읽으므로
+  중복은 뒤에 읽힌 줄에서 처음 정의된 위치와 함께 보고합니다.
 - 경로: **루트 기준** 상대경로입니다(도구 디렉터리 기준이 아님). 비어 있으면 안 되고, `/`로 시작하거나 `..` 세그먼트를
-  쓰거나 CR 문자를 포함할 수 없습니다. 공백·한글·`=`·`.` 세그먼트·빈 세그먼트·끝 `/`는 허용합니다.
+  쓰거나 CR 문자를 포함할 수 없습니다. 공백·한글·`=`·`.` 세그먼트·빈 세그먼트는 허용합니다.
+- 경로 모양: 끝 `/`를 뗀 마지막 이름으로 판정합니다.
+
+  | 마지막 이름 | 모양 | 예 |
+  |---|---|---|
+  | 정확히 `.` | 디렉터리 | `.`, `dir/.` |
+  | `.`으로 시작 | 파일 | `.gitignore`, `.env.local`, `.github` |
+  | 마지막 `.`의 앞뒤가 모두 비어 있지 않음 | 파일 | `build.sh`, `archive.tar.gz`, `v1.2` |
+  | 그 밖 | 디렉터리 | `src`, `.github/workflows`, `b.`, `Makefile` |
+
+  디렉터리 데이터 파일의 경로는 디렉터리 모양이어야 하고, 파일 데이터 파일의 경로는 파일 모양이면서 `/`로 끝나지 않아야 합니다.
+  디렉터리 경로의 끝 `/`는 허용하며 저장값은 그대로 둡니다. 확장자 없는 파일(`Makefile`)과 점이 들어간 디렉터리(`v1.2`)를
+  다루는 방법은 위 "1.x 프로젝트 옮기기" 3단계를 참고하세요.
 - 파일은 UTF-8, LF 줄 끝으로 읽습니다. 마지막 줄에 개행이 없어도 됩니다. CRLF 파일은 오류로 보고하며 원인에 안내가 붙습니다.
-- 위반 줄이 하나라도 있으면 파일 전체가 무효이며, 위반 줄 전체를 파일 순서대로 보고합니다.
-- 조회와 검증은 호출할 때마다 데이터 파일을 다시 읽고 다시 검증합니다.
-- 파일을 직접 편집하는 대신 `project_path_gateway_add`, `project_path_gateway_update`로 항목을 넣거나 경로를 바꿀 수 있습니다.
-  두 함수는 규칙을 확인한 뒤에만 파일을 바꿉니다(아래 "경로 항목 등록·갱신").
+- 위반 줄이 하나라도 있으면 데이터 전체가 무효이며, 두 파일의 위반 줄 전체를 디렉터리 → 파일, 파일 안 순서대로 보고합니다.
+- 조회와 검증은 호출할 때마다 두 데이터 파일을 다시 읽고 다시 검증합니다. 두 파일 중 하나라도 없거나 읽을 수 없으면 오류입니다.
+- 파일을 직접 편집하는 대신 종류별 등록·갱신 함수로 항목을 넣거나 경로를 바꿀 수 있습니다.
+  이 함수들은 규칙을 확인한 뒤에만 파일을 바꿉니다(아래 "경로 항목 등록·갱신").
 
 ## 런타임 초기화 방법
 
@@ -157,19 +219,27 @@ project_path_gateway_init /abs/path/in/project # 경로 전달: 그 디렉터리
 
 | 함수 | 설명 | 반환값 |
 |---|---|---|
-| `project_path_gateway_init [START_DIR]` | 루트를 찾고 데이터 파일을 검증해 루트를 보관합니다. stdout 출력 없음 | 0 성공, 2 실패 |
-| `project_path_gateway_get KEY` | 등록된 경로를 루트와 결합한 절대경로 한 줄을 출력합니다. 경로 존재는 확인하지 않습니다 | 0 성공, 2 실패 |
-| `project_path_gateway_verify [REPORT_FILE]` | 모든 항목이 존재하고(링크는 최종 대상 존재) 최종 물리 경로가 루트 안인지 확인합니다. `REPORT_FILE`을 주면 같은 결과를 그 파일에도 저장합니다 | 0 통과, 1 검증 실패, 2 오류 |
-| `project_path_gateway_add KEY PATH` | 새 항목 `KEY=PATH`를 데이터 파일 끝에 등록합니다. 키가 이미 있으면 경로가 같아도 오류입니다. 출력 없음 | 0 성공, 2 실패 |
-| `project_path_gateway_update KEY PATH` | 등록된 키의 경로를 바꿉니다. 키가 없으면 오류이며 새로 등록하지 않습니다. 출력 없음 | 0 성공, 2 실패 |
+| `project_path_gateway_init [START_DIR]` | 루트를 찾고 두 데이터 파일을 검증해 루트를 보관합니다. stdout 출력 없음 | 0 성공, 2 실패 |
+| `project_path_gateway_verify [REPORT_FILE]` | 모든 항목이 존재하고(링크는 최종 대상 존재) 최종 물리 경로가 루트 안이며, 디렉터리 항목은 디렉터리, 파일 항목은 일반 파일인지 확인합니다. `REPORT_FILE`을 주면 같은 결과를 그 파일에도 저장합니다 | 0 통과, 1 검증 실패, 2 오류 |
+| `project_path_gateway_dir KEY` | 디렉터리 키의 경로를 루트와 결합한 절대경로 한 줄을 출력합니다. 경로 존재는 확인하지 않습니다 | 0 성공, 2 실패 |
+| `project_path_gateway_file KEY` | 파일 키의 경로를 루트와 결합한 절대경로 한 줄을 출력합니다. 경로 존재는 확인하지 않습니다 | 0 성공, 2 실패 |
+| `project_path_gateway_add_dir KEY PATH` | 새 항목 `KEY=PATH`를 디렉터리 데이터 파일 끝에 등록합니다. 키가 두 파일 어디에든 있으면 경로가 같아도 오류입니다. 출력 없음 | 0 성공, 2 실패 |
+| `project_path_gateway_add_file KEY PATH` | 새 항목 `KEY=PATH`를 파일 데이터 파일 끝에 등록합니다. 키 규칙은 `add_dir`와 같습니다. 출력 없음 | 0 성공, 2 실패 |
+| `project_path_gateway_update_dir KEY PATH` | 디렉터리 키의 경로를 바꿉니다. 키가 없거나 파일 키이면 오류이며 새로 등록하지 않습니다. 출력 없음 | 0 성공, 2 실패 |
+| `project_path_gateway_update_file KEY PATH` | 파일 키의 경로를 바꿉니다. 키가 없거나 디렉터리 키이면 오류입니다. 출력 없음 | 0 성공, 2 실패 |
 
 | 반환값 | 의미 |
 |---|---|
 | 0 | 성공 |
 | 1 | `project_path_gateway_verify` 검증 실패 |
-| 2 | 인자 오류, 미초기화, 루트 오류, 데이터 파일 오류, 미등록 키, 이미 등록된 키, 리포트 파일·데이터 파일 쓰기 실패 |
+| 2 | 인자 오류, 미초기화, 루트 오류, 데이터 파일 오류, 미등록 키, 종류 불일치, 이미 등록된 키, 리포트 파일·데이터 파일 쓰기 실패 |
 
+- 디렉터리 키를 `project_path_gateway_file`로, 파일 키를 `project_path_gateway_dir`로 조회하면
+  `파일 키가 아닙니다(디렉터리 데이터 파일에 등록됨): <KEY>`처럼 키가 등록된 데이터 파일을 알려 주고 반환 2입니다.
+- 1.x의 `project_path_gateway_get`, `project_path_gateway_add`, `project_path_gateway_update`는 없습니다("1.x 프로젝트 옮기기" 4단계).
 - 검증은 첫 실패에서 멈추지 않고 모든 항목을 확인합니다. 끊어진 링크, 순환 링크, 권한 때문에 확인할 수 없는 경로는 누락입니다.
+  항목마다 누락 → 루트 밖 → 종류 불일치 순서로 보고, 앞 단계에서 실패하면 뒤 단계는 보지 않아 항목당 한 줄만 보고합니다.
+  링크는 최종 대상의 종류로 판정하며, 장치 파일·소켓처럼 일반 파일이 아닌 것은 파일 항목의 종류 불일치입니다.
 - `REPORT_FILE` 없이 호출한 검증은 파일 시스템을 바꾸지 않습니다. 검증 대상은 작업 트리이며 스테이징 여부는 보지 않습니다.
 - 인자는 0개 또는 1개입니다. 이전 버전에서 인자를 주면 오류였지만, 지금은 인자 1개를 리포트 파일 경로로 씁니다.
 
@@ -177,7 +247,7 @@ project_path_gateway_init /abs/path/in/project # 경로 전달: 그 디렉터리
 
 `project_path_gateway_verify REPORT_FILE`은 터미널에 출력한 검증 결과 줄을 그대로 `REPORT_FILE`에 저장합니다.
 
-- 리포트 내용: 실패 항목 줄(누락, 루트 밖)을 데이터 파일 순서대로 적고, 마지막 줄에 `검증 통과 <n>건` 또는 `검증 실패 <n>건`을
+- 리포트 내용: 실패 항목 줄(누락, 루트 밖, 종류 불일치)을 데이터 파일 순서대로 적고, 마지막 줄에 `검증 통과 <n>건` 또는 `검증 실패 <n>건`을
   적습니다. 형식은 아래 "출력 형식"의 해당 줄과 같습니다. 통과해도 요약 한 줄짜리 리포트를 남깁니다.
 - 상대경로는 호출한 시점의 작업 디렉터리 기준입니다. 상위 디렉터리는 만들지 않습니다.
 - 기존 파일은 새 리포트로 한 번에 바뀝니다. 같은 디렉터리에 임시 파일 `.ppg-report.<PID>.<이름>`을 쓴 뒤 옮기므로
@@ -193,25 +263,28 @@ project_path_gateway_init /abs/path/in/project # 경로 전달: 그 디렉터리
 
 ### 경로 항목 등록·갱신
 
-`project_path_gateway_add KEY PATH`는 새 항목을 등록하고, `project_path_gateway_update KEY PATH`는 등록된 키의 경로를 바꿉니다.
-두 함수 모두 런타임 초기화 뒤에 쓰며, 성공하면 아무것도 출력하지 않고 반환 0입니다.
+`project_path_gateway_add_dir`·`project_path_gateway_add_file KEY PATH`는 새 항목을 등록하고,
+`project_path_gateway_update_dir`·`project_path_gateway_update_file KEY PATH`는 등록된 키의 경로를 바꿉니다.
+네 함수 모두 런타임 초기화 뒤에 쓰며, 성공하면 아무것도 출력하지 않고 반환 0입니다.
 
 - 확인 순서: 인자 개수(2개) → 초기화 여부 → 키 규칙 → 경로 규칙(비어 있지 않음, `/`로 시작하지 않음, `..` 세그먼트 없음,
-  CR·LF 없음) → 데이터 파일 검사(조회와 같은 오류 보고) → 키 존재 여부. 먼저 걸린 조건 하나만 보고하고 반환 2입니다.
-- 등록은 같은 키가 있으면 `이미 등록된 키입니다: <KEY>`, 갱신은 키가 없으면 `등록되지 않은 키입니다: <KEY>`로 실패합니다.
-  주석 줄(`# KEY=...`)은 항목이 아니므로 등록을 막지 않습니다.
+  CR·LF 없음) → 경로 모양(함수 종류와 맞음) → 두 데이터 파일 검사(조회와 같은 오류 보고) → 키 존재 여부.
+  먼저 걸린 조건 하나만 보고하고 반환 2입니다.
+- 등록은 같은 키가 두 데이터 파일 어디에든 있으면 `이미 등록된 키입니다: <KEY>`, 갱신은 키가 없으면 `등록되지 않은 키입니다: <KEY>`,
+  다른 종류의 키이면 종류 불일치 문구로 실패합니다. 주석 줄(`# KEY=...`)은 항목이 아니므로 등록을 막지 않습니다.
+- 쓰는 파일은 함수 종류의 데이터 파일 하나입니다. 다른 데이터 파일은 키 중복 확인에만 읽습니다.
 - 등록은 파일 끝에 `KEY=PATH` 한 줄을 더합니다. 마지막 줄에 개행이 없으면 개행을 먼저 붙입니다. 갱신은 그 키의 줄 내용만 바꾸고
   다른 줄·주석·빈 줄·줄 순서·파일 끝 개행 여부는 그대로 둡니다. 갱신할 경로가 지금 경로와 같으면 파일을 쓰지 않고 반환 0입니다.
 - 경로가 실제로 있는지는 확인하지 않습니다. 없는 경로도 등록되며, `project_path_gateway_verify`가 누락으로 보고합니다.
-- 파일은 도구 디렉터리의 임시 파일 `.ppg-tmp.<PID>.project-path-gateway.conf`에 원본 접근 권한을 복사해 새 내용을 쓴 뒤 한 번에
+- 파일은 도구 디렉터리의 임시 파일 `.ppg-tmp.<PID>.<데이터 파일 이름>`에 원본 접근 권한을 복사해 새 내용을 쓴 뒤 한 번에
   바꿉니다. 데이터 파일 위치에는 이전 내용이나 새 내용만 보입니다. 접근 권한(모드)은 유지되고 수정 시각은 갱신됩니다.
 - 데이터 파일이 심볼릭 링크이거나 쓰기 권한이 없으면(도구 디렉터리는 쓸 수 있어도) 파일을 바꾸지 않고 반환 2입니다.
   임시 파일 쓰기나 교체에 실패하면 `데이터 파일을 쓸 수 없습니다: <데이터 파일>`을 출력하고 임시 파일을 지웁니다.
 - 한계: 쓰기 중 신호로 중단되면 임시 파일 하나가 남을 수 있습니다. 소유자는 보존하지 않으며, 데이터 파일이 하드 링크이면
   교체 뒤 다른 이름과의 연결이 끊깁니다. 서로 다른 프로세스가 동시에 등록·갱신하면 파일은 깨지지 않지만 한쪽 변경이 빠질 수 있고,
   같은 셸의 백그라운드 작업끼리 동시에 호출하는 경우는 보장하지 않습니다(잠금 없음).
-- 이미 초기화한 프로젝트의 라이브러리가 0.2.0보다 오래되었으면 두 함수가 없습니다. `project-path-gateway init <루트>`를 다시 실행해
-  라이브러리를 교체하세요(데이터 파일은 유지됩니다).
+- 이미 초기화한 프로젝트의 라이브러리가 2.0.0보다 오래되었으면 이 함수들이 없습니다. `project-path-gateway init <루트>`를 다시 실행해
+  라이브러리를 교체하고 "1.x 프로젝트 옮기기"를 따르세요.
 
 ## 출력 형식
 
@@ -221,9 +294,11 @@ project_path_gateway_init /abs/path/in/project # 경로 전달: 그 디렉터리
 | 데이터 파일 오류 | `project-path-gateway: <데이터 파일 절대경로>:<줄 번호>: <원인>` | stderr |
 | 누락 | `project-path-gateway: 누락: <KEY>=<경로>` | stderr |
 | 루트 밖 | `project-path-gateway: 루트 밖: <KEY>=<경로> -> <최종 물리 경로>` | stderr |
+| 종류 불일치 | `project-path-gateway: 종류 불일치: <KEY>=<경로> (디렉터리가 아님)` 또는 `(일반 파일이 아님)` | stderr |
 | 검증 실패 요약 | `project-path-gateway: 검증 실패 <n>건` | stderr 마지막 줄 |
 | 검증 성공 요약 | `project-path-gateway: 검증 통과 <n>건` | stdout |
-| 리포트 파일 | 위 누락·루트 밖·검증 요약 줄과 같은 내용 | `REPORT_FILE` |
+| 리포트 파일 | 위 누락·루트 밖·종류 불일치·검증 요약 줄과 같은 내용 | `REPORT_FILE` |
+| 이전 데이터 파일 안내 | `project-path-gateway: <기능 이름>: 이전 형식 데이터 파일이 있습니다: <경로>. README의 "1.x 프로젝트 옮기기" 절차로 항목을 옮기세요` | stderr |
 
 ## 제약
 
@@ -239,7 +314,7 @@ project_path_gateway_init /abs/path/in/project # 경로 전달: 그 디렉터리
 
 ## 사용 예
 
-아래 예는 데이터 파일에 `APP_CONFIG=config/app.json`이 등록된 프로젝트를 기준으로 합니다.
+아래 예는 파일 데이터 파일에 `APP_CONFIG=config/app.json`, 디렉터리 데이터 파일에 `DOCS=docs`가 등록된 프로젝트를 기준으로 합니다.
 
 ### 프로젝트 안 셸 스크립트
 
@@ -255,7 +330,7 @@ script_dir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 . "$script_dir/../.tools/project-path-gateway/project-path-gateway.sh"
 
 project_path_gateway_init
-app_config=$(project_path_gateway_get APP_CONFIG)
+app_config=$(project_path_gateway_file APP_CONFIG)
 printf '설정 파일: %s\n' "$app_config"
 ```
 
@@ -276,13 +351,13 @@ project_dir=${1:?프로젝트 절대경로를 인자로 주세요}
 . "$project_dir/.tools/project-path-gateway/project-path-gateway.sh"
 
 project_path_gateway_init "$project_dir"
-project_path_gateway_get APP_CONFIG
+project_path_gateway_file APP_CONFIG
 ```
 
 ### pre-commit 훅
 
 Git은 훅을 실행하기 전에 작업 디렉터리를 작업 트리 루트로 옮깁니다. 그래서 훅은 루트 기준 상대경로로 라이브러리를
-불러오고 인자 없이 초기화합니다. 등록 경로가 누락되었거나 루트 밖을 가리키면 검증이 반환 1로 끝나고 커밋이 중단됩니다.
+불러오고 인자 없이 초기화합니다. 등록 경로가 누락되었거나 루트 밖을 가리키거나 종류가 다르면 검증이 반환 1로 끝나고 커밋이 중단됩니다.
 
 <!-- example: pre-commit -->
 ```sh
@@ -311,8 +386,8 @@ project_path_gateway_verify path-report.txt
 
 ### 경로 등록 스크립트
 
-저장소 루트에서 실행해 필요한 경로를 등록하고, 이미 있는 키는 경로를 맞춥니다. 두 함수는 실패를 모두 반환 2로 알리므로
-먼저 조회로 등록 여부를 확인해 갱신과 등록을 나눕니다.
+저장소 루트에서 실행해 필요한 경로를 등록하고, 이미 있는 키는 경로를 맞춥니다. 등록·갱신 함수는 실패를 모두 반환 2로 알리므로
+먼저 같은 종류의 조회로 등록 여부를 확인해 갱신과 등록을 나눕니다.
 
 <!-- example: register-paths -->
 ```sh
@@ -322,16 +397,24 @@ set -eu
 . ./.tools/project-path-gateway/project-path-gateway.sh
 project_path_gateway_init
 
-register_path() {
-	if project_path_gateway_get "$1" >/dev/null 2>&1; then
-		project_path_gateway_update "$1" "$2"
+register_file() {
+	if project_path_gateway_file "$1" >/dev/null 2>&1; then
+		project_path_gateway_update_file "$1" "$2"
 	else
-		project_path_gateway_add "$1" "$2"
+		project_path_gateway_add_file "$1" "$2"
 	fi
 }
 
-register_path APP_CONFIG config/app.json
-register_path DOCS docs
+register_dir() {
+	if project_path_gateway_dir "$1" >/dev/null 2>&1; then
+		project_path_gateway_update_dir "$1" "$2"
+	else
+		project_path_gateway_add_dir "$1" "$2"
+	fi
+}
+
+register_file APP_CONFIG config/app.json
+register_dir DOCS docs
 ```
 
 ## 개발
@@ -339,7 +422,7 @@ register_path DOCS docs
 ```sh
 sh scripts/lint.sh                # ShellCheck, 금지 단어, 범위 괄호식, 버전 일치, 계층 규칙
 sh tests/run.sh                   # /bin/sh와 (있으면) dash에서 전체 사례
-sh tests/run.sh --shell dash lib-get
+sh tests/run.sh --shell dash lib-dir
 sh tests/run.sh --shuffle 7       # 섞은 순서로 실행
 ```
 

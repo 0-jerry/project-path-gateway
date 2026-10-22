@@ -21,20 +21,38 @@ arg other
 status 0
 out fail
 
-case plan-data-absent
-arg data
+case plan-dirs-absent
+arg dirs
 arg absent
 status 0
 out create
 
-case plan-data-file
-arg data
+case plan-files-absent
+arg files
+arg absent
+status 0
+out create
+
+case plan-dirs-file
+arg dirs
 arg file
 status 0
 out keep
 
-case plan-data-other
-arg data
+case plan-files-file
+arg files
+arg file
+status 0
+out keep
+
+case plan-dirs-other
+arg dirs
+arg other
+status 0
+out fail
+
+case plan-files-other
+arg files
 arg other
 status 0
 out fail

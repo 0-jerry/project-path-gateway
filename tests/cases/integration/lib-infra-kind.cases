@@ -1,0 +1,43 @@
+# 인프라 통합: 입력 포트 port_kind 경로 종류 판정 (기능 007 research R-08)
+# 디렉터리면 dir, 일반 파일이면 file, 그 밖(없음 등)이면 other를 한 줄로 출력한다. 링크는 최종 대상으로 판정한다.
+target lib-func project_path_gateway__port_kind
+layer infra
+
+case kind-directory
+fs dir /t/d
+arg /t/d
+status 0
+out dir
+op is-dir /t/d
+
+case kind-regular-file
+fs file /t/f.txt
+arg /t/f.txt
+status 0
+out file
+op is-dir /t/f.txt
+op is-file /t/f.txt
+
+case kind-missing-is-other
+arg /t/none
+status 0
+out other
+op is-dir /t/none
+op is-file /t/none
+
+case kind-link-to-directory
+fs dir /t/real
+fs link /t/l /t/real
+arg /t/l
+status 0
+out dir
+op is-dir /t/l
+
+case kind-link-to-file
+fs file /t/real.txt
+fs link /t/l.txt /t/real.txt
+arg /t/l.txt
+status 0
+out file
+op is-dir /t/l.txt
+op is-file /t/l.txt

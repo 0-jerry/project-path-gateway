@@ -1,0 +1,8 @@
+# 도메인 단위: 도구 배치 모델 - 1.x 데이터 파일 상대경로 (기능 007 FR-031, research R-07, data-model 1.6)
+# 라이브러리는 이 파일을 읽지 않고, 새 데이터 파일을 읽을 수 없을 때 존재만 확인해 안내한다.
+target lib-func project_path_gateway__domain_layout_legacy_data_file
+layer domain
+
+case layout-legacy-data-file-relpath
+status 0
+out-raw .tools/project-path-gateway/project-path-gateway.conf

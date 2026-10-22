@@ -5,7 +5,8 @@ layer api
 self .git/hooks/pre-commit
 fs file /t/my\sproject/.tools/project-path-gateway/.project-path-gateway
 fs file /t/my\sproject/.tools/project-path-gateway/project-path-gateway.sh
-fs file /t/my\sproject/.tools/project-path-gateway/project-path-gateway.conf
+fs file /t/my\sproject/.tools/project-path-gateway/project-path-gateway.dirs.conf
+fs file /t/my\sproject/.tools/project-path-gateway/project-path-gateway.files.conf
 content APP_CONFIG=config/app.json
 fs file /t/my\sproject/.git/hooks/pre-commit
 

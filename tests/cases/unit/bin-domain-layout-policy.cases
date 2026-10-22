@@ -8,8 +8,13 @@ arg marker
 status 0
 out keep
 
-case layout-policy-data
-arg data
+case layout-policy-dirs
+arg dirs
+status 0
+out keep
+
+case layout-policy-files
+arg files
 status 0
 out keep
 
