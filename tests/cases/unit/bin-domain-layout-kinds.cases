@@ -1,7 +1,8 @@
 # 도메인 단위: 도구 배치 모델 - 파일 종류 순서 (기능 005 FR-041, research R-05). 초기화는 이 순서로 파일을 처리한다.
+# 기능 007: 데이터 파일이 디렉터리(dirs)·파일(files) 두 개로 나뉜다.
 target bin-func ppg__domain_layout_kinds
 layer domain
 
 case layout-kinds
 status 0
-out marker data library skill
+out marker dirs files library skill
