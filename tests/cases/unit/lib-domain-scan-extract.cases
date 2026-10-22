@@ -256,13 +256,61 @@ out ROOT\t/r
 out T\t1\tb\tls\t
 out O\t1\tb.sh\t1\t-\t-\tls
 out T\t2\tb\ta\t
-out O\t2\tb.sh\t1\t-\t-\t'a\tb.txt'
+out O\t2\tb.sh\t1\t-\t0\t'a\tb.txt'
 out T\t3\tb\tb.txt\t
-out O\t3\tb.sh\t1\t-\t-\t'a\tb.txt'
+out O\t3\tb.sh\t1\t-\t0\t'a\tb.txt'
 out T\t4\tb\tc\t
-out O\t4\tb.sh\t1\t-\t-\t"c\td/e.txt"
+out O\t4\tb.sh\t1\t-\t0\t"c\td/e.txt"
 out T\t5\tp\td/e.txt\t
-out O\t5\tb.sh\t1\t-\t-\t"c\td/e.txt"
+out O\t5\tb.sh\t1\t-\t0\t"c\td/e.txt"
+out P\t1
+
+# 경로답지 않은 글자(^ ] ! | , ( ) : ; < > { } = % # 백틱 따옴표)가 든 표기는 / 가 있어도 맨 이름이다(정규식·메시지 조각)
+
+case extract-non-path-characters-are-bare-names
+arg /r
+arg \e
+arg F\t/r/s/b.sh\nL\tsed\s's/^#//'\sfoo:bar/x\sa,b/c\s./x:y\s"/r/a(b)/c"\sok/a-b_c+d@e~f.txt
+status 0
+out ROOT\t/r
+out T\t1\tb\tsed\ts/sed
+out O\t1\ts/b.sh\t1\t-\t-\tsed
+out T\t2\tb\ts/^#\ts/s/^#
+out O\t2\ts/b.sh\t1\t-\t-\t's/^#//'
+out T\t3\tb\tfoo:bar/x\ts/foo:bar/x
+out O\t3\ts/b.sh\t1\t-\t-\tfoo:bar/x
+out T\t4\tb\ta,b/c\ts/a,b/c
+out O\t4\ts/b.sh\t1\t-\t-\ta,b/c
+out T\t5\tb\ts/x:y\t
+out O\t5\ts/b.sh\t1\t-\t-\t./x:y
+out T\t6\tb\ta(b)/c\t
+out O\t6\ts/b.sh\t1\ta\t-\t"/r/a(b)/c"
+out T\t7\tp\tok/a-b_c+d@e~f.txt\ts/ok/a-b_c+d@e~f.txt
+out O\t7\ts/b.sh\t1\t-\t-\tok/a-b_c+d@e~f.txt
+out P\t1
+
+# 공백이 든 값의 조각은 루트 참조가 아니다(문장 속 ..). 조각이 아닌 .. 는 루트 참조다
+
+case extract-root-reference-not-from-pieces
+arg /r
+arg \e
+arg F\t/r/s/b.sh\nL\techo\s"경로에\s..\s세그먼트"\s'..\s/r'\nL\tcd\s..
+status 0
+out ROOT\t/r
+out T\t1\tb\techo\ts/echo
+out O\t1\ts/b.sh\t1\t-\t-\techo
+out T\t2\tb\t경로에 .. 세그먼트\ts/경로에 .. 세그먼트
+out O\t2\ts/b.sh\t1\t-\t-\t"경로에 .. 세그먼트"
+out T\t3\tb\t경로에\ts/경로에
+out O\t3\ts/b.sh\t1\t-\t2\t"경로에 .. 세그먼트"
+out T\t4\tb\t세그먼트\ts/세그먼트
+out O\t4\ts/b.sh\t1\t-\t2\t"경로에 .. 세그먼트"
+out T\t5\tb\t.. /r\ts/.. /r
+out O\t5\ts/b.sh\t1\t-\t-\t'.. /r'
+out T\t6\tb\tcd\ts/cd
+out O\t6\ts/b.sh\t2\t-\t-\tcd
+out T\t7\tr\t\t
+out O\t7\ts/b.sh\t2\t-\t-\t..
 out P\t1
 
 # 절대경로와 정규화

@@ -729,6 +729,7 @@ project_path_gateway__domain_scan_extract() (
 		NAMEC = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_"
 		DIGIT = "0123456789"
 		ASSIGN = "^[" NAMEC "][" NAMEC DIGIT "]*="
+		NOTPATH = "^]!|,():;<>{}=%#`" DQ SQ
 		ntarget = 0
 		nscripts = 0
 		active = 0
@@ -754,7 +755,12 @@ project_path_gateway__domain_scan_extract() (
 		return out
 	}
 	function has_parent(e) { return ("/" e "/") ~ /\/\.\.\// }
-	# 대상 번호를 정하고(처음이면 T를 낸다) 발견 위치 O를 낸다. whole은 이 표기를 조각으로 품은 값 전체의 대상 번호(없으면 -). 대상 번호를 돌려준다.
+	# 프로젝트 경로에 드문 글자(정규식·메시지·코드 조각에 흔함)가 없으면 참. 이런 표기는 실제로 있을 때만 후보로 본다.
+	function pathlike(e,   i, c) {
+		for (i = 1; (c = substr(e, i, 1)) != ""; i++) if (index(NOTPATH, c)) return 0
+		return 1
+	}
+	# 대상 번호를 정하고(처음이면 T를 낸다) 발견 위치 O를 낸다. whole은 조각이 아니면 -, 조각이면 값 전체의 대상 번호(값 전체가 대상이 아니면 0). 대상 번호를 돌려준다.
 	function target(cls, first, second, raw, absflag, whole,   key) {
 		key = cls "\t" first "\t" second
 		if (!(key in tid)) {
@@ -764,28 +770,30 @@ project_path_gateway__domain_scan_extract() (
 		printf "O\t%d\t%s\t%d\t%s\t%s\t%s\n", tid[key], script, lineno, absflag, whole, raw
 		return tid[key]
 	}
-	# 표기 하나를 해석해 대상과 발견 위치를 내고 대상 번호를 돌려준다(버리면 0). bare가 참이면 경로 같음으로 보지 않는다.
-	function add_expr(e, raw, bare, whole,   rel, n1, n2, cls, c1) {
+	# 표기 하나를 해석해 대상과 발견 위치를 내고 대상 번호를 돌려준다(버리면 0). bare가 참이거나 경로답지 않으면 경로 같음으로 보지 않는다.
+	# 공백이 든 값의 조각(whole이 -가 아님)은 루트 참조로 보지 않는다(문장 속 ..).
+	function add_expr(e, raw, bare, whole,   rel, n1, n2, cls, c1, pc) {
 		c1 = substr(e, 1, 1)
 		if (e == "" || e == "." || c1 == "~" || c1 == "-") return 0
 		if (index(e, "*") || index(e, "?") || index(e, "[") || index(e, "://")) return 0
 		if (index(e, "\t") || index(e, "\r") || index(e, "$") || index(e, "\\") || index(e, MARK)) return 0
+		pc = pathlike(e) ? "p" : "b"
 		if (c1 == "/") {
-			if (e == root) return target("r", "", "", raw, "a", whole)
+			if (e == root) return (whole == "-") ? target("r", "", "", raw, "a", whole) : 0
 			if (index(e, rootsl) != 1) return 0
 			rel = substr(e, length(rootsl) + 1)
 			n1 = norm("", rel)
 			if (nerr) return 0
-			if (n1 == "") return target("r", "", "", raw, "a", whole)
-			return target("p", n1, "", raw, "a", whole)
+			if (n1 == "") return (whole == "-") ? target("r", "", "", raw, "a", whole) : 0
+			return target(pc, n1, "", raw, "a", whole)
 		}
 		if (e == ".." || substr(e, 1, 2) == "./" || substr(e, 1, 3) == "../") {
 			n1 = norm(sdir, e)
 			if (nerr) return 0
-			if (n1 == "") return has_parent(e) ? target("r", "", "", raw, "-", whole) : 0
-			return target("p", n1, "", raw, "-", whole)
+			if (n1 == "") return (has_parent(e) && whole == "-") ? target("r", "", "", raw, "-", whole) : 0
+			return target(pc, n1, "", raw, "-", whole)
 		}
-		cls = (bare || !index(e, "/")) ? "b" : "p"
+		cls = (bare || !index(e, "/")) ? "b" : pc
 		n1 = norm("", e)
 		if (nerr) n1 = ""
 		n2 = ""
@@ -821,7 +829,7 @@ project_path_gateway__domain_scan_extract() (
 		if (index(v, " ") || index(v, "\t")) {
 			whole = piece_expr(v, raw, 1, "-")
 			split(v, piece, /[ \t]+/)
-			for (k = 1; (k in piece); k++) piece_expr(piece[k], raw, 0, whole ? whole : "-")
+			for (k = 1; (k in piece); k++) piece_expr(piece[k], raw, 0, whole ? whole : 0)
 			return
 		}
 		piece_expr(v, raw, 0, "-")
@@ -2183,12 +2191,13 @@ project_path_gateway__sys_find_scripts() (
 	return 0
 )
 
-# 시스템 포트: 파일의 첫 줄(끝 LF 제외, NUL 바이트 제거)을 끝 표지 방식으로 출력한다. 읽지 못하면 반환 1.
+# 시스템 포트: 파일의 첫 줄(끝 LF 제외, NUL 바이트 제거)을 끝 표지 방식으로 출력한다. 일반 파일이 아니거나 읽지 못하면 반환 1.
 project_path_gateway__sys_read_first_line() (
 	set +e +u +f
 	IFS=' 	''
 '
 	unset CDPATH
+	[ -f "$1" ] && [ -r "$1" ] || return 1
 	line=$(head -n 1 -- "$1" 2>/dev/null | tr -d '\000' && printf x) || return 1
 	line=${line%x}
 	nl='
