@@ -694,3 +694,159 @@ rm "$t7/project-path-gateway.conf"
   `<WORK>/m7/./Makefile`이 출력됩니다(`ls` 결과. 조회 결과는 경로를 정규화하지 않으므로 `./`가 남습니다). 이어서 `<WORK>/m7/config/app.json`.
 - `project-path-gateway: 검증 통과 5건`(기본 디렉터리 항목 두 개 + 옮긴 항목 세 개), `verify=0`.
 - 이전 파일이 남아 있는 재실행은 같은 안내를 stderr에 다시 내고 `rerun=0`. 이전 파일을 지운 뒤에는 stderr 출력 없이 `after-rm=0`.
+
+## 14. 찾기와 일괄 등록 (기능 008)
+
+기능 008의 시스템 포트(`find`, `head`, `tr`, 표준 입력)와 찾기 → 일괄 등록 → 검증 흐름을 실제 파일 시스템에서 확인합니다.
+
+### 14.1 시스템 포트 실제 동작
+
+```sh
+s="$WORK/s"
+mkdir -p "$s/.git/hooks" "$s/bin" "$s/real" "$s/locked" "$s/a
+b"
+printf 'ls src\n' >"$s/a.sh"; printf 'ls src\n' >"$s/.git/hooks/pre-commit.sh"; printf 'ls src\n' >"$s/real/in.sh"
+printf 'ls src\n' >"$s/locked/l.sh"; printf 'ls src\n' >"$s/a
+b/x.sh"
+printf '#!/usr/bin/env bash\nls src' >"$s/bin/run"; chmod 755 "$s/bin/run"
+printf '#!/bin/sh\000\000x\nls src\n' >"$s/bin/nul"; chmod 755 "$s/bin/nul"
+printf 'ls\n' >"$s/bin/noexec"
+ln -s real "$s/linkdir"; ln -s a.sh "$s/link.sh"; mkfifo "$s/fifo"
+chmod 000 "$s/locked"
+"$SH" -c '
+. "$1/lib/project-path-gateway.sh"
+s=$2
+project_path_gateway__sys_find_scripts "$s" | LC_ALL=C sort
+printf "first=[%s]\n" "$(project_path_gateway__sys_read_first_line "$s/bin/run")"
+printf "nul=[%s]\n" "$(project_path_gateway__sys_read_first_line "$s/bin/nul")"
+project_path_gateway__sys_read_first_line "$s/none" || echo first-line-fail
+project_path_gateway__sys_path_kinds "$s/real
+$s/a.sh
+$s/linkdir
+$s/link.sh
+$s/fifo
+$s/none
+
+$s/linkdir/in.sh"
+printf "A=a\nB=b" | project_path_gateway__sys_read_stdin; echo
+project_path_gateway__port_script_lines "$s"
+' _ "$REPO" "$s"
+chmod 755 "$s/locked"
+```
+
+기대 결과(`<S>`는 `$WORK/s`):
+
+- 찾기 대상 네 줄 `<S>/a.sh`, `<S>/bin/nul`, `<S>/bin/run`, `<S>/real/in.sh`. `.git` 아래, 이름에 LF가 든 디렉터리 아래, 읽을 수 없는 디렉터리 아래,
+  링크 디렉터리 안(`linkdir/in.sh`), 링크 파일(`link.sh`), 실행 권한 없는 확장자 없는 파일(`bin/noexec`)은 없습니다.
+- `first=[#!/usr/bin/env bashx]`(끝 LF 없는 파일), `nul=[#!/bin/shxx]`(NUL 바이트 제거), `first-line-fail`.
+- 종류 여덟 줄 `dir`, `file`, `dir`, `file`, `other`, `none`, `none`, `file`(링크는 최종 대상, 빈 줄은 `none`).
+- 표준 입력 `A=a`, `B=bx`.
+- 찾기 스트림: `F<TAB><S>/a.sh`, `L<TAB>ls src`, `F<TAB><S>/bin/run`, `L<TAB>#!/usr/bin/env bash`, `L<TAB>ls src`, `F<TAB><S>/real/in.sh`, `L<TAB>ls src`.
+  `bin/nul`은 첫 줄이 `#!/bin/shx`라 셸 스크립트가 아닙니다.
+
+### 14.2 찾기 → 일괄 등록 → 검증
+
+```sh
+root="$WORK/p"; t="$root/.tools/project-path-gateway"
+mkdir -p "$t" "$root/src" "$root/config" "$root/scripts"
+printf '# marker\nformat=1\n' >"$t/.project-path-gateway"
+printf 'PPG_TOOL_DIR=.tools/project-path-gateway\n' >"$t/project-path-gateway.dirs.conf"
+: >"$t/project-path-gateway.files.conf"
+printf '{}\n' >"$root/config/app.json"; : >"$root/Makefile"
+printf '%s\n' '#!/bin/sh' 'ROOT=$(cd "$(dirname "$0")/.." && pwd)' 'ls src' 'cat "$ROOT/config/app.json"' 'make -f Makefile' >"$root/scripts/build.sh"
+: >"$WORK/stamp"; sleep 1
+"$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" || exit 2
+	project_path_gateway_scan >"$3"; echo "scan=$?"' _ "$REPO" "$root" "$WORK/paths.list"
+find "$root" -newer "$WORK/stamp" | grep -q . || echo 파일시스템불변
+cat "$WORK/paths.list"
+"$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" || exit 2
+	project_path_gateway_add_list "$3" && project_path_gateway_verify
+	project_path_gateway_add_list - <"$3"; echo "stdin=$?"
+	project_path_gateway_scan | sed -n "3p"' _ "$REPO" "$root" "$WORK/paths.list"
+cat "$t/project-path-gateway.dirs.conf" "$t/project-path-gateway.files.conf"
+```
+
+기대 결과:
+
+- `scan=0`, `파일시스템불변`.
+- 찾기 결과: 머리 두 줄 뒤 `# 요약: 스크립트 1개, 새 후보 2, 이미 등록 0, 등록 불가 1, 확인 필요 0, 루트 참조 1`,
+  새 후보 `CONFIG_APP_JSON=config/app.json`(위치 `scripts/build.sh:4: "$ROOT/config/app.json"`)와 `SRC=src`(위치 `scripts/build.sh:3: src`),
+  `Makefile` 등록 불가 주석(파일 모양이 아님), 루트 참조 주석(위치 `scripts/build.sh:2: "$(dirname "$0")/.."`).
+- `project-path-gateway: 일괄 등록: 디렉터리 1건, 파일 1건, 유지 0건`, `project-path-gateway: 검증 통과 3건`.
+- 같은 목록을 표준 입력으로 다시 넘기면 `project-path-gateway: 일괄 등록: 디렉터리 0건, 파일 0건, 유지 2건`, `stdin=0`.
+- 다시 찾으면 `# 요약: 스크립트 1개, 새 후보 0, 이미 등록 2, 등록 불가 1, 확인 필요 0, 루트 참조 1`.
+- 데이터 파일 `PPG_TOOL_DIR=.tools/project-path-gateway`, `SRC=src`, `CONFIG_APP_JSON=config/app.json`.
+
+### 14.3 목록 위반과 쓰기 실패
+
+```sh
+q="$WORK/q"; tq="$q/.tools/project-path-gateway"
+mkdir -p "$tq" "$q/src"
+printf '# marker\nformat=1\n' >"$tq/.project-path-gateway"
+printf 'PPG_TOOL_DIR=.tools/project-path-gateway\n' >"$tq/project-path-gateway.dirs.conf"
+: >"$tq/project-path-gateway.files.conf"; : >"$q/Makefile"
+cp "$tq/project-path-gateway.dirs.conf" "$WORK/q-dirs"; cp "$tq/project-path-gateway.files.conf" "$WORK/q-files"
+printf '%s\n' 'src=src' 'OUT=../out' 'A=a' 'A=b' 'PPG_TOOL_DIR=x' 'MAKEFILE=Makefile' >"$WORK/bad.list"
+printf '%s\n' 'SRC=src' 'APP=config/app.json' >"$WORK/good.list"
+g() { "$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" || exit 2; shift 2; "$@"' _ "$REPO" "$q" "$@"; }
+same() { cmp -s "$WORK/q-dirs" "$tq/project-path-gateway.dirs.conf" && cmp -s "$WORK/q-files" "$tq/project-path-gateway.files.conf" && echo 두파일그대로; }
+g project_path_gateway_add_list "$WORK/bad.list"; echo "bad=$?"; same
+chmod 444 "$tq/project-path-gateway.files.conf"
+g project_path_gateway_add_list "$WORK/good.list"; echo "readonly=$?"
+chmod 644 "$tq/project-path-gateway.files.conf"; same
+```
+
+기대 결과:
+
+- stderr에 줄 번호 순서로 위반 다섯 줄(`<WORK>/bad.list:1` 키 형식, `:2` `..` 세그먼트, `:4` 목록 안 중복 키(3번째 줄), `:5` 이미 다른 경로로 등록된 키
+  (`project-path-gateway.dirs.conf: .tools/project-path-gateway`), `:6` 디렉터리 모양이지만 실제로는 일반 파일)과
+  `project-path-gateway: project_path_gateway_add_list: 목록 위반 5건이 있어 아무것도 등록하지 않았습니다`, `bad=2`, `두파일그대로`.
+- `project-path-gateway: project_path_gateway_add_list: 데이터 파일에 쓰기 권한이 없습니다: <WORK>/q/.tools/project-path-gateway/project-path-gateway.files.conf`,
+  `readonly=2`, `두파일그대로`(디렉터리 데이터 파일도 쓰지 않음).
+
+### 14.4 하나씩 등록한 결과와 바이트 비교
+
+```sh
+for v in lf nolf; do
+	for side in list each; do
+		r="$WORK/b.$v.$side"; tb="$r/.tools/project-path-gateway"
+		mkdir -p "$tb"; printf '# marker\nformat=1\n' >"$tb/.project-path-gateway"
+		if [ "$v" = lf ]; then printf 'A_DIR=a\n' >"$tb/project-path-gateway.dirs.conf"; printf 'B=b.txt\n' >"$tb/project-path-gateway.files.conf"
+		else printf 'A_DIR=a' >"$tb/project-path-gateway.dirs.conf"; printf 'B=b.txt' >"$tb/project-path-gateway.files.conf"; fi
+	done
+	"$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" && printf "SRC=src\nAPP=config/app.json\nDOCS=docs\n" | project_path_gateway_add_list -' _ "$REPO" "$WORK/b.$v.list" >/dev/null
+	"$SH" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" && project_path_gateway_add_dir SRC src && project_path_gateway_add_file APP config/app.json && project_path_gateway_add_dir DOCS docs' _ "$REPO" "$WORK/b.$v.each"
+	for f in dirs files; do cmp "$WORK/b.$v.list/.tools/project-path-gateway/project-path-gateway.$f.conf" "$WORK/b.$v.each/.tools/project-path-gateway/project-path-gateway.$f.conf" && echo "same-$v-$f"; done
+done
+```
+
+기대 결과: `same-lf-dirs`, `same-lf-files`, `same-nolf-dirs`, `same-nolf-files`(기능 008 FR-035).
+
+### 14.5 이 저장소 찾기 결과의 두 셸 비교
+
+저장소 사본에 도구 파일을 두고 찾기를 두 셸에서 실행해 결과가 바이트 단위로 같은지 봅니다. 이 절은 셸마다 나누지 않고 한 번 실행합니다.
+
+```sh
+mkdir -p "$WORK/repo" && git archive HEAD | tar -x -C "$WORK/repo"
+t="$WORK/repo/.tools/project-path-gateway"; mkdir -p "$t"
+printf '# marker\nformat=1\n' >"$t/.project-path-gateway"
+printf 'PPG_TOOL_DIR=.tools/project-path-gateway\n' >"$t/project-path-gateway.dirs.conf"; : >"$t/project-path-gateway.files.conf"
+for s in /bin/sh dash; do
+	"$s" -c '. "$1/lib/project-path-gateway.sh"; project_path_gateway_init "$2" && project_path_gateway_scan' _ "$REPO" "$WORK/repo" >"$WORK/scan.${s##*/}"
+done
+cmp "$WORK/scan.sh" "$WORK/scan.dash" && echo 두셸같음
+sed -n 3p "$WORK/scan.sh"
+```
+
+기대 결과: `두셸같음`과 요약 줄. 기록(2.1.0, 2026-10-23): `# 요약: 스크립트 46개, 새 후보 22, 이미 등록 1, 등록 불가 4, 확인 필요 3, 루트 참조 1`.
+새 후보는 스크립트가 실제로 가리키는 디렉터리·파일(`bin`, `lib/project-path-gateway.sh`, `tests/harness/case.sh` 등)이고, 확인 필요 3건 가운데
+`.agents/skills`·`.agents/skills/project-path-gateway`는 사본에 없는 실제 경로, `2`는 여러 줄 awk 프로그램 안의 `>&2/` 조각입니다.
+등록 불가 `version`은 대소문자를 구분하지 않는 파일 시스템에서 `VERSION`과 같은 경로로 판정된 것입니다(README "찾기의 범위와 한계").
+루트 참조에는 라이브러리 원본의 awk 코드 `".."`가 섞입니다(프로젝트에 설치된 라이브러리는 도구 파일이라 찾지 않음).
+
+### 14.6 성능
+
+quickstart(기능 008 `quickstart.md` 6절) 절차로 잽니다. 9절 절차에서 기준 커밋을 `d176cf0`(2.0.0)으로 바꿔 초기화+검증·조회·등록을 비교하고,
+항목 200개 데이터에서 `KEY_200..399` 목록의 `add_list` 시간과 `add_file` 한 번 시간을, 스크립트 100개(합계 1만 줄)의 `project_path_gateway_scan`
+시간을 두 셸에서 잽니다. 기대: 기존 동작 2.0.0의 110% 이내, 일괄 등록 `add_file`의 3배 이내, 찾기는 기록(30초를 넘으면 원인 보고).
+측정값은 `specs/008-path-scan-register/perf.md`에 남깁니다(커밋 대상 아님).
