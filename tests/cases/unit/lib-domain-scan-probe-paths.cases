@@ -4,7 +4,7 @@ target lib-func project_path_gateway__domain_scan_probe_paths
 layer domain
 
 case probe-two-lines-per-target
-arg ROOT\t/r\nT\t1\tb\tsrc\tscripts/src\nO\t1\tscripts/b.sh\t1\t-\tsrc\nT\t2\tb\tlib\tscripts/lib\nT\t3\tb\tls\tscripts/ls\nT\t4\tp\tbuild/x.txt\tscripts/build/x.txt\nT\t5\tr\t\t\nT\t6\tp\tfifo\t\nT\t7\tp\ta/b.txt\tscripts/a/b.txt\nP\t1
+arg ROOT\t/r\nT\t1\tb\tsrc\tscripts/src\nO\t1\tscripts/b.sh\t1\t-\t-\tsrc\nT\t2\tb\tlib\tscripts/lib\nT\t3\tb\tls\tscripts/ls\nT\t4\tp\tbuild/x.txt\tscripts/build/x.txt\nT\t5\tr\t\t\nT\t6\tp\tfifo\t\nT\t7\tp\ta/b.txt\tscripts/a/b.txt\nP\t1
 status 0
 out /r/src
 out /r/scripts/src

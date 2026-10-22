@@ -249,6 +249,49 @@ out # 루트 자체를 가리킵니다. 키로 등록하지 말고 project_path_
 out #   run.sh:1: /t/root (절대경로)
 op returned project_path_gateway_scan 0
 
+# 링크인 경로는 링크 경로 그대로 후보이고 종류는 최종 대상으로 정한다. 따옴표 안 공백·한글 경로는 값 전체가 한 표기이고,
+# 값 전체가 있으면 그 조각은 보고하지 않는다. 값 전체가 없으면 조각(명령 문자열 등)을 표기로 본다
+
+case scan-link-inside-root-is-candidate-with-target-kind
+fs dir /t/root/releases/v1
+fs link /t/root/current /t/root/releases/v1
+fs file /t/root/run.sh
+content ls current
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_scan
+status 0
+out # project-path-gateway 찾기 결과 (루트: /t/root)
+out # 이 목록은 project_path_gateway_add_list 입력으로 쓸 수 있습니다. 등록하지 않을 줄은 지우고 키 이름은 고쳐도 됩니다.
+out # 요약: 스크립트 1개, 새 후보 1, 이미 등록 0, 등록 불가 0, 확인 필요 0, 루트 참조 0
+out
+out # == 새 후보 (1) ==
+out # 디렉터리 current
+out #   run.sh:1: current
+out CURRENT=current
+op returned project_path_gateway_scan 0
+
+case scan-quoted-path-with-spaces-is-one-notation
+fs file /t/root/내\s문서/메모.txt
+fs file /t/root/run.sh
+content cat "내 문서/메모.txt" "build log/a.txt"
+caller-var PROJECT_PATH_GATEWAY_ROOT /t/root
+call project_path_gateway_scan
+status 0
+out # project-path-gateway 찾기 결과 (루트: /t/root)
+out # 이 목록은 project_path_gateway_add_list 입력으로 쓸 수 있습니다. 등록하지 않을 줄은 지우고 키 이름은 고쳐도 됩니다.
+out # 요약: 스크립트 1개, 새 후보 1, 이미 등록 0, 등록 불가 0, 확인 필요 1, 루트 참조 0
+out
+out # == 새 후보 (1) ==
+out # 파일 내 문서/메모.txt
+out #   run.sh:1: "내 문서/메모.txt"
+out TXT=내 문서/메모.txt
+out
+out # == 확인 필요 (1) ==
+out # 파일(모양으로 추정) log/a.txt: 프로젝트에 없습니다. 등록하려면 아래 줄의 #을 지우세요
+out #   run.sh:1: "build log/a.txt"
+out #LOG_A_TXT=log/a.txt
+op returned project_path_gateway_scan 0
+
 # 오류 (계약 1절)
 
 case scan-rejects-arguments

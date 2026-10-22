@@ -1,5 +1,5 @@
 # 도메인 단위: 찾기 모델 project_path_gateway__domain_scan_extract ROOT RECORDS LINES (기능 008 research R-04, data-model 3.2)
-# 스크립트 스트림에서 경로 표기를 뽑아 해석 대상 T(번호, 분류 p·b·r, 1순위, 2순위)와 발견 위치 O(번호, 스크립트, 줄, 절대 표시, 원문)를 낸다.
+# 스크립트 스트림에서 경로 표기를 뽑아 해석 대상 T(번호, 분류 p·b·r, 1순위, 2순위)와 발견 위치 O(번호, 스크립트, 줄, 절대 표시, 값 전체 번호, 원문)를 낸다.
 # 맨 이름 b는 실제로 있을 때만 후보가 되고, 경로 같음 p는 없으면 확인 필요가 된다(research R-06). 기존 키 K, 등록 경로 G, 스크립트 수 P를 함께 낸다.
 target lib-func project_path_gateway__domain_scan_extract
 layer domain
@@ -13,11 +13,11 @@ arg F\t/r/scripts/build.sh\nL\tls\ssrc\slib/x.sh
 status 0
 out ROOT\t/r
 out T\t1\tb\tls\tscripts/ls
-out O\t1\tscripts/build.sh\t1\t-\tls
+out O\t1\tscripts/build.sh\t1\t-\t-\tls
 out T\t2\tb\tsrc\tscripts/src
-out O\t2\tscripts/build.sh\t1\t-\tsrc
+out O\t2\tscripts/build.sh\t1\t-\t-\tsrc
 out T\t3\tp\tlib/x.sh\tscripts/lib/x.sh
-out O\t3\tscripts/build.sh\t1\t-\tlib/x.sh
+out O\t3\tscripts/build.sh\t1\t-\t-\tlib/x.sh
 out P\t1
 
 case extract-dot-relative-from-script-directory
@@ -27,13 +27,13 @@ arg F\t/r/scripts/b.sh\nL\tsh\s./run.sh\s../src\s..\s../..\s.\s../../x
 status 0
 out ROOT\t/r
 out T\t1\tb\tsh\tscripts/sh
-out O\t1\tscripts/b.sh\t1\t-\tsh
+out O\t1\tscripts/b.sh\t1\t-\t-\tsh
 out T\t2\tp\tscripts/run.sh\t
-out O\t2\tscripts/b.sh\t1\t-\t./run.sh
+out O\t2\tscripts/b.sh\t1\t-\t-\t./run.sh
 out T\t3\tp\tsrc\t
-out O\t3\tscripts/b.sh\t1\t-\t../src
+out O\t3\tscripts/b.sh\t1\t-\t-\t../src
 out T\t4\tr\t\t
-out O\t4\tscripts/b.sh\t1\t-\t..
+out O\t4\tscripts/b.sh\t1\t-\t-\t..
 out P\t1
 
 case extract-script-at-root-has-no-second
@@ -43,11 +43,11 @@ arg F\t/r/b.sh\nL\tls\ssrc\s./src\s..
 status 0
 out ROOT\t/r
 out T\t1\tb\tls\t
-out O\t1\tb.sh\t1\t-\tls
+out O\t1\tb.sh\t1\t-\t-\tls
 out T\t2\tb\tsrc\t
-out O\t2\tb.sh\t1\t-\tsrc
+out O\t2\tb.sh\t1\t-\t-\tsrc
 out T\t3\tp\tsrc\t
-out O\t3\tb.sh\t1\t-\t./src
+out O\t3\tb.sh\t1\t-\t-\t./src
 out P\t1
 
 # 따옴표·이스케이프
@@ -59,17 +59,17 @@ arg F\t/r/s/b.sh\nL\tcp\s'a\sb/c.txt'\s"src\\"x"\s'unclosed/x.txt
 status 0
 out ROOT\t/r
 out T\t1\tb\tcp\ts/cp
-out O\t1\ts/b.sh\t1\t-\tcp
+out O\t1\ts/b.sh\t1\t-\t-\tcp
 out T\t2\tb\ta b/c.txt\ts/a b/c.txt
-out O\t2\ts/b.sh\t1\t-\t'a b/c.txt'
+out O\t2\ts/b.sh\t1\t-\t-\t'a b/c.txt'
 out T\t3\tb\ta\ts/a
-out O\t3\ts/b.sh\t1\t-\t'a b/c.txt'
+out O\t3\ts/b.sh\t1\t-\t2\t'a b/c.txt'
 out T\t4\tp\tb/c.txt\ts/b/c.txt
-out O\t4\ts/b.sh\t1\t-\t'a b/c.txt'
+out O\t4\ts/b.sh\t1\t-\t2\t'a b/c.txt'
 out T\t5\tb\tsrc"x\ts/src"x
-out O\t5\ts/b.sh\t1\t-\t"src\\"x"
+out O\t5\ts/b.sh\t1\t-\t-\t"src\\"x"
 out T\t6\tp\tunclosed/x.txt\ts/unclosed/x.txt
-out O\t6\ts/b.sh\t1\t-\t'unclosed/x.txt
+out O\t6\ts/b.sh\t1\t-\t-\t'unclosed/x.txt
 out P\t1
 
 case extract-escaped-space-and-backslash
@@ -79,13 +79,13 @@ arg F\t/r/b.sh\nL\tcp\ssrc\\\sdir/a.txt\sb\\\\c
 status 0
 out ROOT\t/r
 out T\t1\tb\tcp\t
-out O\t1\tb.sh\t1\t-\tcp
+out O\t1\tb.sh\t1\t-\t-\tcp
 out T\t2\tb\tsrc dir/a.txt\t
-out O\t2\tb.sh\t1\t-\tsrc\\ dir/a.txt
+out O\t2\tb.sh\t1\t-\t-\tsrc\\ dir/a.txt
 out T\t3\tb\tsrc\t
-out O\t3\tb.sh\t1\t-\tsrc\\ dir/a.txt
+out O\t3\tb.sh\t1\t-\t2\tsrc\\ dir/a.txt
 out T\t4\tp\tdir/a.txt\t
-out O\t4\tb.sh\t1\t-\tsrc\\ dir/a.txt
+out O\t4\tb.sh\t1\t-\t2\tsrc\\ dir/a.txt
 out P\t1
 
 # 치환: 치환 뒤 / 다음 부분, 명령 치환 안 다시 처리
@@ -97,24 +97,24 @@ arg F\t/r/s/b.sh\nL\tcat\s"$ROOT/config/app.json"\s${X}/lib/a.sh\s$(pwd)/out/x.t
 status 0
 out ROOT\t/r
 out T\t1\tb\tcat\ts/cat
-out O\t1\ts/b.sh\t1\t-\tcat
+out O\t1\ts/b.sh\t1\t-\t-\tcat
 out T\t2\tp\tconfig/app.json\ts/config/app.json
-out O\t2\ts/b.sh\t1\t-\t"$ROOT/config/app.json"
+out O\t2\ts/b.sh\t1\t-\t-\t"$ROOT/config/app.json"
 out T\t3\tp\tlib/a.sh\ts/lib/a.sh
-out O\t3\ts/b.sh\t1\t-\t${X}/lib/a.sh
+out O\t3\ts/b.sh\t1\t-\t-\t${X}/lib/a.sh
 out T\t4\tb\tpwd\ts/pwd
-out O\t4\ts/b.sh\t1\t-\tpwd
+out O\t4\ts/b.sh\t1\t-\t-\tpwd
 out T\t5\tp\tout/x.txt\ts/out/x.txt
-out O\t5\ts/b.sh\t1\t-\t$(pwd)/out/x.txt
-out O\t4\ts/b.sh\t1\t-\tpwd
+out O\t5\ts/b.sh\t1\t-\t-\t$(pwd)/out/x.txt
+out O\t4\ts/b.sh\t1\t-\t-\tpwd
 out T\t6\tp\ty/z.txt\ts/y/z.txt
-out O\t6\ts/b.sh\t1\t-\t`pwd`/y/z.txt
+out O\t6\ts/b.sh\t1\t-\t-\t`pwd`/y/z.txt
 out T\t7\tb\tdirname\ts/dirname
-out O\t7\ts/b.sh\t1\t-\tdirname
+out O\t7\ts/b.sh\t1\t-\t-\tdirname
 out T\t8\tr\t\t
-out O\t8\ts/b.sh\t1\t-\t"$(dirname "$0")/.."
+out O\t8\ts/b.sh\t1\t-\t-\t"$(dirname "$0")/.."
 out T\t9\tb\tlib\ts/lib
-out O\t9\ts/b.sh\t1\t-\t$X/lib
+out O\t9\ts/b.sh\t1\t-\t-\t$X/lib
 out P\t1
 
 case extract-inside-command-substitution
@@ -124,15 +124,15 @@ arg F\t/r/s/b.sh\nL\tV=$(cat\sconf/a.conf)\s"$(grep\sx\s"data/b.txt")"
 status 0
 out ROOT\t/r
 out T\t1\tb\tcat\ts/cat
-out O\t1\ts/b.sh\t1\t-\tcat
+out O\t1\ts/b.sh\t1\t-\t-\tcat
 out T\t2\tp\tconf/a.conf\ts/conf/a.conf
-out O\t2\ts/b.sh\t1\t-\tconf/a.conf
+out O\t2\ts/b.sh\t1\t-\t-\tconf/a.conf
 out T\t3\tb\tgrep\ts/grep
-out O\t3\ts/b.sh\t1\t-\tgrep
+out O\t3\ts/b.sh\t1\t-\t-\tgrep
 out T\t4\tb\tx\ts/x
-out O\t4\ts/b.sh\t1\t-\tx
+out O\t4\ts/b.sh\t1\t-\t-\tx
 out T\t5\tp\tdata/b.txt\ts/data/b.txt
-out O\t5\ts/b.sh\t1\t-\t"data/b.txt"
+out O\t5\ts/b.sh\t1\t-\t-\t"data/b.txt"
 out P\t1
 
 case extract-parameters-without-relative-part
@@ -142,11 +142,11 @@ arg F\t/r/b.sh\nL\techo\s${X:-a/b.txt}\s$((1+2))\s"${Y}"/c.txt\s$1/d.txt\s$$\s$?
 status 0
 out ROOT\t/r
 out T\t1\tb\techo\t
-out O\t1\tb.sh\t1\t-\techo
+out O\t1\tb.sh\t1\t-\t-\techo
 out T\t2\tb\tc.txt\t
-out O\t2\tb.sh\t1\t-\t"${Y}"/c.txt
+out O\t2\tb.sh\t1\t-\t-\t"${Y}"/c.txt
 out T\t3\tb\td.txt\t
-out O\t3\tb.sh\t1\t-\t$1/d.txt
+out O\t3\tb.sh\t1\t-\t-\t$1/d.txt
 out P\t1
 
 # 주석, 옵션, 대입, 버리는 표기
@@ -158,12 +158,12 @@ arg F\t/r/b.sh\nL\t#\sls\ssrc\nL\t\s\s#\scp\sa.txt\nL\tls\sdocs\s#\slib\sb.txt\n
 status 0
 out ROOT\t/r
 out T\t1\tb\tls\t
-out O\t1\tb.sh\t3\t-\tls
+out O\t1\tb.sh\t3\t-\t-\tls
 out T\t2\tb\tdocs\t
-out O\t2\tb.sh\t3\t-\tdocs
-out O\t1\tb.sh\t4\t-\tls
+out O\t2\tb.sh\t3\t-\t-\tdocs
+out O\t1\tb.sh\t4\t-\t-\tls
 out T\t3\tb\ta#b\t
-out O\t3\tb.sh\t4\t-\ta#b
+out O\t3\tb.sh\t4\t-\t-\ta#b
 out P\t1
 
 case extract-options-and-assignments
@@ -173,13 +173,13 @@ arg F\t/r/b.sh\nL\tcc\s--out=build/x.txt\s-o\s-x\sOUT=dist\s--flag\s-I=inc
 status 0
 out ROOT\t/r
 out T\t1\tb\tcc\t
-out O\t1\tb.sh\t1\t-\tcc
+out O\t1\tb.sh\t1\t-\t-\tcc
 out T\t2\tp\tbuild/x.txt\t
-out O\t2\tb.sh\t1\t-\t--out=build/x.txt
+out O\t2\tb.sh\t1\t-\t-\t--out=build/x.txt
 out T\t3\tb\tdist\t
-out O\t3\tb.sh\t1\t-\tOUT=dist
+out O\t3\tb.sh\t1\t-\t-\tOUT=dist
 out T\t4\tb\tinc\t
-out O\t4\tb.sh\t1\t-\t-I=inc
+out O\t4\tb.sh\t1\t-\t-\t-I=inc
 out P\t1
 
 case extract-drops-globs-urls-home-and-dollar
@@ -189,7 +189,7 @@ arg F\t/r/b.sh\nL\tls\s*.sh\ssrc/*.c\sa?b\s[ab]\shttp://x.org/y\s~/x\s'$HOME/x'\
 status 0
 out ROOT\t/r
 out T\t1\tb\tls\t
-out O\t1\tb.sh\t1\t-\tls
+out O\t1\tb.sh\t1\t-\t-\tls
 out P\t1
 
 case extract-operators-split-words
@@ -199,28 +199,53 @@ arg F\t/r/b.sh\nL\tcmd<in.txt>out/log.txt\s2>&1|tee\sx.log;wc&&(cd\ssub)
 status 0
 out ROOT\t/r
 out T\t1\tb\tcmd\t
-out O\t1\tb.sh\t1\t-\tcmd
+out O\t1\tb.sh\t1\t-\t-\tcmd
 out T\t2\tb\tin.txt\t
-out O\t2\tb.sh\t1\t-\tin.txt
+out O\t2\tb.sh\t1\t-\t-\tin.txt
 out T\t3\tp\tout/log.txt\t
-out O\t3\tb.sh\t1\t-\tout/log.txt
+out O\t3\tb.sh\t1\t-\t-\tout/log.txt
 out T\t4\tb\t2\t
-out O\t4\tb.sh\t1\t-\t2
+out O\t4\tb.sh\t1\t-\t-\t2
 out T\t5\tb\t1\t
-out O\t5\tb.sh\t1\t-\t1
+out O\t5\tb.sh\t1\t-\t-\t1
 out T\t6\tb\ttee\t
-out O\t6\tb.sh\t1\t-\ttee
+out O\t6\tb.sh\t1\t-\t-\ttee
 out T\t7\tb\tx.log\t
-out O\t7\tb.sh\t1\t-\tx.log
+out O\t7\tb.sh\t1\t-\t-\tx.log
 out T\t8\tb\twc\t
-out O\t8\tb.sh\t1\t-\twc
+out O\t8\tb.sh\t1\t-\t-\twc
 out T\t9\tb\tcd\t
-out O\t9\tb.sh\t1\t-\tcd
+out O\t9\tb.sh\t1\t-\t-\tcd
 out T\t10\tb\tsub\t
-out O\t10\tb.sh\t1\t-\tsub
+out O\t10\tb.sh\t1\t-\t-\tsub
 out P\t1
 
-# 공백·TAB이 든 문자열: 전체는 맨 이름으로, 조각은 따로 본다. TAB이 든 전체는 버린다
+# 공백·TAB이 든 값: 전체를 한 표기로 보고(치환이 있으면 마지막 치환 뒤), 조각은 맨 이름으로 본다. TAB이 든 전체는 버린다
+
+case extract-spaces-in-value
+arg /r
+arg \e
+arg F\t/r/s/b.sh\nL\tcat\s"$ROOT/a\sb.txt"\s"my\sdocs/x.txt"\s"$A\s$B/c.txt"
+status 0
+out ROOT\t/r
+out T\t1\tb\tcat\ts/cat
+out O\t1\ts/b.sh\t1\t-\t-\tcat
+out T\t2\tb\ta b.txt\ts/a b.txt
+out O\t2\ts/b.sh\t1\t-\t-\t"$ROOT/a b.txt"
+out T\t3\tb\ta\ts/a
+out O\t3\ts/b.sh\t1\t-\t2\t"$ROOT/a b.txt"
+out T\t4\tb\tb.txt\ts/b.txt
+out O\t4\ts/b.sh\t1\t-\t2\t"$ROOT/a b.txt"
+out T\t5\tb\tmy docs/x.txt\ts/my docs/x.txt
+out O\t5\ts/b.sh\t1\t-\t-\t"my docs/x.txt"
+out T\t6\tb\tmy\ts/my
+out O\t6\ts/b.sh\t1\t-\t5\t"my docs/x.txt"
+out T\t7\tp\tdocs/x.txt\ts/docs/x.txt
+out O\t7\ts/b.sh\t1\t-\t5\t"my docs/x.txt"
+out T\t8\tb\tc.txt\ts/c.txt
+out O\t8\ts/b.sh\t1\t-\t-\t"$A $B/c.txt"
+out O\t8\ts/b.sh\t1\t-\t8\t"$A $B/c.txt"
+out P\t1
 
 case extract-tab-in-string
 arg /r
@@ -229,15 +254,15 @@ arg F\t/r/b.sh\nL\tls\s'a\tb.txt'\s"c\td/e.txt"
 status 0
 out ROOT\t/r
 out T\t1\tb\tls\t
-out O\t1\tb.sh\t1\t-\tls
+out O\t1\tb.sh\t1\t-\t-\tls
 out T\t2\tb\ta\t
-out O\t2\tb.sh\t1\t-\t'a\tb.txt'
+out O\t2\tb.sh\t1\t-\t-\t'a\tb.txt'
 out T\t3\tb\tb.txt\t
-out O\t3\tb.sh\t1\t-\t'a\tb.txt'
+out O\t3\tb.sh\t1\t-\t-\t'a\tb.txt'
 out T\t4\tb\tc\t
-out O\t4\tb.sh\t1\t-\t"c\td/e.txt"
+out O\t4\tb.sh\t1\t-\t-\t"c\td/e.txt"
 out T\t5\tp\td/e.txt\t
-out O\t5\tb.sh\t1\t-\t"c\td/e.txt"
+out O\t5\tb.sh\t1\t-\t-\t"c\td/e.txt"
 out P\t1
 
 # 절대경로와 정규화
@@ -249,14 +274,14 @@ arg F\t/r/s/b.sh\nL\tls\s/r/src\s/r\s/r/\s/etc/x\s/r/../x\s/rx/y\s/r/./a//b.txt
 status 0
 out ROOT\t/r
 out T\t1\tb\tls\ts/ls
-out O\t1\ts/b.sh\t1\t-\tls
+out O\t1\ts/b.sh\t1\t-\t-\tls
 out T\t2\tp\tsrc\t
-out O\t2\ts/b.sh\t1\ta\t/r/src
+out O\t2\ts/b.sh\t1\ta\t-\t/r/src
 out T\t3\tr\t\t
-out O\t3\ts/b.sh\t1\ta\t/r
-out O\t3\ts/b.sh\t1\ta\t/r/
+out O\t3\ts/b.sh\t1\ta\t-\t/r
+out O\t3\ts/b.sh\t1\ta\t-\t/r/
 out T\t4\tp\ta/b.txt\t
-out O\t4\ts/b.sh\t1\ta\t/r/./a//b.txt
+out O\t4\ts/b.sh\t1\ta\t-\t/r/./a//b.txt
 out P\t1
 
 case extract-root-is-slash
@@ -266,13 +291,13 @@ arg F\t/b.sh\nL\tls\s/src\s/\s./a.txt
 status 0
 out ROOT\t/
 out T\t1\tb\tls\t
-out O\t1\tb.sh\t1\t-\tls
+out O\t1\tb.sh\t1\t-\t-\tls
 out T\t2\tp\tsrc\t
-out O\t2\tb.sh\t1\ta\t/src
+out O\t2\tb.sh\t1\ta\t-\t/src
 out T\t3\tr\t\t
-out O\t3\tb.sh\t1\ta\t/
+out O\t3\tb.sh\t1\ta\t-\t/
 out T\t4\tp\ta.txt\t
-out O\t4\tb.sh\t1\t-\t./a.txt
+out O\t4\tb.sh\t1\t-\t-\t./a.txt
 out P\t1
 
 case extract-normalize
@@ -282,13 +307,13 @@ arg F\t/r/s/b.sh\nL\tls\sa/../../x\sa/./b//c/\s../s/../src
 status 0
 out ROOT\t/r
 out T\t1\tb\tls\ts/ls
-out O\t1\ts/b.sh\t1\t-\tls
+out O\t1\ts/b.sh\t1\t-\t-\tls
 out T\t2\tp\tx\t
-out O\t2\ts/b.sh\t1\t-\ta/../../x
+out O\t2\ts/b.sh\t1\t-\t-\ta/../../x
 out T\t3\tp\ta/b/c\ts/a/b/c
-out O\t3\ts/b.sh\t1\t-\ta/./b//c/
+out O\t3\ts/b.sh\t1\t-\t-\ta/./b//c/
 out T\t4\tp\tsrc\t
-out O\t4\ts/b.sh\t1\t-\t../s/../src
+out O\t4\ts/b.sh\t1\t-\t-\t../s/../src
 out P\t1
 
 # 같은 대상은 번호를 다시 쓴다, CRLF 줄, 루트 밖 스크립트 줄은 보지 않는다
@@ -300,14 +325,14 @@ arg F\t/r/b.sh\nL\tls\ssrc\nL\tcat\ssrc\nF\t/r/c.sh\nL\tls\ssrc
 status 0
 out ROOT\t/r
 out T\t1\tb\tls\t
-out O\t1\tb.sh\t1\t-\tls
+out O\t1\tb.sh\t1\t-\t-\tls
 out T\t2\tb\tsrc\t
-out O\t2\tb.sh\t1\t-\tsrc
+out O\t2\tb.sh\t1\t-\t-\tsrc
 out T\t3\tb\tcat\t
-out O\t3\tb.sh\t2\t-\tcat
-out O\t2\tb.sh\t2\t-\tsrc
-out O\t1\tc.sh\t1\t-\tls
-out O\t2\tc.sh\t1\t-\tsrc
+out O\t3\tb.sh\t2\t-\t-\tcat
+out O\t2\tb.sh\t2\t-\t-\tsrc
+out O\t1\tc.sh\t1\t-\t-\tls
+out O\t2\tc.sh\t1\t-\t-\tsrc
 out P\t2
 
 case extract-crlf-lines
@@ -317,9 +342,9 @@ arg F\t/r/b.sh\nL\tls\ssrc\r\nL\t#\sx\r
 status 0
 out ROOT\t/r
 out T\t1\tb\tls\t
-out O\t1\tb.sh\t1\t-\tls
+out O\t1\tb.sh\t1\t-\t-\tls
 out T\t2\tb\tsrc\t
-out O\t2\tb.sh\t1\t-\tsrc
+out O\t2\tb.sh\t1\t-\t-\tsrc
 out P\t1
 
 case extract-script-outside-root-is-counted-not-read
@@ -329,9 +354,9 @@ arg F\t/other/b.sh\nL\tls\ssrc\nF\t/r/c.sh\nL\t\nL\tls\ssrc
 status 0
 out ROOT\t/r
 out T\t1\tb\tls\t
-out O\t1\tc.sh\t2\t-\tls
+out O\t1\tc.sh\t2\t-\t-\tls
 out T\t2\tb\tsrc\t
-out O\t2\tc.sh\t2\t-\tsrc
+out O\t2\tc.sh\t2\t-\t-\tsrc
 out P\t2
 
 # 등록 항목: 키마다 K, 정규화 경로가 비지 않으면 G. 스크립트 수 P
@@ -348,7 +373,7 @@ out K\tAPP
 out G\tfile:APP\tconfig/app.json
 out K\tTOP
 out T\t1\tb\tls\t
-out O\t1\tb.sh\t1\t-\tls
+out O\t1\tb.sh\t1\t-\t-\tls
 out P\t2
 
 case extract-no-scripts

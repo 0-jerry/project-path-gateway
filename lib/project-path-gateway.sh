@@ -705,7 +705,8 @@ project_path_gateway__domain_scan_script_lines() (
 
 # 스크립트 스트림 LINES에서 경로 표기를 뽑아 해석 대상(T)과 발견 위치(O)를 낸다 (기능 008 research R-04, data-model 3.2).
 # $1: 루트, $2: 항목 목록 RECORDS(기존 키 K와 등록 경로 G를 함께 낸다), $3: script_lines 출력을 이은 스트림.
-# 표기 추출: 따옴표·이스케이프·치환을 처리해 단어로 나누고, 치환 뒤 / 다음 부분, NAME=값의 값, 공백이 든 문자열의 조각을 본다.
+# 표기 추출: 따옴표·이스케이프·치환을 처리해 단어로 나누고, 치환 뒤 / 다음 부분, NAME=값의 값을 본다. 공백이 든 값은 전체(맨 이름)와 조각을 보고,
+# 조각의 발견 위치에 값 전체의 대상 번호를 붙인다(값 전체가 있으면 분류가 조각을 뺀다).
 # 해석: ./·../·.. 표기는 스크립트 디렉터리 기준, 루트/로 시작하는 절대 표기는 루트 기준(절대 표시), 그 밖은 루트 기준(1순위)과 스크립트 디렉터리 기준(2순위).
 project_path_gateway__domain_scan_extract() (
 	set +e +u +f
@@ -753,39 +754,36 @@ project_path_gateway__domain_scan_extract() (
 		return out
 	}
 	function has_parent(e) { return ("/" e "/") ~ /\/\.\.\// }
-	function target(cls, first, second, raw, absflag,   key) {
+	# 대상 번호를 정하고(처음이면 T를 낸다) 발견 위치 O를 낸다. whole은 이 표기를 조각으로 품은 값 전체의 대상 번호(없으면 -). 대상 번호를 돌려준다.
+	function target(cls, first, second, raw, absflag, whole,   key) {
 		key = cls "\t" first "\t" second
 		if (!(key in tid)) {
 			tid[key] = ++ntarget
 			printf "T\t%d\t%s\t%s\t%s\n", ntarget, cls, first, second
 		}
-		printf "O\t%d\t%s\t%d\t%s\t%s\n", tid[key], script, lineno, absflag, raw
+		printf "O\t%d\t%s\t%d\t%s\t%s\t%s\n", tid[key], script, lineno, absflag, whole, raw
+		return tid[key]
 	}
-	# 표기 하나를 해석해 대상과 발견 위치를 낸다. bare가 참이면 경로 같음으로 보지 않는다.
-	function add_expr(e, raw, bare,   rel, n1, n2, cls, c1) {
+	# 표기 하나를 해석해 대상과 발견 위치를 내고 대상 번호를 돌려준다(버리면 0). bare가 참이면 경로 같음으로 보지 않는다.
+	function add_expr(e, raw, bare, whole,   rel, n1, n2, cls, c1) {
 		c1 = substr(e, 1, 1)
-		if (e == "" || e == "." || c1 == "~" || c1 == "-") return
-		if (index(e, "*") || index(e, "?") || index(e, "[") || index(e, "://")) return
-		if (index(e, "\t") || index(e, "\r") || index(e, "$") || index(e, "\\") || index(e, MARK)) return
+		if (e == "" || e == "." || c1 == "~" || c1 == "-") return 0
+		if (index(e, "*") || index(e, "?") || index(e, "[") || index(e, "://")) return 0
+		if (index(e, "\t") || index(e, "\r") || index(e, "$") || index(e, "\\") || index(e, MARK)) return 0
 		if (c1 == "/") {
-			if (e == root) { target("r", "", "", raw, "a"); return }
-			if (index(e, rootsl) != 1) return
+			if (e == root) return target("r", "", "", raw, "a", whole)
+			if (index(e, rootsl) != 1) return 0
 			rel = substr(e, length(rootsl) + 1)
 			n1 = norm("", rel)
-			if (nerr) return
-			if (n1 == "") { target("r", "", "", raw, "a"); return }
-			target("p", n1, "", raw, "a")
-			return
+			if (nerr) return 0
+			if (n1 == "") return target("r", "", "", raw, "a", whole)
+			return target("p", n1, "", raw, "a", whole)
 		}
 		if (e == ".." || substr(e, 1, 2) == "./" || substr(e, 1, 3) == "../") {
 			n1 = norm(sdir, e)
-			if (nerr) return
-			if (n1 == "") {
-				if (has_parent(e)) target("r", "", "", raw, "-")
-				return
-			}
-			target("p", n1, "", raw, "-")
-			return
+			if (nerr) return 0
+			if (n1 == "") return has_parent(e) ? target("r", "", "", raw, "-", whole) : 0
+			return target("p", n1, "", raw, "-", whole)
 		}
 		cls = (bare || !index(e, "/")) ? "b" : "p"
 		n1 = norm("", e)
@@ -796,19 +794,21 @@ project_path_gateway__domain_scan_extract() (
 			if (nerr || n2 == n1) n2 = ""
 		}
 		if (n1 == "") { n1 = n2; n2 = "" }
-		if (n1 == "") return
-		target(cls, n1, n2, raw, "-")
+		if (n1 == "") return 0
+		return target(cls, n1, n2, raw, "-", whole)
 	}
-	# 조각 하나: 치환이 있으면 마지막 치환 뒤 / 다음 부분만 본다.
-	function piece_expr(v, raw,   j) {
+	# 값 하나: 치환이 있으면 마지막 치환 뒤 / 다음 부분만 본다. 대상 번호를 돌려준다(버리면 0).
+	function piece_expr(v, raw, bare, whole,   j) {
 		if (index(v, MARK)) {
 			while ((j = index(v, MARK))) v = substr(v, j + 1)
-			if (substr(v, 1, 1) != "/") return
+			if (substr(v, 1, 1) != "/") return 0
 			v = substr(v, 2)
 		}
-		add_expr(v, raw, 0)
+		return add_expr(v, raw, bare, whole)
 	}
-	function word_end(raw, lit,   v, eq, k, piece) {
+	# 공백·TAB이 든 값(따옴표·이스케이프)은 값 전체를 맨 이름 한 표기로 보고, 공백으로 나눈 조각도 표기로 본다.
+	# 조각의 발견 위치에는 값 전체의 대상 번호를 붙여, 값 전체가 실제로 있으면 분류 단계에서 조각을 빼게 한다.
+	function word_end(raw, lit,   v, eq, k, piece, whole) {
 		v = lit
 		if (substr(v, 1, 1) == "-") {
 			eq = index(v, "=")
@@ -819,12 +819,12 @@ project_path_gateway__domain_scan_extract() (
 		}
 		if (v == "") return
 		if (index(v, " ") || index(v, "\t")) {
-			if (!index(v, MARK)) add_expr(v, raw, 1)
+			whole = piece_expr(v, raw, 1, "-")
 			split(v, piece, /[ \t]+/)
-			for (k = 1; (k in piece); k++) piece_expr(piece[k], raw)
+			for (k = 1; (k in piece); k++) piece_expr(piece[k], raw, 0, whole ? whole : "-")
 			return
 		}
-		piece_expr(v, raw)
+		piece_expr(v, raw, 0, "-")
 	}
 	# 큰따옴표 안을 건너뛰고 닫는 따옴표 다음 위치를 돌려준다(치환 안의 따옴표 포함).
 	function dq_skip(s, i,   c) {
@@ -1108,6 +1108,7 @@ project_path_gateway__domain_scan_resolution() (
 
 # 추출 스트림 EXTRACTED와 해석 결과 RESOLVED로 후보 스트림을 만든다 (기능 008 research R-07, data-model 3.4).
 # 분류(새 후보, 이미 등록, 등록 불가, 확인 필요, 루트 참조) → 같은 분류·경로 병합 → 정렬(분류, 경로 바이트, 스크립트, 줄 번호) → 같은 위치 한 번 → 제안 키.
+# 값 전체가 실제로 있으면(해석 결과가 있으면) 그 값의 조각으로 찾은 발견 위치는 뺀다. 남은 위치가 없는 대상은 후보가 아니다.
 project_path_gateway__domain_scan_group() (
 	set +e +u +f
 	IFS=' 	''
@@ -1138,11 +1139,13 @@ project_path_gateway__domain_scan_group() (
 	substr($1, 1, 2) == "O\t" {
 		id = tab_field($1, 2)
 		nloc[id]++
-		loc[id, nloc[id]] = tab_rest($1, 2)
+		loc[id, nloc[id]] = tab_field($1, 3) "\t" tab_field($1, 4) "\t" tab_field($1, 5) "\t" tab_rest($1, 6)
+		whole[id, nloc[id]] = tab_field($1, 6)
 		next
 	}
 	substr($1, 1, 2) == "S\t" {
 		ns++
+		found[tab_field($1, 2)] = 1
 		sid[ns] = tab_field($1, 2)
 		sst[ns] = tab_field($1, 3)
 		skind[ns] = tab_field($1, 4)
@@ -1162,11 +1165,18 @@ project_path_gateway__domain_scan_group() (
 			else if (sst[i] == "blocked") { rank = 3; info = scause[i] }
 			else if (sst[i] == "missing") rank = 4
 			else continue
+			kept = 0
+			for (j = 1; j != nloc[id] + 1; j++) {
+				if (whole[id, j] != "-" && (whole[id, j] in found)) continue
+				kept++
+				out[kept] = loc[id, j]
+			}
+			if (kept == 0) continue
 			if (!((rank, p) in head)) {
 				head[rank, p] = 1
 				printf "%d\t%s\t0\t%s\t%s\n", rank, p, kind, info
 			}
-			for (j = 1; j != nloc[id] + 1; j++) printf "%d\t%s\t1\t%s\n", rank, p, loc[id, j]
+			for (j = 1; j != kept + 1; j++) printf "%d\t%s\t1\t%s\n", rank, p, out[j]
 		}
 		printf "~\t%d\n", scripts
 	}
