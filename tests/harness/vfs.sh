@@ -88,6 +88,14 @@ ppgt_vfs_port() {
 		printf '%s\n' "$PPGT_PID"
 		return 0
 		;;
+	read_stdin)
+		# 실제 포트의 cat은 가드 대상이라 하니스 awk로 표준 입력 전체를 읽는다(기능 008 research R-10).
+		ppgt_rec read-stdin
+		ppgt_vfs_stdin=$(LC_ALL=C "$PPGT_AWK" 'BEGIN { RS = "\001" } { printf "%s", $0 }'
+			printf x)
+		printf '%s' "$ppgt_vfs_stdin"
+		return 0
+		;;
 	trap)
 		ppgt_rec trap "$3" "$2"
 		case $2 in
@@ -116,7 +124,8 @@ ppgt_vfs_apply() {
 	ppgt_case_fs
 	ppgt_vfs_run init
 	for ppgt_vfs_name in is_dir is_file is_readable is_writable exists is_link physical_dir readlink read_lines read_file \
-		self_path command_path pid list_prefix mkdir mkdir_p rmdir remove write_text copy_to copy_preserve link move chmod trap; do
+		self_path command_path pid list_prefix find_scripts read_first_line path_kinds read_stdin \
+		mkdir mkdir_p rmdir remove write_text copy_to copy_preserve link move chmod trap; do
 		eval "project_path_gateway__sys_$ppgt_vfs_name() { ppgt_vfs_port $ppgt_vfs_name \"\$@\"; }"
 		eval "ppg__sys_$ppgt_vfs_name() { ppgt_vfs_port $ppgt_vfs_name \"\$@\"; }"
 	done

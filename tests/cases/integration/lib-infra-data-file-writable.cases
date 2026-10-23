@@ -1,0 +1,36 @@
+# 인프라 통합: 입력 포트 project_path_gateway__port_data_file_writable FILE (기능 008 research R-09 7단계)
+# 반환: 0 가능, 1 링크, 2 파일 쓰기 권한 없음, 3 임시 파일을 만들 디렉터리 쓰기 권한 없음. 확인만 하고 쓰지 않는다.
+target lib-func project_path_gateway__port_data_file_writable
+layer infra
+
+case writable-ok
+fs file /t/tool/data.conf
+arg /t/tool/data.conf
+status 0
+op is-link /t/tool/data.conf
+op is-writable /t/tool/data.conf
+op is-writable /t/tool
+
+case writable-link
+fs file /t/real.conf
+fs link /t/tool/data.conf /t/real.conf
+arg /t/tool/data.conf
+status 1
+op is-link /t/tool/data.conf
+
+case writable-readonly-file
+fs file /t/tool/data.conf
+fs readonly /t/tool/data.conf
+arg /t/tool/data.conf
+status 2
+op is-link /t/tool/data.conf
+op is-writable /t/tool/data.conf
+
+case writable-readonly-directory
+fs file /t/tool/data.conf
+fs readonly /t/tool
+arg /t/tool/data.conf
+status 3
+op is-link /t/tool/data.conf
+op is-writable /t/tool/data.conf
+op is-writable /t/tool

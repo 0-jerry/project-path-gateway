@@ -1,0 +1,60 @@
+# 도메인 단위: 찾기 모델 project_path_gateway__domain_scan_is_shell_shebang LINE (기능 008 contracts/library-api.md 1절)
+# 첫 줄이 sh, bash, dash, zsh, ksh shebang이면 반환 0. env 경유(옵션·VAR=값 건너뜀)와 끝 CR을 허용한다.
+target lib-func project_path_gateway__domain_scan_is_shell_shebang
+layer domain
+
+case shebang-bin-sh
+arg #!/bin/sh
+status 0
+
+case shebang-space-and-option
+arg #!\s/bin/bash\s-e
+status 0
+
+case shebang-env-bash
+arg #!/usr/bin/env\sbash
+status 0
+
+case shebang-env-split-option
+arg #!/usr/bin/env\s-S\sbash\s-e
+status 0
+
+case shebang-env-assignment
+arg #!/usr/bin/env\sVAR=1\szsh
+status 0
+
+case shebang-crlf-end
+arg #!/bin/dash\r
+status 0
+
+case shebang-ksh
+arg #!/bin/ksh
+status 0
+
+case shebang-python
+arg #!/usr/bin/python3
+status 1
+
+case shebang-env-python
+arg #!/usr/bin/env\spython3
+status 1
+
+case shebang-env-only-options
+arg #!/usr/bin/env\s-i
+status 1
+
+case shebang-marker-only
+arg #!
+status 1
+
+case shebang-glob-is-not-expanded
+arg #!/bin/*
+status 1
+
+case shebang-comment-line
+arg #\sshell\sscript
+status 1
+
+case shebang-empty
+arg \e
+status 1

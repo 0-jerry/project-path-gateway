@@ -1,0 +1,35 @@
+# 도메인 단위: 찾기 모델 project_path_gateway__domain_scan_probe_paths EXTRACTED (기능 008 research R-06 1단계)
+# 해석 대상마다 1순위·2순위 절대경로를 한 줄씩 낸다(없으면 빈 줄). 루트 참조는 빈 줄 두 개다.
+target lib-func project_path_gateway__domain_scan_probe_paths
+layer domain
+
+case probe-two-lines-per-target
+arg ROOT\t/r\nT\t1\tb\tsrc\tscripts/src\nO\t1\tscripts/b.sh\t1\t-\t-\tsrc\nT\t2\tb\tlib\tscripts/lib\nT\t3\tb\tls\tscripts/ls\nT\t4\tp\tbuild/x.txt\tscripts/build/x.txt\nT\t5\tr\t\t\nT\t6\tp\tfifo\t\nT\t7\tp\ta/b.txt\tscripts/a/b.txt\nP\t1
+status 0
+out /r/src
+out /r/scripts/src
+out /r/lib
+out /r/scripts/lib
+out /r/ls
+out /r/scripts/ls
+out /r/build/x.txt
+out /r/scripts/build/x.txt
+out
+out
+out /r/fifo
+out
+out /r/a/b.txt
+out /r/scripts/a/b.txt
+
+case probe-root-slash
+arg ROOT\t/\nT\t1\tb\tsrc\ts/src\nT\t2\tp\ta.txt\t\nP\t1
+status 0
+out /src
+out /s/src
+out /a.txt
+out
+
+case probe-no-targets
+arg ROOT\t/r\nP\t0
+status 0
+

@@ -6,8 +6,13 @@
 # 하니스 코드는 호출 셸 옵션(set -euf)과 IFS에서도 동작하도록 쓴다.
 
 # 셸 변수 목록에서 하니스·라이브러리 접두어와 셸이 스스로 바꾸는 변수를 뺀 "이름 TAB 값 토큰" 줄
+# bash는 POSIX 모드가 아니면 set이 함수 정의도 출력해 본문 속 NAME= 줄이 변수로 읽히므로, 파이프라인 왼쪽 하위 셸에서만 POSIX 모드를 켠다.
 ppgt_session_vars() {
-	set | LC_ALL=C "$PPGT_AWK" '
+	{
+		# shellcheck disable=SC3040 # bash에서만 실행한다
+		if [ -n "${BASH_VERSION-}" ]; then set -o posix; fi
+		set
+	} | LC_ALL=C "$PPGT_AWK" '
 	function flush() {
 		if (name == "") return
 		if (name ~ /^(PPGT_|ppgt_|PROJECT_PATH_GATEWAY_|BASH|FUNCNAME$|PIPESTATUS$|LINENO$|RANDOM$|SRANDOM$|SECONDS$|EPOCH|SHELLOPTS$|_$|IFS$|OPTIND$|COLUMNS$|LINES$)/) { name = ""; return }

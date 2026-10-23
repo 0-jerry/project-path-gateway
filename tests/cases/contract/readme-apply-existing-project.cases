@@ -1,0 +1,44 @@
+# 공개 API 계약: README 기존 프로젝트에 적용하기 사용 예 (기능 008 US3, FR-019, SC-002)
+# 찾기 결과를 파이프로 일괄 등록에 넘기고 검증한다. 가상 파일 시스템은 라이브러리 함수 호출 사이에 바뀐 상태를 이어 주지 않으므로
+# 마지막 검증은 처음 데이터 파일 기준이다(실제 연속 동작은 tests/manual-checks.md 14절).
+target readme-example apply-existing-project
+layer api
+self scripts/apply-paths.sh
+fs file /t/my\sproject/.tools/project-path-gateway/.project-path-gateway
+fs file /t/my\sproject/.tools/project-path-gateway/project-path-gateway.sh
+fs file /t/my\sproject/.tools/project-path-gateway/project-path-gateway.dirs.conf
+content DOCS=docs
+fs file /t/my\sproject/.tools/project-path-gateway/project-path-gateway.files.conf
+content APP_CONFIG=config/app.json
+fs file /t/my\sproject/scripts/apply-paths.sh
+fs dir /t/my\sproject/docs
+fs file /t/my\sproject/config/app.json
+
+case readme-apply-existing-project-registers-new-candidates
+fs dir /t/my\sproject/src
+fs file /t/my\sproject/assets/logo.png
+fs file /t/my\sproject/scripts/build.sh
+content ls src docs
+content cat config/app.json
+content cp assets/logo.png build/out.txt
+cwd /t/my\sproject
+status 0
+out project-path-gateway: 일괄 등록: 디렉터리 1건, 파일 1건, 유지 0건
+out project-path-gateway: 검증 통과 2건
+op source ./.tools/project-path-gateway/project-path-gateway.sh
+op copy-preserve /t/my\sproject/.tools/project-path-gateway/project-path-gateway.dirs.conf /t/my\sproject/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.dirs.conf
+op write /t/my\sproject/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.dirs.conf DOCS=docs\nSRC=src\n
+op move /t/my\sproject/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.dirs.conf /t/my\sproject/.tools/project-path-gateway/project-path-gateway.dirs.conf
+op copy-preserve /t/my\sproject/.tools/project-path-gateway/project-path-gateway.files.conf /t/my\sproject/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.files.conf
+op write /t/my\sproject/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.files.conf APP_CONFIG=config/app.json\nASSETS_LOGO_PNG=assets/logo.png\n
+op move /t/my\sproject/.tools/project-path-gateway/.ppg-tmp.4242.project-path-gateway.files.conf /t/my\sproject/.tools/project-path-gateway/project-path-gateway.files.conf
+
+case readme-apply-existing-project-nothing-new
+fs file /t/my\sproject/scripts/build.sh
+content ls docs
+content cat config/app.json
+cwd /t/my\sproject
+status 0
+out project-path-gateway: 일괄 등록: 디렉터리 0건, 파일 0건, 유지 0건
+out project-path-gateway: 검증 통과 2건
+op source ./.tools/project-path-gateway/project-path-gateway.sh

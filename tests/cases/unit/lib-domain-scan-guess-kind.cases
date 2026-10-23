@@ -1,0 +1,24 @@
+# 도메인 단위: 찾기 모델 project_path_gateway__domain_scan_guess_kind PATH (기능 008 research R-06 4단계)
+# 없는 경로의 종류를 경로 모델의 모양 판정으로 추정한다: 파일 모양이면 file, 그 밖은 dir.
+target lib-func project_path_gateway__domain_scan_guess_kind
+layer domain
+
+case guess-kind-extension-is-file
+arg build/out.txt
+status 0
+out file
+
+case guess-kind-dotfile-is-file
+arg .env
+status 0
+out file
+
+case guess-kind-plain-name-is-dir
+arg build
+status 0
+out dir
+
+case guess-kind-nested-plain-name-is-dir
+arg .github/workflows
+status 0
+out dir

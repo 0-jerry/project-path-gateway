@@ -19,6 +19,7 @@ description: Look up project paths by key with the project-path-gateway shell li
 - 프로젝트 안 셸 스크립트가 파일·디렉터리 경로를 다룰 때.
 - 여러 스크립트가 같은 디렉터리나 파일을 가리킬 때. 경로가 바뀌면 데이터 파일 한 줄만 고친다.
 - 새 경로를 쓰기 시작할 때. 먼저 종류에 맞게 키로 등록하고 그 키를 쓴다.
+- 경로를 직접 적어 쓰던 기존 스크립트를 옮길 때. 아래 "기존 프로젝트에 적용하기" 절차를 따른다.
 
 경로를 문자열로 적거나 `cd ../..`로 루트를 찾는 코드는 쓰지 않는다.
 
@@ -46,6 +47,8 @@ project_path_gateway_init "$some_dir"     # 시작 디렉터리를 지정한다
 | `project_path_gateway_add_file` | `KEY PATH` | 없음 | 0 등록 / 2 인자 오류·미초기화·키 중복·키·경로·종류 규칙 위반 |
 | `project_path_gateway_update_dir` | `KEY PATH` | 없음 | 0 갱신 / 2 인자 오류·미초기화·키 없음·파일 키·경로·종류 규칙 위반 |
 | `project_path_gateway_update_file` | `KEY PATH` | 없음 | 0 갱신 / 2 인자 오류·미초기화·키 없음·디렉터리 키·경로·종류 규칙 위반 |
+| `project_path_gateway_add_list` | `LIST` (목록 파일, `-`이면 표준 입력) | `project-path-gateway: 일괄 등록: 디렉터리 D건, 파일 F건, 유지 K건` | 0 등록 / 2 인자 오류·미초기화·목록 읽기 불가·목록 위반·쓰기 실패 |
+| `project_path_gateway_scan` | 없음 | 찾기 결과 목록(`add_list` 입력 형식, 읽기 전용) | 0 성공 / 2 인자 오류·미초기화·데이터 파일 오류 |
 
 - 오류는 모두 stderr에 `project-path-gateway: <함수 이름>: <원인>` 한 줄로 나온다.
 - 디렉터리 키를 `project_path_gateway_file`로, 파일 키를 `project_path_gateway_dir`로 조회하면 종류가 다르다는 오류(반환 2)다.
@@ -73,10 +76,56 @@ project_path_gateway_init "$some_dir"     # 시작 디렉터리를 지정한다
 ## 하지 말 것
 
 - 경로를 스크립트에 직접 적기. 종류에 맞는 함수로 키를 조회한다.
-- 데이터 파일을 직접 파싱하거나 편집하기. 등록은 `project_path_gateway_add_dir`·`project_path_gateway_add_file`,
+- 데이터 파일을 직접 파싱하거나 편집하기. 등록은 `project_path_gateway_add_dir`·`project_path_gateway_add_file`(여러 개는 `project_path_gateway_add_list`),
   갱신은 `project_path_gateway_update_dir`·`project_path_gateway_update_file`을 쓴다.
 - `.tools/project-path-gateway/` 안의 표식 파일과 라이브러리 파일을 손대기. 라이브러리는 전역 프로그램 `init`이 교체한다.
 - 절대경로나 기계별 값을 데이터 파일에 적어 저장소에 커밋하기.
+
+## 기존 프로젝트에 적용하기
+
+경로를 직접 적어 쓰던 스크립트는 찾기로 목록을 받고, 검토한 목록을 일괄 등록한 뒤 스크립트를 고친다.
+
+1. 찾기 결과를 파일로 받는다. 찾기는 파일을 바꾸지 않는다.
+
+   ```sh
+   sh -c '. ./.tools/project-path-gateway/project-path-gateway.sh && project_path_gateway_init && project_path_gateway_scan' > paths.list
+   ```
+
+2. 결과를 검토한다. 새 후보만 `KEY=경로` 줄이고 나머지는 `#` 주석이다.
+   - 새 후보 가운데 스크립트가 경로로 쓰지 않는 것(명령 인자나 단어가 같은 이름의 파일·디렉터리와 우연히 겹친 맨 이름)은 줄을 지운다.
+   - 키 이름은 용도가 드러나게 고쳐도 된다(대문자로 시작, 대문자·숫자·`_`만).
+   - "확인 필요"는 스크립트가 만드는 경로(빌드 출력 등)일 때만 제안 줄 앞 `#`을 지운다.
+   - "등록 불가"는 적힌 대안을 따른다. 확장자 없는 파일은 상위 디렉터리를 디렉터리 항목으로 등록하고 이름을 붙여 쓴다.
+   - "이미 등록"은 적힌 조회 호출을 쓰고, "루트 참조"는 키 대신 `PROJECT_PATH_GATEWAY_ROOT`를 쓴다.
+3. 목록을 등록하고 검증한다. 위반이 하나라도 있으면 아무것도 쓰이지 않으므로 보고된 줄을 고쳐 다시 실행한다.
+
+   ```sh
+   sh -c '. ./.tools/project-path-gateway/project-path-gateway.sh && project_path_gateway_init && project_path_gateway_add_list paths.list && project_path_gateway_verify'
+   ```
+
+4. 발견 위치 줄(`#   <스크립트>:<줄 번호>: <원문>`)의 경로 문자열을 조회 호출로 바꾼다. 다시 찾기를 실행해 남은 곳이 없는지
+   확인하고 `paths.list`를 지운다.
+
+바꾸기 전:
+
+```sh
+#!/bin/sh
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+ls "$ROOT/src"
+cat "$ROOT/config/app.json"
+```
+
+바꾼 뒤(`SRC=src`는 디렉터리 데이터 파일, `APP_CONFIG=config/app.json`은 파일 데이터 파일에 등록됨):
+
+```sh
+#!/bin/sh
+. "$(dirname "$0")/../.tools/project-path-gateway/project-path-gateway.sh"
+project_path_gateway_init "$(cd "$(dirname "$0")" && pwd)" || exit 1
+src=$(project_path_gateway_dir SRC) || exit 1
+app_config=$(project_path_gateway_file APP_CONFIG) || exit 1
+ls "$src"
+cat "$app_config"
+```
 
 ## 예시
 

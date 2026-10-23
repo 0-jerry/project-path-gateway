@@ -1,0 +1,34 @@
+# 도메인 단위: 찾기 모델 project_path_gateway__domain_scan_script_lines FILE BODY (기능 008 data-model 3.1)
+# "F<TAB>FILE" 한 줄과 본문 줄마다 "L<TAB>원문"을 낸다. 본문이 비면 F 줄만 낸다.
+target lib-func project_path_gateway__domain_scan_script_lines
+layer domain
+
+case script-lines-each-line
+arg /r/a.sh
+arg echo\sa\necho\sb
+status 0
+out F\t/r/a.sh
+out L\techo a
+out L\techo b
+
+case script-lines-empty-lines-kept
+arg /r/a.sh
+arg a\n\nb
+status 0
+out F\t/r/a.sh
+out L\ta
+out L\t
+out L\tb
+
+case script-lines-tab-and-cr-kept
+arg /r/a.sh
+arg \tls\ssrc\r
+status 0
+out F\t/r/a.sh
+out L\t\tls src\r
+
+case script-lines-empty-body
+arg /r/a.sh
+arg \e
+status 0
+out F\t/r/a.sh

@@ -1,0 +1,224 @@
+# 도메인 단위: 항목 목록 모델 project_path_gateway__domain_entries_check_list RECORDS ITEMS KINDS (기능 008 data-model 2.2, research R-09 5단계)
+# 목록 줄 순서대로 등록 A, 유지 K, 위반 V(다섯 줄)를 낸다. 한 줄에 위반 하나: 줄 위반 → 실제 종류 → 목록 안 중복 키 → 기존 항목.
+target lib-func project_path_gateway__domain_entries_check_list
+layer domain
+
+case check-list-register-both-kinds
+arg dir\t1\tPPG_TOOL_DIR\t.tools/project-path-gateway
+arg dir\t1\tSRC\tsrc\nfile\t2\tAPP\tconfig/app.json\ndir\t5\tDOCS\tdocs
+arg dir\nfile\nnone
+status 0
+out A\tdir\t1\tSRC\tsrc
+out A\tfile\t2\tAPP\tconfig/app.json
+out A\tdir\t5\tDOCS\tdocs
+
+case check-list-keep-same-key-same-path
+arg dir\t1\tSRC\tsrc\nfile\t1\tAPP\tconfig/app.json
+arg dir\t1\tSRC\tsrc\nfile\t2\tAPP\tconfig/app.json
+arg dir\nfile
+status 0
+out K\t1\tSRC
+out K\t2\tAPP
+
+case check-list-key-conflict-other-path
+arg dir\t1\tSRC\tsrc\nfile\t1\tAPP\ta\tb.json
+arg dir\t1\tSRC\tsource\nfile\t2\tAPP\tc.json
+arg none\nnone
+status 0
+out V
+out 1
+out key_conflict
+out SRC
+out dir
+out src
+out V
+out 2
+out key_conflict
+out APP
+out file
+out a\tb.json
+
+case check-list-key-conflict-other-kind
+arg dir\t1\tCONF\tconf
+arg file\t1\tCONF\tconf.json
+arg none
+status 0
+out V
+out 1
+out key_conflict
+out CONF
+out dir
+out conf
+
+case check-list-trailing-slash-is-other-path
+arg dir\t1\tSRC\tsrc
+arg dir\t1\tSRC\tsrc/
+arg dir
+status 0
+out V
+out 1
+out key_conflict
+out SRC
+out dir
+out src
+
+case check-list-same-path-other-key-is-registered
+arg dir\t1\tSRC\tsrc
+arg dir\t1\tSOURCES\tsrc
+arg dir
+status 0
+out A\tdir\t1\tSOURCES\tsrc
+
+case check-list-kind-mismatch-dir-shape-is-file
+arg \e
+arg dir\t1\tMAKEFILE\tMakefile
+arg file
+status 0
+out V
+out 1
+out kind_mismatch
+out MAKEFILE
+out dir
+out file
+
+case check-list-kind-mismatch-file-shape-is-dir
+arg \e
+arg file\t1\tVER\tv1.2
+arg dir
+status 0
+out V
+out 1
+out kind_mismatch
+out VER
+out file
+out dir
+
+case check-list-kind-mismatch-other
+arg \e
+arg dir\t1\tFIFO\tpipe
+arg other
+status 0
+out V
+out 1
+out kind_mismatch
+out FIFO
+out dir
+out other
+
+case check-list-missing-path-is-registered
+arg \e
+arg file\t1\tOUT\tbuild/out.txt
+arg none
+status 0
+out A\tfile\t1\tOUT\tbuild/out.txt
+
+case check-list-missing-kinds-are-none
+arg \e
+arg dir\t1\tA\ta\ndir\t2\tB\tb
+arg dir
+status 0
+out A\tdir\t1\tA\ta
+out A\tdir\t2\tB\tb
+
+case check-list-duplicate-key-in-list
+arg \e
+arg dir\t3\tA\ta\ndir\t4\tA\tb\nfile\t6\tA\tc.txt
+arg none\nnone\nnone
+status 0
+out A\tdir\t3\tA\ta
+out V
+out 4
+out duplicate_key
+out A
+out 3
+out
+out V
+out 6
+out duplicate_key
+out A
+out 3
+out
+
+case check-list-identical-duplicate-line
+arg \e
+arg dir\t1\tA\ta\ndir\t2\tA\ta
+arg none\nnone
+status 0
+out A\tdir\t1\tA\ta
+out V
+out 2
+out duplicate_key
+out A
+out 1
+out
+
+case check-list-kind-mismatch-before-duplicate
+arg \e
+arg dir\t1\tA\ta\ndir\t2\tA\tMakefile
+arg none\nfile
+status 0
+out A\tdir\t1\tA\ta
+out V
+out 2
+out kind_mismatch
+out A
+out dir
+out file
+
+case check-list-duplicate-before-existing
+arg dir\t1\tA\ta
+arg dir\t1\tA\ta\ndir\t2\tA\tb
+arg dir\nnone
+status 0
+out K\t1\tA
+out V
+out 2
+out duplicate_key
+out A
+out 1
+out
+
+case check-list-line-violation-passes-through-in-order
+arg \e
+arg dir\t1\tSRC\tsrc\n!\t2\tinvalid_key\t0\tsrc\n!\t3\tno_separator\t0\t\n!\t4\tinvalid_key\t1\tY\r\nfile\t5\tAPP\ta.json
+arg none\n\n\n\nnone
+status 0
+out A\tdir\t1\tSRC\tsrc
+out V
+out 2
+out invalid_key
+out src
+out 0
+out
+out V
+out 3
+out no_separator
+out
+out 0
+out
+out V
+out 4
+out invalid_key
+out Y\r
+out 1
+out
+out A\tfile\t5\tAPP\ta.json
+
+case check-list-violating-line-key-is-not-registered
+arg \e
+arg !\t1\tparent_segment\t0\tA\ndir\t2\tA\ta
+arg \nnone
+status 0
+out V
+out 1
+out parent_segment
+out A
+out 0
+out
+out A\tdir\t2\tA\ta
+
+case check-list-empty
+arg \e
+arg \e
+arg \e
+status 0

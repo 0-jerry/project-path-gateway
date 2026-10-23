@@ -1,0 +1,29 @@
+# 도메인 단위: 항목 목록 모델 project_path_gateway__domain_entries_list_block CHECKED KIND (기능 008 research R-09 7단계)
+# 종류 KIND의 등록 항목을 목록 순서대로 KEY=경로 줄로 만들어 LF로 잇는다. 끝 LF 없음, 없으면 빈 출력.
+target lib-func project_path_gateway__domain_entries_list_block
+layer domain
+
+case list-block-dir
+arg A\tdir\t1\tSRC\tsrc\nA\tfile\t2\tAPP\tconfig/app.json\nK\t3\tX\nA\tdir\t5\tDOCS\t내\s문서/a=b
+arg dir
+status 0
+out SRC=src
+out-raw DOCS=내 문서/a=b
+
+case list-block-file
+arg A\tdir\t1\tSRC\tsrc\nA\tfile\t2\tAPP\tconfig/app.json\nA\tfile\t4\tTAB\ta\tb.txt
+arg file
+status 0
+out APP=config/app.json
+out-raw TAB=a\tb.txt
+
+case list-block-skips-violation-lines
+arg V\n1\nduplicate_key\nA\tdir\t9\tX\tx\n0\n\nA\tdir\t2\tSRC\tsrc
+arg dir
+status 0
+out-raw SRC=src
+
+case list-block-none
+arg K\t1\tSRC
+arg dir
+status 0

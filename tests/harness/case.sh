@@ -3,7 +3,7 @@
 # 사용법: <셸> tests/harness/case.sh <저장소 루트> <사례 파일 경로> <사례 이름> <캡처 파일 접두어>
 #
 # 사례 하나를 읽고 대상을 서브셸에서 실행한 뒤 판정 줄 하나와 상세를 stdout에 출력한다.
-# 대상 실행의 stdout·stderr·fd 9는 <접두어>.stdout, .stderr, .ops로 캡처한다.
+# 대상 실행의 stdout·stderr·fd 9는 <접두어>.stdout, .stderr, .ops로 캡처하고, 표준 입력은 <접두어>.stdin(사례 stdin 필드, 기능 008 research R-10)으로 연다.
 # 대상 셸 경로는 환경 변수 PPGT_SHELL로 받는다(없으면 sh).
 
 if [ "$#" -ne 4 ]; then
@@ -42,6 +42,8 @@ if [ -n "${PPGT_SKIP+x}" ]; then
 	exit 0
 fi
 
+[ -f "$PPGT_PREFIX.stdin" ] || : >"$PPGT_PREFIX.stdin"
+
 PPGT_ADAPTER_FILE=$PPGT_ROOT/tests/harness/adapters/$PPGT_ADAPTER.sh
 if [ ! -f "$PPGT_ADAPTER_FILE" ]; then
 	printf 'DATA %s: 어댑터가 아직 없습니다: %s\n' "$PPGT_CASE_FILE" "$PPGT_ADAPTER"
@@ -60,7 +62,7 @@ fi
 	# shellcheck source=/dev/null
 	. "$PPGT_ADAPTER_FILE"
 	ppgt_adapter_run
-) 9>"$PPGT_PREFIX.ops" >"$PPGT_PREFIX.stdout" 2>"$PPGT_PREFIX.stderr"
+) <"$PPGT_PREFIX.stdin" 9>"$PPGT_PREFIX.ops" >"$PPGT_PREFIX.stdout" 2>"$PPGT_PREFIX.stderr"
 ppgt_case_status=$?
 
 ppgt_compare "$PPGT_PREFIX" "$ppgt_case_status"

@@ -9,7 +9,7 @@
 # mode=extract   인자: 사례 파일 하나
 #   -v case_name_arg=이름 -v prefix=캡처 접두어
 #   출력: 사례를 준비하는 셸 코드(eval용). 데이터 오류면 PPGT_DATA 대입만 출력한다.
-#   부수 효과: <prefix>.want-stdout, .want-stderr, .want-ops 파일에 기대값을 쓴다.
+#   부수 효과: <prefix>.want-stdout, .want-stderr, .want-ops 파일에 기대값을, <prefix>.stdin 파일에 대상 표준 입력(stdin·stdin-raw 필드, 없으면 빈 파일)을 쓴다.
 
 function reset_file() {
 	nhead = 0
@@ -88,9 +88,11 @@ function normalized_abs(p) {
 BEGIN {
 	# 작업 기록 종류별 인자 토큰 개수(contracts/doubles.md). 끝이 +이면 그 수 이상.
 	split("is-dir:1 is-file:1 is-readable:1 is-writable:1 exists:1 is-link:1 physical-dir:1 readlink:1 read-lines:1 read-file:1 self-path:0 command-path:1 pid:0 list-prefix:2 cd:1 pwd:0 " \
+		"find-scripts:1 read-first-line:1 path-kinds:1 read-stdin:0 " \
 		"mkdir:1 mkdir-p:1 rmdir:1 remove:1 write:2 copy:2 copy-preserve:2 link:2 move:2 chmod:2 trap:2 port:1+ returned:2 changed:1 source:1", a, " ")
 	for (k in a) { split(a[k], opkv, ":"); op_argc[opkv[1]] = opkv[2] }
-	split("is-dir is-file is-readable is-writable exists is-link physical-dir readlink read-lines read-file self-path command-path pid list-prefix cd pwd", a, " ")
+	split("is-dir is-file is-readable is-writable exists is-link physical-dir readlink read-lines read-file self-path command-path pid list-prefix cd pwd " \
+		"find-scripts read-first-line path-kinds read-stdin", a, " ")
 	for (k in a) read_kind[a[k]] = 1
 	SQ = sprintf("%c", 39)
 	TAB = "\t"
@@ -99,11 +101,12 @@ BEGIN {
 	split("status op out out-raw err err-raw skip", a, " "); for (k in a) case_only[a[k]] = 1
 	split("arg call env unset-env cwd self pid fs fault interrupt stub caller-set caller-ifs caller-var caller-trap status op target layer doubles ops case", a, " ")
 	for (k in a) token_field[a[k]] = 1
-	split("content content-raw stub-out stub-out-raw stub-err out out-raw err err-raw skip", a, " ")
+	split("content content-raw stub-out stub-out-raw stub-err out out-raw err err-raw skip stdin stdin-raw", a, " ")
 	for (k in a) text_field[a[k]] = 1
 	split("lib-func lib-session bin-func bin-main script-func script-main readme-example", a, " ")
 	for (k in a) adapters[a[k]] = 1
-	split("is-dir is-file is-readable is-writable exists is-link physical-dir readlink read-lines read-file self-path command-path pid list-prefix cd pwd", a, " ")
+	split("is-dir is-file is-readable is-writable exists is-link physical-dir readlink read-lines read-file self-path command-path pid list-prefix cd pwd " \
+		"find-scripts read-first-line path-kinds read-stdin", a, " ")
 	for (k in a) read_ops[a[k]] = 1
 	nerr = 0
 	nres = 0
@@ -244,12 +247,14 @@ function check_tokens(name, n,   v1, ok, want) {
 		ok = 0
 		if (tok[1] ~ /^(dir|file|other|deny|readonly)$/ && n == 2) ok = 1
 		if (tok[1] == "link" && n == 3) ok = 1
+		if (tok[1] == "mode" && n == 3) ok = 1
 		if (!ok) {
-			if (tok[1] ~ /^(dir|file|other|deny|readonly|link)$/) err(FNR, "토큰 개수가 잘못되었습니다: fs")
+			if (tok[1] ~ /^(dir|file|other|deny|readonly|link|mode)$/) err(FNR, "토큰 개수가 잘못되었습니다: fs")
 			else err(FNR, "허용하지 않는 값입니다: fs " tok[1])
 			return 0
 		}
 		if (!normalized_abs(decode(tok[2]))) { err(FNR, "허용하지 않는 값입니다: fs " tok[2]); return 0 }
+		if (tok[1] == "mode" && tok[3] !~ /^[0-7][0-7][0-7][0-7]?$/) { err(FNR, "허용하지 않는 값입니다: fs mode " tok[3]); return 0 }
 	}
 	return 1
 }
@@ -391,8 +396,8 @@ function emit_case(c,   i, fname, v, n, t, layer, adapter, doubles, opsmode, red
 	singles_cwd = ""; singles_self = ""; singles_pid = ""; interrupt = ""
 	pending = ""
 	skipv = ""
-	out_file = prefix ".want-stdout"; err_file = prefix ".want-stderr"; ops_file = prefix ".want-ops"
-	printf "" > out_file; printf "" > err_file; printf "" > ops_file
+	out_file = prefix ".want-stdout"; err_file = prefix ".want-stderr"; ops_file = prefix ".want-ops"; stdin_file = prefix ".stdin"
+	printf "" > out_file; printf "" > err_file; printf "" > ops_file; printf "" > stdin_file
 	for (i = 1; i <= nhead + case_nf[c]; i++) {
 		if (i <= nhead) { fname = hf_name[i]; v = hf_value[i]; from_case = 0 }
 		else { fname = cf_name[c, i - nhead]; v = cf_value[c, i - nhead]; from_case = 1 }
@@ -411,6 +416,7 @@ function emit_case(c,   i, fname, v, n, t, layer, adapter, doubles, opsmode, red
 			skipping_content = 0
 			if (tt[1] == "file") { pending = "\n\tppgt_vfs_add file " shq(decode(tt[2])) " "; pending_content = ""; has_pending = 1 }
 			else if (tt[1] == "link") fsc = fsc "\n\tppgt_vfs_add link " shq(decode(tt[2])) " " shq(decode(tt[3]))
+			else if (tt[1] == "mode") fsc = fsc "\n\tppgt_vfs_add mode " shq(decode(tt[2])) " " shq(tt[3])
 			else fsc = fsc "\n\tppgt_vfs_add " tt[1] " " shq(decode(tt[2]))
 		}
 		else if (fname == "content") { if (!skipping_content) pending_content = pending_content decode(v) "\n" }
@@ -439,10 +445,12 @@ function emit_case(c,   i, fname, v, n, t, layer, adapter, doubles, opsmode, red
 		else if (fname == "err-raw") printf "%s", decode(v) > err_file
 		else if (fname == "op") printf "op %s\n", v > ops_file
 		else if (fname == "skip") skipv = decode(v)
+		else if (fname == "stdin") printf "%s\n", decode(v) > stdin_file
+		else if (fname == "stdin-raw") printf "%s", decode(v) > stdin_file
 	}
 	flush_pending()
 	flush_stub()
-	close(out_file); close(err_file); close(ops_file)
+	close(out_file); close(err_file); close(ops_file); close(stdin_file)
 	printf "PPGT_ARGS=%s\n", shq(args)
 	printf "PPGT_CWD=%s\n", shq(singles_cwd == "" ? "/" : singles_cwd)
 	printf "PPGT_SELF=%s\nPPGT_HAS_SELF=%s\n", shq(singles_self), (singles_self == "" ? "0" : "1")

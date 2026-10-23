@@ -1,0 +1,64 @@
+# 도메인 단위: 찾기 모델 project_path_gateway__domain_scan_pick EXTRACTED KINDS (기능 008 research R-06 3단계, data-model 3.3)
+# KINDS는 probe_paths 순서의 종류 줄들이다. 확인할 대상마다 번호, 상태, 루트 기준 경로, 절대경로 네 줄을 낸다.
+target lib-func project_path_gateway__domain_scan_pick
+layer domain
+
+# 대상마다 1순위가 있으면 1순위, 없으면 2순위, 둘 다 없으면 맨 이름은 버리고 경로 같음은 none. 루트 참조는 root
+
+case pick-first-second-none-root-other
+arg ROOT\t/r\nT\t1\tb\tsrc\tscripts/src\nO\t1\tscripts/b.sh\t1\t-\t-\tsrc\nT\t2\tb\tlib\tscripts/lib\nT\t3\tb\tls\tscripts/ls\nT\t4\tp\tbuild/x.txt\tscripts/build/x.txt\nT\t5\tr\t\t\nT\t6\tp\tfifo\t\nT\t7\tp\ta/b.txt\tscripts/a/b.txt\nP\t1
+arg dir\ndir\nnone\ndir\nnone\nnone\nnone\nnone\n\n\nother\nnone\nnone\nfile
+status 0
+out 1
+out dir
+out src
+out /r/src
+out 2
+out dir
+out scripts/lib
+out /r/scripts/lib
+out 4
+out none
+out build/x.txt
+out
+out 5
+out root
+out
+out
+out 6
+out other
+out fifo
+out /r/fifo
+out 7
+out file
+out scripts/a/b.txt
+out /r/scripts/a/b.txt
+
+case pick-first-wins-over-second
+arg ROOT\t/r\nT\t1\tb\tsrc\ts/src\nP\t1
+arg file\ndir
+status 0
+out 1
+out file
+out src
+out /r/src
+
+case pick-bare-name-missing-everywhere-is-dropped
+arg ROOT\t/r\nT\t1\tb\tls\ts/ls\nP\t1
+arg none\nnone
+status 0
+
+case pick-root-slash
+arg ROOT\t/\nT\t1\tp\ta.txt\t\nP\t1
+arg file\nnone
+status 0
+out 1
+out file
+out a.txt
+out /a.txt
+
+case pick-no-targets
+arg ROOT\t/r\nP\t0
+arg \e
+status 0
+
